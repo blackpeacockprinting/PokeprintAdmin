@@ -1,0 +1,29 @@
+{
+  "hosting": {
+    "site": "admin",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/track-order-v2.html"
+      },
+      {
+        "source": "/inventory",
+        "destination": "/inventory.html"
+      },
+      {
+        "source": "/designs",
+        "destination": "/designs.html"
+      },
+      {
+        "source": "/track-order",
+        "destination": "/track-order-v2.html"
+      }
+    ]
+  }
+}
