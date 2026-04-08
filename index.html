@@ -302,6 +302,7 @@
             .customer-meta { flex-wrap: wrap; gap: 10px; }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="container">
@@ -443,35 +444,33 @@
         });
 
         async function githubApi(endpoint, options = {}) {
-            const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}${endpoint}`;
-            const response = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3+json', ...options.headers },
+            const apiUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}${endpoint}`;
+            const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(apiUrl)}`;
+
+            const response = await fetch(proxyUrl, {
+                headers: { 
+                    'Authorization': `Bearer ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    ...options.headers 
+                },
                 ...options
             });
-            if (!response.ok) { const error = await response.json(); throw new Error(error.message || `HTTP ${response.status}`); }
+
+            if (!response.ok) { 
+                const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
             return response.json();
         }
 
-        async function githubApi(endpoint, options = {}) {
-    const apiUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}${endpoint}`;
-    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(apiUrl)}`;
-    
-    const response = await fetch(proxyUrl, {
-        headers: { 
-            'Authorization': `Bearer ${githubConfig.token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            ...options.headers 
-        },
-        ...options
-    });
-    
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-        throw new Error(error.message || `HTTP ${response.status}`);
-    }
-    return response.json();
-}
- {
+        async function getFileContents(path) {
+            try {
+                const data = await githubApi(`/contents/${path}`);
+                return { content: JSON.parse(atob(data.content)), sha: data.sha };
+            } catch (e) { if (e.message.includes('404')) return { content: null, sha: null }; throw e; }
+        }
+
+        async function saveFileContents(path, content, sha, message) {
             const contentEncoded = btoa(JSON.stringify(content, null, 2));
             const body = { message: message || `Update ${path}`, content: contentEncoded, branch: 'main' };
             if (sha) body.sha = sha;
@@ -567,7 +566,7 @@
             try {
                 const allDesigns = []; let page = 1, hasMore = true;
                 while (hasMore && page <= 5) {
-                    const response = await fetch(`${CONFIG.corsProxy}${encodeURIComponent(`${CONFIG.n3dApiUrl}/designs?page=${page}&limit=200`)}`, { headers: { 'Authorization': `Bearer ${CONFIG.n3dApiKey}` } });
+                    const response = await fetch(`${CONFIG.corsProxy}${encodeURIComponent(`${CONFIG.n3dApiUrl}/designs?page=${page}&limit=200`)}`, { headers: { 'Authorization': `Bearer ${CONFIG.n3dApiKey}`, 'Accept': 'application/json' } });
                     if (!response.ok) throw new Error('N3D API error');
                     const data = await response.json();
                     const pageDesigns = data.data || [];
