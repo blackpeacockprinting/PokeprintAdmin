@@ -3,1130 +3,893 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ PokePrint Order Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>PokePrint Order Tracker</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --purple-dark: #2F0743;
-            --purple-main: #41295a;
-            --purple-light: #6b21a8;
-            --purple-bright: #a855f7;
-            --pink: #ec4899;
-            --pink-hot: #ff006e;
-            --yellow: #fbbf24;
-            --yellow-bright: #f59e0b;
-            --cyan: #06b6d4;
-            --green: #22c55e;
-            --red: #ef4444;
-            --dark: #0f0a1e;
-            --darker: #0a0514;
-            --glass: rgba(65, 41, 90, 0.4);
-            --glass-border: rgba(168, 85, 247, 0.3);
+            --primary: #4a3b8c;
+            --primary-light: #6b5db8;
+            --primary-dark: #2d1f5f;
+            --accent: #ffcb05;
+            --accent-dark: #c7a008;
+            --text: #ffffff;
+            --text-muted: #b8b0d8;
+            --bg: #1a1230;
+            --card-bg: #2d2050;
+            --border: #4a3b8c;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--purple-main) 0%, var(--purple-dark) 50%, var(--darker) 100%);
-            background-attachment: fixed;
-            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--primary-dark) 100%);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
-            line-height: 1.6;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+
         .header {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            padding: 2rem 1rem;
             text-align: center;
-            margin-bottom: 30px;
-            padding: 30px 20px;
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            border: 2px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
+
         .header h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--yellow), var(--pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
+            font-size: 3rem;
+            color: var(--primary-dark);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.2);
+            margin-bottom: 0.5rem;
         }
-        .header p { color: rgba(255,255,255,0.7); font-size: 1.1rem; font-weight: 500; }
+
+        .header p {
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            background: var(--primary);
+            padding: 1.5rem 1rem;
+            border-bottom: 3px solid var(--accent);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
         .btn {
-            background: linear-gradient(135deg, var(--purple-light), var(--purple-bright));
-            border: 2px solid var(--purple-bright);
-            border-radius: 12px;
-            padding: 12px 24px;
-            color: white;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.95rem;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            background: var(--card-bg);
+            color: var(--text);
             cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.6); border-color: var(--yellow); }
-        .btn-success { background: linear-gradient(135deg, var(--green), #16a34a); border-color: var(--green); }
-        .btn-warning { background: linear-gradient(135deg, var(--yellow-bright), #d97706); border-color: var(--yellow); color: #000; }
-        .btn-danger { background: linear-gradient(135deg, var(--red), #dc2626); border-color: var(--red); }
-        .btn-cyan { background: linear-gradient(135deg, var(--cyan), #0891b2); border-color: var(--cyan); }
-        .btn-secondary { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
-        .btn-small { padding: 8px 16px; font-size: 0.85rem; }
-        .panel {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            border: 2px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        }
-        .panel-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--yellow);
-            margin-bottom: 20px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.5rem;
         }
-        .config-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+
+        .btn:hover {
+            border-color: var(--accent);
+            background: rgba(255,203,5,0.1);
         }
-        .form-input, .form-select, .form-textarea {
-            background: rgba(0,0,0,0.3);
-            border: 2px solid var(--purple-bright);
-            border-radius: 10px;
-            padding: 12px 15px;
-            color: white;
-            font-size: 1rem;
-            width: 100%;
-            transition: all 0.3s;
-            font-family: inherit;
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--primary-dark);
+            border-color: var(--accent);
+            font-weight: bold;
         }
-        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--yellow); box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); }
-        .form-textarea { min-height: 100px; resize: vertical; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+
+        .btn-primary:hover {
+            background: #ffd93d;
         }
-        .stat-card {
-            background: var(--glass);
-            border: 2px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
+
+        .stats-bar {
+            background: var(--primary-dark);
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .stat-item {
             text-align: center;
-            transition: all 0.3s;
         }
-        .stat-card:hover { transform: translateY(-5px); border-color: var(--purple-bright); }
-        .stat-value { font-size: 2rem; font-weight: 800; color: var(--yellow); margin-bottom: 5px; }
-        .stat-label { color: rgba(255,255,255,0.7); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .action-bar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 25px; }
-        .filament-section { margin-bottom: 20px; }
-        .filament-filters { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .filament-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent);
         }
-        .filament-card {
-            background: rgba(0,0,0,0.3);
-            border: 2px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-            transition: all 0.3s;
-            position: relative;
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .filament-card:hover { border-color: var(--purple-bright); transform: translateY(-3px); }
-        .filament-card.low { border-color: var(--red); background: rgba(239, 68, 68, 0.1); }
-        .filament-card.critical { animation: pulseRed 2s infinite; }
-        @keyframes pulseRed { 0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); } 50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); } }
-        .filament-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
-        .filament-color { width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .filament-name { font-weight: 700; font-size: 1.1rem; }
-        .filament-amount { font-size: 1.5rem; font-weight: 800; color: var(--yellow); margin-bottom: 10px; }
-        .filament-card.low .filament-amount { color: var(--red); }
-        .filament-progress { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 15px; }
-        .filament-progress-bar { height: 100%; background: linear-gradient(90deg, var(--green), var(--yellow)); border-radius: 4px; transition: width 0.3s; }
-        .filament-card.low .filament-progress-bar { background: linear-gradient(90deg, var(--red), var(--pink)); }
-        .filament-actions { display: flex; gap: 8px; }
-        .filament-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.1); color: white; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-        .filament-btn:hover { background: var(--purple-bright); border-color: var(--purple-bright); }
-        .filament-btn.add { background: rgba(34, 197, 94, 0.2); border-color: var(--green); }
-        .filament-btn.add:hover { background: var(--green); }
-        .shopping-list { background: rgba(239, 68, 68, 0.1); border: 2px solid var(--red); border-radius: 16px; padding: 20px; margin-top: 20px; }
-        .shopping-list h4 { color: var(--red); margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-        .shopping-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-        .shopping-item { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .customer-group {
-            background: var(--glass);
-            border: 2px solid var(--glass-border);
-            border-radius: 20px;
-            margin-bottom: 20px;
+
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .customer-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
             overflow: hidden;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
-        .customer-group:hover { border-color: var(--purple-bright); }
-        .customer-group.completed { opacity: 0.7; order: 999; }
+
+        .customer-card:hover {
+            border-color: var(--accent);
+        }
+
         .customer-header {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(236, 72, 153, 0.2));
-            padding: 20px;
+            background: var(--primary);
+            padding: 1.5rem;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 2px solid var(--border);
         }
-        .customer-name { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .customer-meta { display: flex; gap: 20px; align-items: center; font-size: 0.95rem; color: rgba(255,255,255,0.7); font-weight: 500; }
-        .expand-icon { font-size: 1.2rem; transition: transform 0.3s; }
-        .customer-group.expanded .expand-icon { transform: rotate(180deg); }
-        .customer-orders { display: none; padding: 20px; }
-        .customer-group.expanded .customer-orders { display: block; }
-        .order-card {
-            background: rgba(0,0,0,0.2);
-            border: 2px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
+
+        .customer-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .order-card:hover { border-color: var(--purple-bright); }
-        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .order-id { font-weight: 700; color: var(--cyan); font-size: 0.95rem; margin-bottom: 5px; }
-        .order-date { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
-        .order-status { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
-        .status-pending { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #60a5fa; }
-        .status-printing { background: rgba(245, 158, 11, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
-        .status-completed { background: rgba(34, 197, 94, 0.2); color: var(--green); border: 1px solid var(--green); }
-        .order-profit { font-size: 1.3rem; font-weight: 800; color: var(--green); }
-        .order-profit.negative { color: var(--red); }
-        .order-actions { display: flex; gap: 8px; }
-        .items-list { display: grid; gap: 10px; }
-        .item-row {
-            background: rgba(0,0,0,0.3);
-            border: 2px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 15px;
-            display: grid;
-            grid-template-columns: auto 1fr auto auto auto auto auto;
-            gap: 12px;
+
+        .customer-meta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        .expand-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .customer-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .orders-container {
+            display: none;
+            padding: 1.5rem;
+        }
+
+        .customer-card.expanded .orders-container {
+            display: block;
+        }
+
+        .order-item {
+            background: var(--primary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .order-item:hover {
+            border-color: var(--accent);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .order-id {
+            font-weight: bold;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .order-status {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .status-pending {
+            background: #f39c12;
+            color: #000;
+        }
+
+        .status-printing {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .status-completed {
+            background: #2ecc71;
+            color: #000;
+        }
+
+        .pokeball-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .pokeball-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 2px solid var(--border);
+        }
+
+        .pokeball {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #ff0000 50%, #fff 50%);
+            border: 2px solid #000;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .pokeball:hover {
+            transform: scale(1.1);
+        }
+
+        .pokeball::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 50%;
+        }
+
+        .pokeball.shiny {
+            background: linear-gradient(to bottom, #ffd700 50%, #fff 50%);
+            box-shadow: 0 0 8px #ffd700;
+        }
+
+        .pokeball.completed {
+            background: linear-gradient(to bottom, #2ecc71 50%, #fff 50%);
+        }
+
+        .item-name {
+            font-size: 0.9rem;
+        }
+
+        .item-qty {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .shiny-badge {
+            color: #ffd700;
+            font-size: 0.8rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: var(--primary);
+            padding: 1.5rem;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
-        .item-pokeball { width: 36px; height: 36px; border-radius: 50%; position: relative; cursor: pointer; transition: all 0.3s; }
-        .item-pokeball:hover { transform: scale(1.1); }
-        .pokeball-normal { background: linear-gradient(to bottom, var(--red) 50%, white 50%); border: 3px solid #1f2937; }
-        .pokeball-shiny { background: linear-gradient(to bottom, var(--yellow) 50%, var(--yellow-bright) 50%); border: 3px solid var(--yellow-bright); box-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
-        .pokeball-mystery { background: linear-gradient(135deg, var(--purple-bright), var(--pink)); border: 3px solid var(--pink); animation: rainbow 3s linear infinite; }
-        @keyframes rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-        .pokeball-center { position: absolute; width: 10px; height: 10px; background: white; border: 2px solid #1f2937; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .item-details { display: flex; flex-direction: column; gap: 2px; }
-        .item-name { font-weight: 700; font-size: 1.05rem; }
-        .item-meta { color: rgba(255,255,255,0.6); font-size: 0.85rem; }
-        .item-qty { background: var(--purple-dark); color: var(--yellow); padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; border: 1px solid var(--purple-bright); }
-        .item-status { display: flex; gap: 5px; }
-        .status-btn { padding: 6px 10px; border: 2px solid; border-radius: 8px; background: transparent; color: rgba(255,255,255,0.5); font-size: 0.75rem; cursor: pointer; transition: all 0.3s; font-weight: 600; }
-        .status-btn.active-pending { background: #3b82f6; color: white; border-color: #3b82f6; }
-        .status-btn.active-printing { background: var(--yellow-bright); color: var(--dark); border-color: var(--yellow); }
-        .status-btn.active-completed { background: var(--green); color: white; border-color: var(--green); }
-        .item-actions { display: flex; gap: 6px; }
-        .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 2px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; font-size: 0.95rem; }
-        .icon-btn:hover { background: var(--purple-bright); border-color: var(--purple-bright); }
-        .icon-btn.active { background: var(--yellow); color: var(--dark); border-color: var(--yellow); }
-        .icon-btn.danger:hover { background: var(--red); border-color: var(--red); }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 10, 30, 0.95); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
-        .modal-overlay.active { display: flex; }
-        .modal { background: linear-gradient(135deg, var(--purple-main), var(--purple-dark)); border: 3px solid var(--purple-bright); border-radius: 24px; padding: 30px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-        .modal h2 { font-size: 1.5rem; font-weight: 800; color: var(--yellow); margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; margin-bottom: 8px; color: rgba(255,255,255,0.8); font-weight: 600; font-size: 0.95rem; }
-        .design-search { position: relative; }
-        .search-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--purple-dark); border: 2px solid var(--purple-bright); border-top: none; border-radius: 0 0 10px 10px; max-height: 250px; overflow-y: auto; z-index: 100; display: none; }
-        .search-results.active { display: block; }
-        .search-result-item { padding: 12px 15px; cursor: pointer; transition: all 0.2s; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
-        .search-result-item:hover { background: var(--purple-light); }
-        .search-result-name { font-weight: 600; }
-        .search-result-grams { color: rgba(255,255,255,0.6); font-size: 0.9rem; }
-        .cart-items { margin: 20px 0; max-height: 300px; overflow-y: auto; border: 2px solid var(--glass-border); border-radius: 12px; padding: 15px; background: rgba(0,0,0,0.2); }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; margin-bottom: 10px; }
-        .cart-item-info { flex: 1; }
-        .cart-item-name { font-weight: 700; margin-bottom: 2px; }
-        .cart-item-meta { font-size: 0.85rem; color: rgba(255,255,255,0.6); }
-        .cart-item-qty { display: flex; align-items: center; gap: 10px; margin: 0 15px; }
-        .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--purple-bright); background: var(--purple-dark); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all 0.2s; }
-        .qty-btn:hover { background: var(--purple-bright); }
-        .cart-item-price { font-weight: 800; color: var(--yellow); min-width: 70px; text-align: right; font-size: 1.1rem; }
-        .cart-total { border-top: 2px solid var(--purple-bright); padding-top: 20px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .cart-total-label { font-size: 1.2rem; font-weight: 700; }
-        .cart-total-value { color: var(--yellow); font-size: 2rem; font-weight: 800; }
-        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 25px; }
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 10, 30, 0.95); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
-        .loading-overlay.active { display: flex; }
-        .spinner { width: 60px; height: 60px; border: 4px solid var(--purple-bright); border-top-color: var(--yellow); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text { font-size: 1.2rem; font-weight: 700; color: var(--yellow); }
-        .message { padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; display: none; align-items: center; gap: 12px; font-weight: 600; animation: slideIn 0.3s ease-out; }
-        .message.active { display: flex; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-        .message-success { background: rgba(34, 197, 94, 0.15); border: 2px solid var(--green); color: var(--green); }
-        .message-error { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--red); color: var(--red); }
-        .empty-state { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.5); }
-        .empty-state-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
-        .sync-status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(0,0,0,0.3); border-radius: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.6); border: 1px solid var(--glass-border); font-weight: 500; }
-        .sync-status.syncing { color: var(--yellow); border-color: var(--yellow); }
-        .sync-status.synced { color: var(--green); border-color: var(--green); }
-        .sync-status.error { color: var(--red); border-color: var(--red); }
-        .order-type-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--glass-border); padding-bottom: 15px; }
-        .tab-btn { padding: 10px 20px; border-radius: 8px; border: 2px solid transparent; background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: 600; transition: all 0.3s; }
-        .tab-btn:hover { background: rgba(255,255,255,0.1); }
-        .tab-btn.active { background: var(--purple-bright); color: white; border-color: var(--purple-bright); }
-        .manual-entry { background: rgba(0,0,0,0.2); border: 2px dashed var(--glass-border); border-radius: 12px; padding: 20px; margin-top: 15px; }
-        .manual-entry h4 { color: var(--yellow); margin-bottom: 15px; font-size: 1.1rem; }
-        .inline-edit { display: flex; gap: 10px; align-items: center; margin-top: 10px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
+
+        .modal-title {
+            color: var(--accent);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--primary);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .filament-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filament-card {
+            background: var(--primary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filament-name {
+            font-weight: bold;
+        }
+
+        .filament-amount {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .filament-low {
+            color: #ff4444;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
         @media (max-width: 768px) {
-            .header h1 { font-size: 1.6rem; }
-            .item-row { grid-template-columns: 1fr; gap: 10px; }
-            .item-actions { justify-content: flex-end; }
-            .filament-grid { grid-template-columns: 1fr; }
-            .customer-meta { flex-wrap: wrap; gap: 10px; }
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-bar {
+                gap: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 <base target="_blank">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>⚡ PokePrint Order Tracker</h1>
-            <p>Cross-device order & filament management</p>
-        </div>
-        <div id="message" class="message"></div>
-        <div class="panel">
-            <div class="panel-title">⚙️ GitHub Sync Setup</div>
-            <div class="config-grid">
-                <input type="password" id="githubToken" class="form-input" placeholder="GitHub Personal Access Token">
-                <input type="text" id="repoOwner" class="form-input" placeholder="Repo Owner (blackpeacockprinting)">
-                <input type="text" id="repoName" class="form-input" placeholder="Repo Name (BlackPeacockOrders)">
-            </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-                <button class="btn btn-success" onclick="saveConfig()">💾 Save Config</button>
-                <button class="btn btn-cyan" onclick="syncTokenToGitHub()">☁️ Sync Token to Cloud</button>
-                <button class="btn" onclick="loadData()">🔄 Sync All Data</button>
-                <button class="btn btn-warning" onclick="syncN3D()">📥 Sync N3D Designs</button>
-                <span id="syncStatus" class="sync-status">⏳ Not configured</span>
-            </div>
-        </div>
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">Pending</div></div>
-            <div class="stat-card"><div class="stat-value" id="statPrinting">0</div><div class="stat-label">Printing</div></div>
-            <div class="stat-card"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">Completed</div></div>
-            <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Orders</div></div>
-            <div class="stat-card"><div class="stat-value" id="statRevenue">$0</div><div class="stat-label">Revenue</div></div>
-            <div class="stat-card"><div class="stat-value" id="statProfit">$0</div><div class="stat-label">Profit</div></div>
-        </div>
-        <div class="panel">
-            <div class="panel-title">🧵 Filament Inventory</div>
-            <div class="filament-filters">
-                <button class="btn btn-pink" onclick="openFilamentModal()">➕ Add New Color</button>
-                <button class="btn" onclick="showLowStock()">⚠️ Show Low Stock</button>
-                <button class="btn" onclick="showAllFilament()">👁️ Show All</button>
-                <button class="btn btn-cyan" onclick="saveFilament()">💾 Save to Cloud</button>
-            </div>
-            <div id="filamentContainer" class="filament-grid"></div>
-            <div id="shoppingList" class="shopping-list" style="display: none;">
-                <h4>🛒 Shopping List - Low Stock Alert</h4>
-                <div id="shoppingItems" class="shopping-grid"></div>
-            </div>
-        </div>
-        <div class="action-bar">
-            <button class="btn btn-success" onclick="openNewOrderModal()">➕ New Order</button>
-            <button class="btn" onclick="toggleAllCustomers()">📂 Toggle All</button>
-            <button class="btn btn-secondary" onclick="exportData()">📤 Export JSON</button>
-            <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importData(this)">
-            <button class="btn" onclick="document.getElementById('importFile').click()">📥 Import JSON</button>
-        </div>
-        <div id="ordersContainer"></div>
+    <header class="header">
+        <h1>⚡ PokePrint</h1>
+        <p>Order Tracker</p>
+    </header>
+
+    <div class="controls">
+        <button class="btn btn-primary" onclick="openAddOrderModal()">
+            <span>➕</span> New Order
+        </button>
+        <button class="btn" onclick="openFilamentModal()">
+            <span>🧵</span> Filament
+        </button>
+        <button class="btn" onclick="syncN3D()">
+            <span>🔄</span> Sync N3D
+        </button>
     </div>
-    <div id="newOrderModal" class="modal-overlay">
-        <div class="modal">
-            <h2>➕ Create New Order</h2>
-            <div class="order-type-tabs">
-                <button class="tab-btn active" onclick="switchTab('design')">🔍 From Designs</button>
-                <button class="tab-btn" onclick="switchTab('manual')">✏️ Manual Entry</button>
-            </div>
-            <div id="designTab">
-                <div class="form-group"><label class="form-label">Customer Name *</label><input type="text" id="customerName" class="form-input" placeholder="Enter customer name"></div>
-                <div class="form-group"><label class="form-label">Customer Email</label><input type="email" id="customerEmail" class="form-input" placeholder="customer@example.com"></div>
-                <div class="form-group"><label class="form-label">Add Designs</label><div class="design-search"><input type="text" id="designSearch" class="form-input" placeholder="Search designs..." oninput="searchDesigns(this.value)"><div id="searchResults" class="search-results"></div></div></div>
-            </div>
-            <div id="manualTab" style="display: none;">
-                <div class="form-group"><label class="form-label">Customer Name *</label><input type="text" id="manualCustomerName" class="form-input" placeholder="Enter customer name"></div>
-                <div class="form-group"><label class="form-label">Order Details *</label><textarea id="manualOrderDetails" class="form-textarea" placeholder="Enter order details (e.g., 2x Pikachu, 1x Charizard - Shiny)"></textarea></div>
-                <div class="form-group"><label class="form-label">Total Price ($) *</label><input type="number" id="manualTotalPrice" class="form-input" placeholder="0.00" step="0.01"></div>
-            </div>
-            <div class="cart-items" id="cartItems"><p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No items added yet</p></div>
-            <div class="cart-total"><span class="cart-total-label">Total:</span><span class="cart-total-value" id="cartTotal">$0.00</span></div>
-            <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('newOrderModal')">Cancel</button><button class="btn btn-success" onclick="createOrder()">Create Order</button></div>
+
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-value" id="stat-pending">0</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="stat-printing">0</div>
+            <div class="stat-label">Printing</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="stat-completed">0</div>
+            <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="stat-filament">0</div>
+            <div class="stat-label">Filaments</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="stat-low">0</div>
+            <div class="stat-label">Low Stock</div>
         </div>
     </div>
-    <div id="filamentModal" class="modal-overlay">
-        <div class="modal">
-            <h2>➕ Add Filament Color</h2>
-            <div class="form-group"><label class="form-label">Color Name *</label><input type="text" id="filamentName" class="form-input" placeholder="e.g., Ivory White"></div>
-            <div class="form-group"><label class="form-label">Color Code (hex)</label><input type="text" id="filamentColor" class="form-input" placeholder="#FFFFFF" value="#FFFFFF"></div>
-            <div class="form-group"><label class="form-label">Initial Amount (g)</label><input type="number" id="filamentAmount" class="form-input" value="1000" min="0"></div>
-            <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('filamentModal')">Cancel</button><button class="btn btn-success" onclick="addFilament()">Add Filament</button></div>
+
+    <div class="content">
+        <div id="orders-list">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading orders from Firebase...</p>
+            </div>
         </div>
     </div>
-    <div id="topupModal" class="modal-overlay">
-        <div class="modal">
-            <h2>⬆️ Top Up Filament</h2>
-            <div class="form-group"><label class="form-label">Color</label><input type="text" id="topupColorName" class="form-input" readonly></div>
-            <div class="form-group"><label class="form-label">Current Amount</label><input type="text" id="topupCurrentAmount" class="form-input" readonly></div>
-            <div class="form-group"><label class="form-label">Add Amount (g) *</label><input type="number" id="topupAmount" class="form-input" placeholder="Enter amount to add" min="1"></div>
-            <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('topupModal')">Cancel</button><button class="btn btn-success" onclick="confirmTopup()">Add Filament</button></div>
+
+    <!-- Add Order Modal -->
+    <div class="modal" id="add-order-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">New Order</h2>
+                <button class="modal-close" onclick="closeModal('add-order-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="new-customer" placeholder="Enter customer name">
+                </div>
+                <div class="form-group">
+                    <label>Order Items (one per line)</label>
+                    <textarea id="new-items" placeholder="Pikachu x2&#10;Bulbasaur x1 shiny&#10;Charizard x1"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addOrder()" style="width: 100%;">
+                    Add Order
+                </button>
+            </div>
         </div>
     </div>
-    <div id="editOrderModal" class="modal-overlay">
-        <div class="modal">
-            <h2>✏️ Edit Order</h2>
-            <input type="hidden" id="editOrderId">
-            <div class="form-group"><label class="form-label">Add More Designs</label><div class="design-search"><input type="text" id="editDesignSearch" class="form-input" placeholder="Search designs to add..." oninput="searchDesignsForEdit(this.value)"><div id="editSearchResults" class="search-results"></div></div></div>
-            <div id="editOrderItems"></div>
-            <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('editOrderModal')">Close</button><button class="btn btn-success" onclick="saveOrderChanges()">Save Changes</button></div>
+
+    <!-- Filament Modal -->
+    <div class="modal" id="filament-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Filament Inventory</h2>
+                <button class="modal-close" onclick="closeModal('filament-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="filament-grid" id="filament-list"></div>
+            </div>
         </div>
     </div>
-    <div id="loadingOverlay" class="loading-overlay"><div class="spinner"></div><div class="loading-text">SYNCING...</div></div>
 
     <script>
-        const CONFIG = {
-            n3dApiKey: 'n3d_sk_SgjHghzsNDmra3wqxB3-ed4nvyZYu6Ja',
-            n3dApiUrl: 'https://www.n3dmelbourne.com/api/v1',
-            corsProxy: 'https://api.allorigins.win/raw?url=',
-            filamentCostPerKg: 12,
-            dataFile: 'data/orders.json',
-            designsFile: 'data/n3d-designs.json',
-            filamentFile: 'data/filament.json',
-            tokenFile: 'data/.token'
-        };
+        // Firebase Config
+        const firebaseConfig = {
+  apiKey: "AIzaSyAOlEJfO7NFJ2Cde7thfTwX0P8NZ56zTgw",
+  authDomain: "pokeprintadmin.firebaseapp.com",
+  projectId: "pokeprintadmin",
+  storageBucket: "pokeprintadmin.firebasestorage.app",
+  messagingSenderId: "610025346733",
+  appId: "1:610025346733:web:56dfec4b198739f1e49824",
+  measurementId: "G-LENPY376HE"
+};
 
-        let orders = [], designs = [], filament = {}, cart = [], githubConfig = {}, fileShas = {}, currentEditOrder = null, currentTopupColor = null;
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        const DEFAULT_FILAMENT = {
-            'Ivory White': { color: '#FFFFF0', amount: 1000 },
-            'Jet Black': { color: '#1a1a1a', amount: 1000 },
-            'Fire Red': { color: '#dc2626', amount: 1000 },
-            'Electric Yellow': { color: '#fbbf24', amount: 1000 },
-            'Ocean Blue': { color: '#2563eb', amount: 1000 },
-            'Forest Green': { color: '#16a34a', amount: 1000 },
-            'Royal Purple': { color: '#7c3aed', amount: 1000 },
-            'Hot Pink': { color: '#ec4899', amount: 1000 },
-            'Orange': { color: '#f97316', amount: 1000 },
-            'Silver': { color: '#9ca3af', amount: 1000 },
-            'Gold': { color: '#f59e0b', amount: 1000 },
-            'Cyan': { color: '#06b6d4', amount: 1000 }
-        };
+        // Global data
+        let orders = [];
+        let filament = {};
+        let designs = [];
 
+        // N3D API Config
+        const N3D_API_KEY = 'n3d_sk_SgjHghzsNDmra3wqxB3-ed4nvyZYu6Ja';
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            loadConfig();
-            if (githubConfig.token) loadData();
-            else tryLoadTokenFromGitHub();
+            loadData();
         });
 
-        async function githubApi(endpoint, options = {}) {
-            const apiUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}${endpoint}`;
-            const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(apiUrl)}`;
-
-            const response = await fetch(proxyUrl, {
-                headers: { 
-                    'Authorization': `Bearer ${githubConfig.token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    ...options.headers 
-                },
-                ...options
-            });
-
-            if (!response.ok) { 
-                const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-                throw new Error(error.message || `HTTP ${response.status}`);
-            }
-            return response.json();
-        }
-
-        async function getFileContents(path) {
-            try {
-                const data = await githubApi(`/contents/${path}`);
-                return { content: JSON.parse(atob(data.content)), sha: data.sha };
-            } catch (e) { if (e.message.includes('404')) return { content: null, sha: null }; throw e; }
-        }
-
-        async function saveFileContents(path, content, sha, message) {
-            const contentEncoded = btoa(JSON.stringify(content, null, 2));
-            const body = { message: message || `Update ${path}`, content: contentEncoded, branch: 'main' };
-            if (sha) body.sha = sha;
-            const result = await githubApi(`/contents/${path}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-            fileShas[path] = result.content.sha;
-            return result;
-        }
-
-        async function syncTokenToGitHub() {
-            if (!githubConfig.token) { showMessage('Please enter your token first', 'error'); return; }
-            showLoading('Syncing token...');
-            try {
-                const encrypted = btoa(JSON.stringify({ token: githubConfig.token, owner: githubConfig.owner, repo: githubConfig.repo, updatedAt: new Date().toISOString() }));
-                await saveFileContents(CONFIG.tokenFile, { data: encrypted }, fileShas[CONFIG.tokenFile], 'Update synced token');
-                showMessage('Token synced! Other devices will auto-load.', 'success');
-            } catch (e) { showMessage('Token sync failed: ' + e.message, 'error'); }
-            finally { hideLoading(); }
-        }
-
-        async function tryLoadTokenFromGitHub() {
-            try {
-                const data = await getFileContents(CONFIG.tokenFile);
-                if (data.content && data.content.data) {
-                    const decrypted = JSON.parse(atob(data.content.data));
-                    githubConfig = { token: decrypted.token, owner: decrypted.owner, repo: decrypted.repo };
-                    document.getElementById('githubToken').value = githubConfig.token;
-                    document.getElementById('repoOwner').value = githubConfig.owner;
-                    document.getElementById('repoName').value = githubConfig.repo;
-                    localStorage.setItem('githubConfig', JSON.stringify(githubConfig));
-                    fileShas[CONFIG.tokenFile] = data.sha;
-                    showMessage('Token loaded from cloud!', 'success');
-                    loadData();
-                }
-            } catch (e) { console.log('No cloud token'); }
-        }
-
-        function saveConfig() {
-            githubConfig = { token: document.getElementById('githubToken').value, owner: document.getElementById('repoOwner').value, repo: document.getElementById('repoName').value };
-            localStorage.setItem('githubConfig', JSON.stringify(githubConfig));
-            showMessage('Configuration saved!', 'success');
-            updateSyncStatus('configured');
-        }
-
-        function loadConfig() {
-            const saved = localStorage.getItem('githubConfig');
-            if (saved) {
-                githubConfig = JSON.parse(saved);
-                document.getElementById('githubToken').value = githubConfig.token || '';
-                document.getElementById('repoOwner').value = githubConfig.owner || '';
-                document.getElementById('repoName').value = githubConfig.repo || '';
-            }
-        }
-
+        // Load all data from Firestore
         async function loadData() {
-            if (!githubConfig.token) { showMessage('Please configure GitHub first', 'error'); return; }
-            showLoading('Loading data...');
-            updateSyncStatus('syncing');
             try {
-                const [designsData, ordersData, filamentData] = await Promise.all([
-                    getFileContents(CONFIG.designsFile),
-                    getFileContents(CONFIG.dataFile),
-                    getFileContents(CONFIG.filamentFile)
-                ]);
-                if (designsData.content) { designs = designsData.content; fileShas[CONFIG.designsFile] = designsData.sha; }
-                if (ordersData.content) { orders = ordersData.content; fileShas[CONFIG.dataFile] = ordersData.sha; } else orders = [];
-                if (filamentData.content) { filament = filamentData.content; fileShas[CONFIG.filamentFile] = filamentData.sha; }
-                else { filament = { ...DEFAULT_FILAMENT }; await saveFilament(true); }
-                renderOrders(); renderFilament(); updateStats(); updateSyncStatus('synced');
-                showMessage('All data loaded!', 'success');
-            } catch (e) { console.error(e); updateSyncStatus('error'); showMessage('Load failed: ' + e.message, 'error'); }
-            finally { hideLoading(); }
-        }
-
-        async function saveOrders(message = 'Update orders') {
-            if (!githubConfig.token) return;
-            showLoading('Saving orders...');
-            try { await saveFileContents(CONFIG.dataFile, orders, fileShas[CONFIG.dataFile], message); updateSyncStatus('synced'); }
-            catch (e) { updateSyncStatus('error'); showMessage('Save failed: ' + e.message, 'error'); throw e; }
-            finally { hideLoading(); }
-        }
-
-        async function saveFilament(silent = false) {
-            if (!githubConfig.token) return;
-            if (!silent) showLoading('Saving filament...');
-            try { await saveFileContents(CONFIG.filamentFile, filament, fileShas[CONFIG.filamentFile], 'Update filament'); if (!silent) showMessage('Filament saved!', 'success'); }
-            catch (e) { if (!silent) showMessage('Save failed: ' + e.message, 'error'); throw e; }
-            finally { if (!silent) hideLoading(); }
-        }
-
-        async function syncN3D() {
-            if (!githubConfig.token) { showMessage('Configure GitHub first', 'error'); return; }
-            showLoading('Fetching N3D designs...');
-            try {
-                const allDesigns = []; let page = 1, hasMore = true;
-                while (hasMore && page <= 5) {
-                    const response = await fetch(`${CONFIG.corsProxy}${encodeURIComponent(`${CONFIG.n3dApiUrl}/designs?page=${page}&limit=200`)}`, { headers: { 'Authorization': `Bearer ${CONFIG.n3dApiKey}`, 'Accept': 'application/json' } });
-                    if (!response.ok) throw new Error('N3D API error');
-                    const data = await response.json();
-                    const pageDesigns = data.data || [];
-                    if (pageDesigns.length === 0) hasMore = false;
-                    else { allDesigns.push(...pageDesigns); page++; }
-                }
-                designs = allDesigns.map(d => ({ id: d.slug || d.id, name: d.title || d.name, pokedexNumber: d.pokedex_number, grams: d.total_weight_grams || d.weight_grams || d.weight || d.grams || 50, filamentColors: d.filament_colors || d.filaments || [], category: d.category || 'Pokemon', lastSynced: new Date().toISOString() }));
-                await saveFileContents(CONFIG.designsFile, designs, fileShas[CONFIG.designsFile], `Sync ${designs.length} N3D designs`);
-                const n3dColors = new Set();
-                designs.forEach(d => { if (d.filamentColors) d.filamentColors.forEach(c => n3dColors.add(c)); });
-                n3dColors.forEach(color => { if (!filament[color]) filament[color] = { color: generateColorFromName(color), amount: 1000 }; });
-                await saveFilament(true); renderFilament();
-                showMessage(`Synced ${designs.length} designs!`, 'success');
-            } catch (e) { showMessage('N3D sync failed: ' + e.message, 'error'); }
-            finally { hideLoading(); }
-        }
-
-        function generateColorFromName(name) {
-            const colors = { 'White': '#FFFFF0', 'Black': '#1a1a1a', 'Red': '#dc2626', 'Blue': '#2563eb', 'Green': '#16a34a', 'Yellow': '#fbbf24', 'Purple': '#7c3aed', 'Pink': '#ec4899', 'Orange': '#f97316', 'Gray': '#9ca3af', 'Brown': '#92400e', 'Cyan': '#06b6d4' };
-            for (const [key, value] of Object.entries(colors)) { if (name.toLowerCase().includes(key.toLowerCase())) return value; }
-            return '#a855f7';
-        }
-
-        function renderFilament(filter = 'all') {
-            const container = document.getElementById('filamentContainer');
-            const shoppingList = document.getElementById('shoppingList');
-            const shoppingItems = document.getElementById('shoppingItems');
-            let sorted = Object.entries(filament).sort((a, b) => b[1].amount - a[1].amount);
-            if (filter === 'low') sorted = sorted.filter(([name, data]) => data.amount <= 200);
-
-            container.innerHTML = sorted.map(([name, data]) => {
-                const isLow = data.amount <= 200;
-                const isCritical = data.amount <= 50;
-                const percent = Math.min(100, (data.amount / 1000) * 100);
-                return `
-                    <div class="filament-card ${isLow ? 'low' : ''} ${isCritical ? 'critical' : ''}">
-                        <div class="filament-header">
-                            <div class="filament-color" style="background: ${data.color}"></div>
-                            <div class="filament-name">${name}</div>
-                        </div>
-                        <div class="filament-amount">${data.amount}g</div>
-                        <div class="filament-progress">
-                            <div class="filament-progress-bar" style="width: ${percent}%"></div>
-                        </div>
-                        <div class="filament-actions">
-                            <button class="filament-btn" onclick="quickAdjust('${name}', -50)">-50g</button>
-                            <button class="filament-btn" onclick="quickAdjust('${name}', -100)">-100g</button>
-                            <button class="filament-btn add" onclick="openTopup('${name}')">+ Top Up</button>
-                            <button class="filament-btn" onclick="deleteFilament('${name}')" style="color: var(--red);">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            const lowStock = Object.entries(filament).filter(([name, data]) => data.amount <= 200);
-            if (lowStock.length > 0) {
-                shoppingList.style.display = 'block';
-                shoppingItems.innerHTML = lowStock.map(([name, data]) => `
-                    <div class="shopping-item">
-                        <span style="display: flex; align-items: center; gap: 8px;">
-                            <span style="width: 16px; height: 16px; border-radius: 50%; background: ${data.color}; border: 2px solid white;"></span>
-                            ${name}
-                        </span>
-                        <span style="color: var(--red); font-weight: 700;">${data.amount}g</span>
-                    </div>
-                `).join('');
-            } else shoppingList.style.display = 'none';
-        }
-
-        function showLowStock() { renderFilament('low'); }
-        function showAllFilament() { renderFilament('all'); }
-
-        async function quickAdjust(name, delta) {
-            filament[name].amount = Math.max(0, filament[name].amount + delta);
-            renderFilament(); await saveFilament(true);
-        }
-
-        function openTopup(name) {
-            currentTopupColor = name;
-            document.getElementById('topupColorName').value = name;
-            document.getElementById('topupCurrentAmount').value = filament[name].amount + 'g';
-            document.getElementById('topupAmount').value = '';
-            document.getElementById('topupModal').classList.add('active');
-        }
-
-        async function confirmTopup() {
-            const amount = parseInt(document.getElementById('topupAmount').value);
-            if (!amount || amount <= 0) { showMessage('Please enter a valid amount', 'error'); return; }
-            filament[currentTopupColor].amount += amount;
-            renderFilament(); await saveFilament();
-            closeModal('topupModal'); showMessage(`Added ${amount}g to ${currentTopupColor}`, 'success');
-        }
-
-        async function deleteFilament(name) {
-            if (!confirm(`Delete ${name}?`)) return;
-            delete filament[name]; renderFilament(); await saveFilament();
-        }
-
-        function openFilamentModal() {
-            document.getElementById('filamentName').value = '';
-            document.getElementById('filamentColor').value = '#FFFFFF';
-            document.getElementById('filamentAmount').value = 1000;
-            document.getElementById('filamentModal').classList.add('active');
-        }
-
-        async function addFilament() {
-            const name = document.getElementById('filamentName').value.trim();
-            const color = document.getElementById('filamentColor').value;
-            const amount = parseInt(document.getElementById('filamentAmount').value) || 1000;
-            if (!name) { showMessage('Enter color name', 'error'); return; }
-            filament[name] = { color, amount }; renderFilament(); await saveFilament(); closeModal('filamentModal');
-        }
-
-        async function subtractFilamentForItem(item) {
-            const design = designs.find(d => d.id === item.designId);
-            if (!design || !design.filamentColors || design.filamentColors.length === 0) return;
-            const colorName = design.filamentColors[0];
-            if (filament[colorName]) {
-                filament[colorName].amount = Math.max(0, filament[colorName].amount - (item.grams * item.qty));
-                renderFilament();
-            }
-        }
-
-        let currentTab = 'design';
-
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('designTab').style.display = tab === 'design' ? 'block' : 'none';
-            document.getElementById('manualTab').style.display = tab === 'manual' ? 'block' : 'none';
-        }
-
-        function openNewOrderModal() {
-            cart = []; updateCartUI();
-            document.getElementById('customerName').value = '';
-            document.getElementById('customerEmail').value = '';
-            document.getElementById('manualCustomerName').value = '';
-            document.getElementById('manualOrderDetails').value = '';
-            document.getElementById('manualTotalPrice').value = '';
-            document.getElementById('newOrderModal').classList.add('active');
-        }
-
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-        function searchDesigns(query) {
-            const resultsDiv = document.getElementById('searchResults');
-            if (!query || query.length < 2) { resultsDiv.classList.remove('active'); return; }
-            const matches = designs.filter(d => d.name.toLowerCase().includes(query.toLowerCase())).slice(0, 10);
-            resultsDiv.innerHTML = matches.map(d => `
-                <div class="search-result-item" onclick="addToCart('${d.id}')">
-                    <span class="search-result-name">${d.name}</span>
-                    <span class="search-result-grams">${d.grams}g</span>
-                </div>
-            `).join('');
-            resultsDiv.classList.add('active');
-        }
-
-        function addToCart(designId) {
-            const design = designs.find(d => d.id === designId);
-            if (!design) return;
-            const existing = cart.find(i => i.designId === designId && !i.shiny);
-            if (existing) existing.qty++;
-            else cart.push({ designId: design.id, name: design.name, grams: design.grams, qty: 1, shiny: false, price: calculatePrice(design.grams) });
-            document.getElementById('designSearch').value = '';
-            document.getElementById('searchResults').classList.remove('active');
-            updateCartUI();
-        }
-
-        function updateCartQty(index, delta) {
-            cart[index].qty += delta;
-            if (cart[index].qty <= 0) cart.splice(index, 1);
-            updateCartUI();
-        }
-
-        function toggleShiny(index) { cart[index].shiny = !cart[index].shiny; updateCartUI(); }
-        function removeFromCart(index) { cart.splice(index, 1); updateCartUI(); }
-
-        function updateCartUI() {
-            const container = document.getElementById('cartItems');
-            if (cart.length === 0) container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No items added yet. Search designs above or switch to Manual Entry tab.</p>';
-            else container.innerHTML = cart.map((item, i) => `
-                <div class="cart-item">
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">${item.name}</div>
-                        <div class="cart-item-meta">${item.grams}g • $${item.price}/ea • Cost: $${(item.grams * 0.012).toFixed(2)}</div>
-                    </div>
-                    <div class="cart-item-qty">
-                        <button class="qty-btn" onclick="updateCartQty(${i}, -1)">−</button>
-                        <span style="font-weight: 700; min-width: 30px; text-align: center;">${item.qty}</span>
-                        <button class="qty-btn" onclick="updateCartQty(${i}, 1)">+</button>
-                    </div>
-                    <button class="icon-btn ${item.shiny ? 'active' : ''}" onclick="toggleShiny(${i})" title="Shiny">✨</button>
-                    <button class="icon-btn danger" onclick="removeFromCart(${i})" title="Remove">🗑️</button>
-                    <div class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</div>
-                </div>
-            `).join('');
-            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            document.getElementById('cartTotal').textContent = '$' + total.toFixed(2);
-        }
-
-        function calculatePrice(grams) { if (grams <= 149) return 8; if (grams <= 249) return 10; return 12; }
-
-        async function createOrder() {
-            let customerName, customerEmail, items, total, filamentCost;
-
-            if (currentTab === 'design') {
-                customerName = document.getElementById('customerName').value.trim();
-                customerEmail = document.getElementById('customerEmail').value.trim();
-                if (!customerName) { showMessage('Please enter customer name', 'error'); return; }
-                if (cart.length === 0) { showMessage('Please add at least one design', 'error'); return; }
-                items = cart.map(item => ({
-                    id: item.designId + '-' + Math.random().toString(36).substr(2, 9),
-                    designId: item.designId,
-                    name: item.name,
-                    grams: item.grams,
-                    qty: item.qty,
-                    shiny: item.shiny,
-                    mystery: false,
-                    price: item.price,
-                    status: 'pending'
+                // Load orders
+                const ordersSnapshot = await db.collection('orders').orderBy('date', 'desc').get();
+                orders = ordersSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
                 }));
-                total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-                filamentCost = cart.reduce((sum, item) => sum + (item.grams * item.qty * 0.012), 0);
-            } else {
-                customerName = document.getElementById('manualCustomerName').value.trim();
-                const details = document.getElementById('manualOrderDetails').value.trim();
-                const price = parseFloat(document.getElementById('manualTotalPrice').value);
-                if (!customerName || !details || !price) { showMessage('Please fill in all manual entry fields', 'error'); return; }
-                customerEmail = '';
-                items = [{
-                    id: 'manual-' + Math.random().toString(36).substr(2, 9),
-                    designId: 'manual',
-                    name: details,
-                    grams: 0,
-                    qty: 1,
-                    shiny: false,
-                    mystery: false,
-                    price: price,
-                    status: 'pending'
-                }];
-                total = price;
-                filamentCost = 0;
-            }
 
-            const order = {
-                id: 'ORD-' + Date.now().toString(36).toUpperCase(),
-                customerName,
-                customerEmail,
-                date: new Date().toISOString(),
-                status: 'pending',
-                items,
-                total,
-                filamentCost,
-                profit: total - filamentCost
-            };
+                // Load filament
+                const filamentDoc = await db.collection('config').doc('filament').get();
+                filament = filamentDoc.exists ? filamentDoc.data() : {};
 
-            orders.unshift(order);
-            await saveOrders(`New order: ${order.id}`);
-            renderOrders(); updateStats(); closeModal('newOrderModal');
-            showMessage('Order created successfully!', 'success');
-        }
+                // Load designs
+                const designsDoc = await db.collection('config').doc('designs').get();
+                designs = designsDoc.exists ? designsDoc.data().designs || [] : [];
 
-        function renderOrders() {
-            const container = document.getElementById('ordersContainer');
-            if (orders.length === 0) { container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><h3>No orders yet</h3><p>Create your first order to get started</p></div>'; return; }
-
-            // Sort: pending first, then printing, then completed
-            const sortedOrders = [...orders].sort((a, b) => {
-                const statusOrder = { pending: 0, printing: 1, completed: 2 };
-                return statusOrder[a.status] - statusOrder[b.status];
-            });
-
-            const groups = {};
-            sortedOrders.forEach(order => {
-                if (!groups[order.customerName]) groups[order.customerName] = [];
-                groups[order.customerName].push(order);
-            });
-
-            container.innerHTML = Object.entries(groups).map(([customer, customerOrders]) => {
-                const allCompleted = customerOrders.every(o => o.status === 'completed');
-                const totalItems = customerOrders.reduce((sum, o) => sum + o.items.length, 0);
-                const pendingItems = customerOrders.reduce((sum, o) => sum + o.items.filter(i => i.status === 'pending').length, 0);
-                const totalValue = customerOrders.reduce((sum, o) => sum + o.total, 0);
-                return `
-                    <div class="customer-group ${allCompleted ? 'completed' : ''} expanded" data-customer="${customer}">
-                        <div class="customer-header" onclick="toggleCustomer('${customer}')">
-                            <div class="customer-name">👤 ${customer} ${allCompleted ? '✅' : ''}</div>
-                            <div class="customer-meta">
-                                <span>📦 ${totalItems} items</span>
-                                <span>⏳ ${pendingItems} pending</span>
-                                <span>💰 $${totalValue.toFixed(2)}</span>
-                                <span class="expand-icon">▼</span>
-                            </div>
-                        </div>
-                        <div class="customer-orders">
-                            ${customerOrders.map(order => renderOrderCard(order)).join('')}
-                        </div>
+                updateStats();
+                renderOrders();
+            } catch (error) {
+                console.error('Error loading:', error);
+                document.getElementById('orders-list').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <p>Error loading data</p>
                     </div>
                 `;
-            }).join('');
-        }
-
-        function renderOrderCard(order) {
-            return `
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <div class="order-id">${order.id}</div>
-                            <div class="order-date">${new Date(order.date).toLocaleString()}</div>
-                        </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span class="order-status status-${order.status}">${order.status}</span>
-                            <span class="order-profit ${order.profit < 0 ? 'negative' : ''}">$${order.profit.toFixed(2)}</span>
-                            <div class="order-actions">
-                                <button class="icon-btn" onclick="openEditOrder('${order.id}')" title="Edit">✏️</button>
-                                <button class="icon-btn danger" onclick="deleteOrder('${order.id}')" title="Delete">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="items-list">
-                        ${order.items.map((item, idx) => renderItemRow(order.id, item, idx)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderItemRow(orderId, item, idx) {
-            const pokeballClass = item.mystery ? 'pokeball-mystery' : (item.shiny ? 'pokeball-shiny' : 'pokeball-normal');
-            return `
-                <div class="item-row">
-                    <div class="item-pokeball ${pokeballClass}" onclick="toggleItemType('${orderId}', ${idx})" title="Click to change type"></div>
-                    <div class="item-details">
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-meta">${item.grams > 0 ? item.grams + 'g • ' : ''}$${item.price} ${item.grams > 0 ? '• Cost: $' + (item.grams * 0.012).toFixed(2) : ''}</div>
-                    </div>
-                    <div class="item-qty">×${item.qty}</div>
-                    <div class="item-status">
-                        <button class="status-btn ${item.status === 'pending' ? 'active-pending' : ''}" onclick="updateItemStatus('${orderId}', ${idx}, 'pending')">Pending</button>
-                        <button class="status-btn ${item.status === 'printing' ? 'active-printing' : ''}" onclick="updateItemStatus('${orderId}', ${idx}, 'printing')">Printing</button>
-                        <button class="status-btn ${item.status === 'completed' ? 'active-completed' : ''}" onclick="updateItemStatus('${orderId}', ${idx}, 'completed')">Done</button>
-                    </div>
-                    <div class="item-actions">
-                        ${item.qty > 1 ? `<button class="icon-btn" onclick="splitItem('${orderId}', ${idx})" title="Split">✂️</button>` : ''}
-                        <button class="icon-btn ${item.shiny ? 'active' : ''}" onclick="toggleItemShiny('${orderId}', ${idx})" title="Shiny">✨</button>
-                        <button class="icon-btn ${item.mystery ? 'active' : ''}" onclick="toggleItemMystery('${orderId}', ${idx})" title="Mystery">❓</button>
-                        <button class="icon-btn danger" onclick="removeItemFromOrder('${orderId}', ${idx})" title="Remove">🗑️</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function updateItemStatus(orderId, itemIdx, status) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            const oldStatus = order.items[itemIdx].status;
-            order.items[itemIdx].status = status;
-            if (status === 'completed' && oldStatus !== 'completed') {
-                await subtractFilamentForItem(order.items[itemIdx]);
-                await saveFilament(true);
             }
-            const allCompleted = order.items.every(i => i.status === 'completed');
-            if (allCompleted) order.status = 'completed';
-            else if (order.items.some(i => i.status === 'printing')) order.status = 'printing';
-            else order.status = 'pending';
-            await saveOrders(`Update ${orderId} item status`);
-            renderOrders(); updateStats();
         }
 
-        async function toggleItemShiny(orderId, itemIdx) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            order.items[itemIdx].shiny = !order.items[itemIdx].shiny;
-            await saveOrders(`Toggle shiny`); renderOrders();
-        }
-
-        async function toggleItemMystery(orderId, itemIdx) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            order.items[itemIdx].mystery = !order.items[itemIdx].mystery;
-            await saveOrders(`Toggle mystery`); renderOrders();
-        }
-
-        async function toggleItemType(orderId, itemIdx) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            const item = order.items[itemIdx];
-            if (!item.shiny && !item.mystery) item.shiny = true;
-            else if (item.shiny && !item.mystery) { item.shiny = false; item.mystery = true; }
-            else { item.shiny = false; item.mystery = false; }
-            await saveOrders(`Toggle type`); renderOrders();
-        }
-
-        async function splitItem(orderId, itemIdx) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order || order.items[itemIdx].qty <= 1) return;
-            const item = order.items[itemIdx];
-            item.qty--;
-            const newItem = { ...item, id: (item.designId || 'manual') + '-' + Math.random().toString(36).substr(2, 9), qty: 1 };
-            order.items.splice(itemIdx + 1, 0, newItem);
-            await saveOrders(`Split item`); renderOrders();
-        }
-
-        async function removeItemFromOrder(orderId, itemIdx) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            if (!confirm('Remove this item from order?')) return;
-            order.items.splice(itemIdx, 1);
-            if (order.items.length === 0) {
-                orders = orders.filter(o => o.id !== orderId);
-                showMessage('Order deleted (no items remaining)', 'success');
-            }
-            await saveOrders(`Remove item from ${orderId}`);
-            renderOrders(); updateStats();
-        }
-
-        function openEditOrder(orderId) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            currentEditOrder = order;
-            document.getElementById('editOrderId').value = orderId;
-            renderEditOrderItems();
-            document.getElementById('editOrderModal').classList.add('active');
-        }
-
-        function renderEditOrderItems() {
-            const container = document.getElementById('editOrderItems');
-            if (!currentEditOrder || currentEditOrder.items.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No items</p>';
-                return;
-            }
-            container.innerHTML = currentEditOrder.items.map((item, idx) => `
-                <div class="cart-item" style="margin-bottom: 10px;">
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">${item.name}</div>
-                        <div class="cart-item-meta">Qty: ${item.qty} • $${item.price} each</div>
-                    </div>
-                    <button class="icon-btn danger" onclick="removeItemFromEdit(${idx})" title="Remove">🗑️</button>
-                </div>
-            `).join('');
-        }
-
-        function searchDesignsForEdit(query) {
-            const resultsDiv = document.getElementById('editSearchResults');
-            if (!query || query.length < 2) { resultsDiv.classList.remove('active'); return; }
-            const matches = designs.filter(d => d.name.toLowerCase().includes(query.toLowerCase())).slice(0, 10);
-            resultsDiv.innerHTML = matches.map(d => `
-                <div class="search-result-item" onclick="addDesignToEdit('${d.id}')">
-                    <span class="search-result-name">${d.name}</span>
-                    <span class="search-result-grams">${d.grams}g</span>
-                </div>
-            `).join('');
-            resultsDiv.classList.add('active');
-        }
-
-        function addDesignToEdit(designId) {
-            const design = designs.find(d => d.id === designId);
-            if (!design || !currentEditOrder) return;
-            currentEditOrder.items.push({
-                id: design.id + '-' + Math.random().toString(36).substr(2, 9),
-                designId: design.id,
-                name: design.name,
-                grams: design.grams,
-                qty: 1,
-                shiny: false,
-                mystery: false,
-                price: calculatePrice(design.grams),
-                status: 'pending'
-            });
-            document.getElementById('editDesignSearch').value = '';
-            document.getElementById('editSearchResults').classList.remove('active');
-            renderEditOrderItems();
-        }
-
-        function removeItemFromEdit(idx) {
-            if (!currentEditOrder) return;
-            currentEditOrder.items.splice(idx, 1);
-            renderEditOrderItems();
-        }
-
-        async function saveOrderChanges() {
-            if (!currentEditOrder) return;
-            currentEditOrder.total = currentEditOrder.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            currentEditOrder.filamentCost = currentEditOrder.items.reduce((sum, item) => sum + ((item.grams || 0) * item.qty * 0.012), 0);
-            currentEditOrder.profit = currentEditOrder.total - currentEditOrder.filamentCost;
-            await saveOrders(`Edit order ${currentEditOrder.id}`);
-            renderOrders(); updateStats(); closeModal('editOrderModal');
-            showMessage('Order updated!', 'success');
-        }
-
-        async function deleteOrder(orderId) {
-            if (!confirm('Delete this order permanently?')) return;
-            orders = orders.filter(o => o.id !== orderId);
-            await saveOrders(`Delete order ${orderId}`);
-            renderOrders(); updateStats();
-        }
-
-        function toggleCustomer(customer) {
-            const group = document.querySelector(`[data-customer="${customer}"]`);
-            group.classList.toggle('expanded');
-        }
-
-        function toggleAllCustomers() {
-            const allExpanded = document.querySelectorAll('.customer-group.expanded').length;
-            const groups = document.querySelectorAll('.customer-group');
-            groups.forEach(g => { if (allExpanded === groups.length) g.classList.remove('expanded'); else g.classList.add('expanded'); });
-        }
-
+        // Update statistics
         function updateStats() {
             const pending = orders.filter(o => o.status === 'pending').length;
             const printing = orders.filter(o => o.status === 'printing').length;
             const completed = orders.filter(o => o.status === 'completed').length;
-            const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-            const totalProfit = orders.reduce((sum, o) => sum + o.profit, 0);
-            document.getElementById('statPending').textContent = pending;
-            document.getElementById('statPrinting').textContent = printing;
-            document.getElementById('statCompleted').textContent = completed;
-            document.getElementById('statTotal').textContent = orders.length;
-            document.getElementById('statRevenue').textContent = '$' + totalRevenue.toFixed(0);
-            document.getElementById('statProfit').textContent = '$' + totalProfit.toFixed(0);
+            const filamentColors = Object.keys(filament).length;
+            const lowStock = Object.values(filament).filter(f => (f.amount || 0) <= 200).length;
+
+            document.getElementById('stat-pending').textContent = pending;
+            document.getElementById('stat-printing').textContent = printing;
+            document.getElementById('stat-completed').textContent = completed;
+            document.getElementById('stat-filament').textContent = filamentColors;
+            document.getElementById('stat-low').textContent = lowStock;
         }
 
-        function updateSyncStatus(status) {
-            const el = document.getElementById('syncStatus');
-            const statuses = { configured: { text: '⚙️ Configured', class: '' }, syncing: { text: '🔄 Syncing...', class: 'syncing' }, synced: { text: '✅ Synced', class: 'synced' }, error: { text: '❌ Error', class: 'error' } };
-            const s = statuses[status] || statuses.configured;
-            el.textContent = s.text; el.className = 'sync-status ' + s.class;
+        // Render orders grouped by customer
+        function renderOrders() {
+            const container = document.getElementById('orders-list');
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <p>No orders yet</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Click "New Order" to add one</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by customer
+            const byCustomer = {};
+            orders.forEach(order => {
+                if (!byCustomer[order.customer]) byCustomer[order.customer] = [];
+                byCustomer[order.customer].push(order);
+            });
+
+            let html = '';
+            for (const [customer, customerOrders] of Object.entries(byCustomer)) {
+                html += `
+                    <div class="customer-card">
+                        <div class="customer-header" onclick="toggleCustomer(this)">
+                            <div>
+                                <div class="customer-name">${customer}</div>
+                                <div class="customer-meta">${customerOrders.length} order${customerOrders.length > 1 ? 's' : ''}</div>
+                            </div>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="orders-container">
+                            ${customerOrders.map(order => renderOrder(order)).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
         }
 
-        function showMessage(text, type) {
-            const el = document.getElementById('message');
-            el.textContent = text; el.className = `message message-${type} active`;
-            setTimeout(() => el.classList.remove('active'), 3000);
+        function renderOrder(order) {
+            return `
+                <div class="order-item">
+                    <div class="order-header">
+                        <span class="order-id">#${order.id.substr(0,8)}</span>
+                        <span class="order-status status-${order.status}" onclick="cycleStatus('${order.id}', event)">${order.status}</span>
+                    </div>
+                    <div class="pokeball-list">
+                        ${order.items.map(item => `
+                            <div class="pokeball-item">
+                                <div class="pokeball ${item.shiny ? 'shiny' : ''} ${item.completed ? 'completed' : ''}" 
+                                     onclick="toggleItemComplete('${order.id}', '${item.name}', event)"></div>
+                                <span class="item-name">${item.name}</span>
+                                <span class="item-qty">x${item.qty}</span>
+                                ${item.shiny ? '<span class="shiny-badge">✨</span>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
         }
 
-        function showLoading(text) { document.querySelector('.loading-text').textContent = text; document.getElementById('loadingOverlay').classList.add('active'); }
-        function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
-
-        function exportData() {
-            const data = { orders, designs, filament, exportedAt: new Date().toISOString() };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `pokeprint-backup-${new Date().toISOString().split('T')[0]}.json`; a.click();
+        function toggleCustomer(header) {
+            header.parentElement.classList.toggle('expanded');
         }
 
-        async function importData(input) {
-            const file = input.files[0]; if (!file) return;
-            const text = await file.text();
-            try {
-                const data = JSON.parse(text);
-                if (confirm(`Import ${data.orders?.length || 0} orders, ${Object.keys(data.filament || {}).length} filament colors?`)) {
-                    orders = data.orders || []; designs = data.designs || []; filament = data.filament || DEFAULT_FILAMENT;
-                    await saveOrders('Import backup'); await saveFilament(true);
-                    renderOrders(); renderFilament(); updateStats(); showMessage('Data imported!', 'success');
+        // Cycle order status
+        async function cycleStatus(orderId, event) {
+            event.stopPropagation();
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            const statuses = ['pending', 'printing', 'completed'];
+            const currentIndex = statuses.indexOf(order.status);
+            order.status = statuses[(currentIndex + 1) % statuses.length];
+
+            await db.collection('orders').doc(orderId).update({ status: order.status });
+            updateStats();
+            renderOrders();
+        }
+
+        // Toggle item completion
+        async function toggleItemComplete(orderId, itemName, event) {
+            event.stopPropagation();
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            const item = order.items.find(i => i.name === itemName);
+            if (item) {
+                item.completed = !item.completed;
+                await db.collection('orders').doc(orderId).update({ items: order.items });
+                renderOrders();
+            }
+        }
+
+        // Add new order
+        async function addOrder() {
+            const customer = document.getElementById('new-customer').value.trim();
+            const itemsText = document.getElementById('new-items').value.trim();
+
+            if (!customer || !itemsText) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const items = itemsText.split('\n').map(line => {
+                const match = line.match(/(.+?)\s*x\s*(\d+)(?:\s*(shiny))?/i);
+                if (match) {
+                    return {
+                        name: match[1].trim(),
+                        qty: parseInt(match[2]),
+                        shiny: !!match[3],
+                        completed: false
+                    };
                 }
-            } catch (e) { showMessage('Invalid JSON file', 'error'); }
+                return null;
+            }).filter(Boolean);
+
+            if (items.length === 0) {
+                alert('Please enter valid items');
+                return;
+            }
+
+            const newOrder = {
+                customer,
+                items,
+                status: 'pending',
+                date: new Date().toISOString()
+            };
+
+            try {
+                const docRef = await db.collection('orders').add(newOrder);
+                newOrder.id = docRef.id;
+                orders.unshift(newOrder);
+
+                closeModal('add-order-modal');
+                document.getElementById('new-customer').value = '';
+                document.getElementById('new-items').value = '';
+
+                updateStats();
+                renderOrders();
+            } catch (error) {
+                alert('Error adding order: ' + error.message);
+            }
         }
 
-        document.querySelectorAll('.modal-overlay').forEach(modal => {
-            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+        // Sync N3D designs
+        async function syncN3D() {
+            const btn = event.target.closest('.btn');
+            btn.innerHTML = '<span>⏳</span> Syncing...';
+
+            try {
+                const allDesigns = [];
+                let page = 1;
+                let hasMore = true;
+
+                while (hasMore && page <= 10) {
+                    const response = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(`https://www.n3dmelbourne.com/api/v1/designs?page=${page}&limit=200`)}`, {
+                        headers: { 'Authorization': `Bearer ${N3D_API_KEY}` }
+                    });
+
+                    if (!response.ok) throw new Error('N3D API error');
+
+                    const data = await response.json();
+                    const pageDesigns = data.data || [];
+
+                    if (pageDesigns.length === 0) {
+                        hasMore = false;
+                    } else {
+                        allDesigns.push(...pageDesigns);
+                        page++;
+                    }
+                }
+
+                designs = allDesigns.map(d => ({
+                    id: d.slug || d.id,
+                    name: d.title || d.name,
+                    pokedexNumber: d.pokedex_number,
+                    grams: d.total_weight_grams || d.weight_grams || d.weight || d.grams || 50,
+                    filamentColors: d.filament_colors || d.filaments || [],
+                    category: d.category || 'Pokemon',
+                    lastSynced: new Date().toISOString()
+                }));
+
+                await db.collection('config').doc('designs').set({ designs });
+
+                // Add new filament colors
+                const n3dColors = new Set();
+                designs.forEach(d => { if (d.filamentColors) d.filamentColors.forEach(c => n3dColors.add(c)); });
+                n3dColors.forEach(color => { 
+                    if (!filament[color]) filament[color] = { color: generateColorFromName(color), amount: 1000 }; 
+                });
+                await db.collection('config').doc('filament').set(filament);
+
+                updateStats();
+                alert(`Synced ${designs.length} designs!`);
+            } catch (error) {
+                alert('Sync failed: ' + error.message);
+            } finally {
+                btn.innerHTML = '<span>🔄</span> Sync N3D';
+            }
+        }
+
+        function generateColorFromName(name) {
+            const colors = {'Red': '#e74c3c', 'Blue': '#3498db', 'Green': '#2ecc71', 'Yellow': '#f1c40f', 'Black': '#2c3e50', 'White': '#ecf0f1', 'Purple': '#9b59b6', 'Orange': '#e67e22', 'Pink': '#ff69b4', 'Brown': '#8b4513', 'Gray': '#95a5a6', 'Cyan': '#00bcd4', 'Magenta': '#e91e63', 'Lime': '#cddc39', 'Indigo': '#3f51b5', 'Teal': '#009688', 'Amber': '#ffc107', 'Deep Orange': '#ff5722', 'Light Blue': '#03a9f4', 'Light Green': '#8bc34a'};
+            return colors[name] || '#' + Math.floor(Math.random()*16777215).toString(16);
+        }
+
+        // Filament modal
+        async function openFilamentModal() {
+            const list = document.getElementById('filament-list');
+            let html = '';
+
+            const sortedFilaments = Object.entries(filament).sort((a, b) => (b[1].amount || 0) - (a[1].amount || 0));
+
+            for (const [color, data] of sortedFilaments) {
+                const isLow = (data.amount || 0) <= 200;
+                html += `
+                    <div class="filament-card">
+                        <span class="filament-name">${color}</span>
+                        <span class="filament-amount ${isLow ? 'filament-low' : ''}">${data.amount || 0}g</span>
+                    </div>
+                `;
+            }
+
+            list.innerHTML = html || '<p style="color: var(--text-muted); text-align: center;">No filament data</p>';
+            openModal('filament-modal');
+        }
+
+        // Modal helpers
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function openAddOrderModal() {
+            openModal('add-order-modal');
+        }
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
         });
     </script>
 </body>
