@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PokePrint Order Tracker</title>
+    <title>PokePrint Order Tracker - Complete</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <style>
@@ -12,6 +12,7 @@
             --primary: #4a3b8c; --primary-light: #6b5db8; --primary-dark: #2d1f5f;
             --accent: #ffcb05; --accent-dark: #c7a008; --text: #ffffff;
             --text-muted: #b8b0d8; --bg: #1a1230; --card-bg: #2d2050; --border: #4a3b8c;
+            --success: #2ecc71; --warning: #f39c12; --danger: #e74c3c; --info: #3498db;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -25,78 +26,113 @@
         .header h1 { font-size: 3rem; color: var(--primary-dark); text-transform: uppercase; letter-spacing: 4px; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); margin-bottom: 0.5rem; }
         .header p { color: var(--primary-dark); font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; }
         .controls {
-            background: var(--primary); padding: 1.5rem 1rem; border-bottom: 3px solid var(--accent);
-            display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
+            background: var(--primary); padding: 1rem; border-bottom: 3px solid var(--accent);
+            display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;
         }
         .btn {
-            padding: 0.8rem 1.5rem; border: 2px solid var(--border); border-radius: 25px;
-            background: var(--card-bg); color: var(--text); cursor: pointer; font-size: 0.9rem;
+            padding: 0.6rem 1.2rem; border: 2px solid var(--border); border-radius: 25px;
+            background: var(--card-bg); color: var(--text); cursor: pointer; font-size: 0.85rem;
             transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
-            display: flex; align-items: center; gap: 0.5rem;
+            display: flex; align-items: center; gap: 0.4rem;
         }
-        .btn:hover { border-color: var(--accent); background: rgba(255,203,5,0.1); }
+        .btn:hover { border-color: var(--accent); background: rgba(255,203,5,0.1); transform: translateY(-2px); }
         .btn-primary { background: var(--accent); color: var(--primary-dark); border-color: var(--accent); font-weight: bold; }
         .btn-primary:hover { background: #ffd93d; }
+        .btn-success { background: var(--success); color: #000; border-color: var(--success); }
+        .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .btn-small { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
         .stats-bar {
             background: var(--primary-dark); padding: 1rem; display: flex; justify-content: center;
-            gap: 2rem; flex-wrap: wrap; border-bottom: 2px solid var(--border);
+            gap: 1.5rem; flex-wrap: wrap; border-bottom: 2px solid var(--border);
         }
         .stat-item { text-align: center; }
-        .stat-value { font-size: 1.8rem; font-weight: bold; color: var(--accent); }
-        .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .content { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .stat-value { font-size: 1.6rem; font-weight: bold; color: var(--accent); }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .sync-status { text-align: center; padding: 0.5rem; font-size: 0.8rem; color: var(--text-muted); background: var(--primary-dark); }
+        .content { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+
+        /* Section Headers */
+        .section-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 1rem 1.5rem; margin: 1.5rem 0 1rem 0; border-radius: 10px;
+            border: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 10;
+        }
+        .section-header h2 { color: var(--accent); font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; }
+        .section-count { background: var(--accent); color: var(--primary-dark); padding: 0.3rem 0.8rem; border-radius: 15px; font-weight: bold; font-size: 0.9rem; }
+        .section-completed { border-color: var(--success); opacity: 0.8; }
+        .section-completed h2 { color: var(--success); }
+        .section-completed .section-count { background: var(--success); }
+
         .customer-card {
             background: var(--card-bg); border: 2px solid var(--border); border-radius: 15px;
-            margin-bottom: 1.5rem; overflow: hidden; transition: all 0.3s ease;
+            margin-bottom: 1rem; overflow: hidden; transition: all 0.3s ease;
         }
-        .customer-card:hover { border-color: var(--accent); }
+        .customer-card:hover { border-color: var(--accent); transform: translateX(5px); }
+        .customer-card.completed { opacity: 0.7; border-color: var(--success); }
         .customer-header {
-            background: var(--primary); padding: 1.5rem; cursor: pointer;
+            background: var(--primary); padding: 1.2rem; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border);
         }
-        .customer-name { font-size: 1.3rem; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-        .customer-meta { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem; }
-        .expand-icon { font-size: 1.5rem; transition: transform 0.3s ease; }
+        .customer-name { font-size: 1.2rem; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .customer-meta { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem; }
+        .customer-profit { color: var(--success); font-size: 0.9rem; font-weight: bold; margin-top: 0.3rem; }
+        .expand-icon { font-size: 1.3rem; transition: transform 0.3s ease; }
         .customer-card.expanded .expand-icon { transform: rotate(180deg); }
-        .orders-container { display: none; padding: 1.5rem; }
+        .orders-container { display: none; padding: 1rem; }
         .customer-card.expanded .orders-container { display: block; }
+
         .order-item {
             background: var(--primary); border: 2px solid var(--border); border-radius: 10px;
-            padding: 1.5rem; margin-bottom: 1rem; transition: all 0.3s ease;
+            padding: 1.2rem; margin-bottom: 0.8rem; transition: all 0.3s ease;
         }
         .order-item:hover { border-color: var(--accent); }
-        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .order-id { font-weight: bold; color: var(--accent); font-size: 0.9rem; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem; }
+        .order-id { font-weight: bold; color: var(--accent); font-size: 0.85rem; }
+        .order-total { color: var(--success); font-weight: bold; font-size: 0.9rem; }
+        .order-profit { color: var(--info); font-size: 0.85rem; }
+        .order-actions { display: flex; gap: 0.5rem; }
         .order-status {
-            padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.75rem;
+            padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.7rem;
             text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
-            cursor: pointer; transition: all 0.3s ease;
+            cursor: pointer; transition: all 0.3s ease; border: none;
         }
-        .status-pending { background: #f39c12; color: #000; }
-        .status-printing { background: #3498db; color: #fff; }
-        .status-completed { background: #2ecc71; color: #000; }
-        .pokeball-list { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
+        .status-pending { background: var(--warning); color: #000; }
+        .status-printing { background: var(--info); color: #fff; }
+        .status-completed { background: var(--success); color: #000; }
+
+        .pokeball-list { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.8rem; }
         .pokeball-item {
-            display: flex; align-items: center; gap: 0.5rem;
-            padding: 0.5rem 1rem; background: var(--card-bg); border-radius: 20px; border: 2px solid var(--border);
+            display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.4rem 0.8rem; background: var(--card-bg); border-radius: 20px; border: 2px solid var(--border);
+            transition: all 0.2s ease; cursor: pointer;
         }
+        .pokeball-item:hover { border-color: var(--accent); transform: scale(1.05); }
+        .pokeball-item.completed { opacity: 0.6; border-color: var(--success); }
         .pokeball {
-            width: 20px; height: 20px; border-radius: 50%;
+            width: 18px; height: 18px; border-radius: 50%;
             background: linear-gradient(to bottom, #ff0000 50%, #fff 50%);
-            border: 2px solid #000; position: relative; cursor: pointer; transition: transform 0.2s ease;
+            border: 2px solid #000; position: relative; transition: all 0.2s ease;
         }
-        .pokeball:hover { transform: scale(1.1); }
         .pokeball::after {
             content: ''; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); width: 6px; height: 6px;
-            background: #fff; border: 2px solid #000; border-radius: 50%;
+            transform: translate(-50%, -50%); width: 5px; height: 5px;
+            background: #fff; border: 1px solid #000; border-radius: 50%;
         }
-        .pokeball.shiny { background: linear-gradient(to bottom, #ffd700 50%, #fff 50%); box-shadow: 0 0 8px #ffd700; }
-        .pokeball.completed { background: linear-gradient(to bottom, #2ecc71 50%, #fff 50%); }
-        .item-name { font-size: 0.9rem; }
-        .item-qty { color: var(--text-muted); font-size: 0.8rem; }
-        .shiny-badge { color: #ffd700; font-size: 0.8rem; }
-        .mystery-badge { color: #9b59b6; font-size: 0.8rem; }
+        .pokeball.shiny { background: linear-gradient(to bottom, #ffd700 50%, #fff 50%); box-shadow: 0 0 10px #ffd700; }
+        .pokeball.completed { background: linear-gradient(to bottom, var(--success) 50%, #fff 50%); }
+        .item-name { font-size: 0.85rem; font-weight: 500; }
+        .item-qty { color: var(--text-muted); font-size: 0.75rem; }
+        .item-grams { color: var(--text-muted); font-size: 0.7rem; }
+        .shiny-badge { color: #ffd700; font-size: 0.8rem; margin-left: 0.2rem; }
+        .mystery-badge { color: #9b59b6; font-size: 0.8rem; margin-left: 0.2rem; }
+        .split-btn {
+            background: var(--primary-light); border: none; color: var(--text);
+            padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.7rem;
+            cursor: pointer; margin-left: 0.3rem; opacity: 0.7;
+        }
+        .split-btn:hover { opacity: 1; background: var(--accent); color: var(--primary-dark); }
+
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;
@@ -104,45 +140,65 @@
         .modal.active { display: flex; }
         .modal-content {
             background: var(--card-bg); border: 2px solid var(--accent); border-radius: 20px;
-            max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
+            max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;
         }
         .modal-header {
             background: var(--primary); padding: 1.5rem; border-bottom: 2px solid var(--accent);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .modal-title { color: var(--accent); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        .modal-title { color: var(--accent); font-size: 1.4rem; text-transform: uppercase; letter-spacing: 2px; }
         .modal-close { background: none; border: none; color: var(--text); font-size: 2rem; cursor: pointer; }
-        .modal-body { padding: 2rem; }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; }
-        .form-group input, .form-group textarea {
-            width: 100%; padding: 0.8rem 1rem; border: 2px solid var(--border); border-radius: 10px;
-            background: var(--primary); color: var(--text); font-size: 1rem; outline: none; transition: all 0.3s ease;
+        .modal-body { padding: 1.5rem; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 0.7rem 1rem; border: 2px solid var(--border); border-radius: 10px;
+            background: var(--primary); color: var(--text); font-size: 0.95rem; outline: none; transition: all 0.3s ease;
         }
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
-        .form-group textarea { min-height: 100px; resize: vertical; }
-        .filament-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+
+        .filament-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.8rem; }
         .filament-card {
             background: var(--primary); border: 2px solid var(--border); border-radius: 10px;
-            padding: 1rem; display: flex; justify-content: space-between; align-items: center;
+            padding: 0.8rem; display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.2s ease;
         }
-        .filament-name { font-weight: bold; }
-        .filament-amount { color: var(--accent); font-weight: bold; }
-        .filament-low { color: #ff4444; }
-        .loading { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+        .filament-card:hover { border-color: var(--accent); }
+        .filament-card.low-stock { border-color: var(--danger); background: rgba(231, 76, 60, 0.1); }
+        .filament-name { font-weight: bold; font-size: 0.9rem; }
+        .filament-amount { color: var(--accent); font-weight: bold; font-size: 0.9rem; }
+        .filament-low { color: var(--danger); }
+        .filament-actions { display: flex; gap: 0.3rem; margin-top: 0.5rem; }
+        .filament-btn {
+            background: var(--card-bg); border: 1px solid var(--border); color: var(--text);
+            padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.7rem; cursor: pointer;
+        }
+        .filament-btn:hover { background: var(--accent); color: var(--primary-dark); }
+
+        .shopping-list {
+            background: rgba(231, 76, 60, 0.1); border: 2px solid var(--danger); border-radius: 10px;
+            padding: 1rem; margin-bottom: 1rem;
+        }
+        .shopping-list h3 { color: var(--danger); margin-bottom: 0.5rem; font-size: 1rem; }
+        .shopping-item { display: flex; justify-content: space-between; padding: 0.3rem 0; border-bottom: 1px solid var(--border); }
+
+        .loading { text-align: center; padding: 3rem 2rem; color: var(--text-muted); }
         .spinner {
-            width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--accent);
+            width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent);
             border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
-        .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
-        .sync-status { text-align: center; padding: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
+        .empty-state { text-align: center; padding: 3rem 2rem; color: var(--text-muted); }
+        .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
         @media (max-width: 768px) {
             .header h1 { font-size: 2rem; }
             .stats-bar { gap: 1rem; }
-            .stat-value { font-size: 1.5rem; }
+            .stat-value { font-size: 1.3rem; }
             .controls { flex-direction: column; align-items: center; }
+            .section-header h2 { font-size: 1.1rem; }
+            .customer-name { font-size: 1rem; }
         }
     </style>
 <base target="_blank">
@@ -155,7 +211,7 @@
 
     <div class="controls">
         <button class="btn btn-primary" onclick="syncFromGoogleSheets()">
-            <span>🔄</span> Sync from Sheets
+            <span>🔄</span> Sync Sheets
         </button>
         <button class="btn" onclick="openAddOrderModal()">
             <span>➕</span> New Order
@@ -163,12 +219,15 @@
         <button class="btn" onclick="openFilamentModal()">
             <span>🧵</span> Filament
         </button>
+        <button class="btn" onclick="openShoppingModal()">
+            <span>🛒</span> Shopping
+        </button>
         <button class="btn" onclick="syncN3D()">
-            <span>📥</span> Sync N3D
+            <span>📥</span> N3D Sync
         </button>
     </div>
 
-    <div class="sync-status" id="sync-status">Ready to sync</div>
+    <div class="sync-status" id="sync-status">Ready</div>
 
     <div class="stats-bar">
         <div class="stat-item">
@@ -191,14 +250,16 @@
             <div class="stat-value" id="stat-low">0</div>
             <div class="stat-label">Low Stock</div>
         </div>
+        <div class="stat-item">
+            <div class="stat-value" id="stat-profit">$0</div>
+            <div class="stat-label">Total Profit</div>
+        </div>
     </div>
 
-    <div class="content">
-        <div id="orders-list">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading orders...</p>
-            </div>
+    <div class="content" id="main-content">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading orders...</p>
         </div>
     </div>
 
@@ -215,8 +276,12 @@
                     <input type="text" id="new-customer" placeholder="Enter customer name">
                 </div>
                 <div class="form-group">
-                    <label>Order Items (one per line)</label>
+                    <label>Order Items (one per line: Name xQty shiny?)</label>
                     <textarea id="new-items" placeholder="Pikachu x2&#10;Bulbasaur x1 shiny&#10;Charizard x1"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Total Price ($)</label>
+                    <input type="number" id="new-total" placeholder="0.00">
                 </div>
                 <button class="btn btn-primary" onclick="addOrder()" style="width: 100%;">
                     Add Order
@@ -233,7 +298,22 @@
                 <button class="modal-close" onclick="closeModal('filament-modal')">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="filament-grid" id="filament-list"></div>
+                <div id="filament-content">
+                    <div class="filament-grid" id="filament-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping List Modal -->
+    <div class="modal" id="shopping-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Shopping List</h2>
+                <button class="modal-close" onclick="closeModal('shopping-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="shopping-content">
+                <p style="color: var(--text-muted);">No items need restocking</p>
             </div>
         </div>
     </div>
@@ -255,6 +335,7 @@
         let orders = [];
         let filament = {};
         let designs = [];
+        const FILAMENT_COST_PER_GRAM = 0.012; // $12/kg = $0.012/g
 
         const N3D_API_KEY = 'n3d_sk_SgjHghzsNDmra3wqxB3-ed4nvyZYu6Ja';
         const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk8BdvDMwzoPI2A5X863_8OAXKaSWs5a-aijyX7qMJRWFDoquKJs3gM20wcS-ggas_UuGjU8mCmz1V/pub?output=csv';
@@ -278,7 +359,7 @@
                 renderOrders();
             } catch (error) {
                 console.error('Error loading:', error);
-                document.getElementById('orders-list').innerHTML = `
+                document.getElementById('main-content').innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
                         <p>Error loading data</p>
@@ -287,85 +368,93 @@
             }
         }
 
-        // FIXED: Parse order details from Google Sheets format
+        function getDesignInfo(designName) {
+            // Clean name for matching
+            const cleanName = designName.toLowerCase().replace(/\s+/g, ' ').trim();
+
+            // Try exact match first
+            let design = designs.find(d => d.name.toLowerCase() === cleanName);
+
+            // Try partial match
+            if (!design) {
+                design = designs.find(d => cleanName.includes(d.name.toLowerCase()) || 
+                    d.name.toLowerCase().includes(cleanName));
+            }
+
+            // Fallback
+            if (!design) {
+                return { grams: 50, filamentColors: ['Ivory White'] };
+            }
+
+            return {
+                grams: design.grams || 50,
+                filamentColors: design.filamentColors || ['Ivory White']
+            };
+        }
+
+        function calculateOrderProfit(order) {
+            let totalGrams = 0;
+            for (const item of order.items || []) {
+                const designInfo = getDesignInfo(item.name);
+                totalGrams += (designInfo.grams * (item.qty || 1));
+            }
+            const filamentCost = totalGrams * FILAMENT_COST_PER_GRAM;
+            const revenue = order.totalPrice || 0;
+            return { profit: revenue - filamentCost, totalGrams, filamentCost };
+        }
+
         function parseOrderDetails(orderDetailsStr, shinyRequest) {
             const items = [];
             if (!orderDetailsStr) return items;
 
-            // Split by <br> or newlines
             const lines = orderDetailsStr.split(/<br\s*\/?>|\n/);
 
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
 
-                // Match patterns like:
-                // "Pikachu (x1) - $8.00"
-                // "Bulbasaur x1 ($8 each)"
-                // "Bulbasaur - Rose x1"
-                // "Mystery: Sprigatito (x1) - $6.00"
-                // "Shiny Metagross (x1) - $7.00"
-
                 let isMystery = trimmed.toLowerCase().startsWith('mystery:');
-                let isShiny = trimmed.toLowerCase().includes('shiny') || 
-                              (shinyRequest && shinyRequest.toLowerCase().includes(trimmed.split('(')[0].trim().toLowerCase()));
+                let isShiny = trimmed.toLowerCase().includes('shiny');
 
-                // Remove "Mystery:" prefix for parsing
                 let cleanLine = trimmed;
-                if (isMystery) {
-                    cleanLine = trimmed.replace(/^mystery:\s*/i, '');
-                }
+                if (isMystery) cleanLine = trimmed.replace(/^mystery:\s*/i, '');
 
-                // Extract quantity - look for (xN) or xN
                 let qty = 1;
                 const qtyMatch = cleanLine.match(/\(x(\d+)\)/i) || cleanLine.match(/\bx(\d+)\b/i);
-                if (qtyMatch) {
-                    qty = parseInt(qtyMatch[1]);
-                }
+                if (qtyMatch) qty = parseInt(qtyMatch[1]);
 
-                // Extract design name - everything before (xN) or xN or - $
                 let designName = cleanLine;
-
-                // Remove price info
                 designName = designName.replace(/\s*-\s*\$[\d.]+/g, '');
                 designName = designName.replace(/\s*\(\$[\d.]+[^)]*\)/g, '');
-
-                // Remove quantity
                 designName = designName.replace(/\s*\(x\d+\)/gi, '');
                 designName = designName.replace(/\s*x\d+\b/gi, '');
-
-                // Clean up
                 designName = designName.replace(/\s+/g, ' ').trim();
 
-                // Remove "Shiny" from name if present (we track it separately)
                 if (designName.toLowerCase().startsWith('shiny ')) {
                     designName = designName.substring(6).trim();
                     isShiny = true;
                 }
 
+                // Check shiny request column
+                if (shinyRequest && shinyRequest.toLowerCase().includes(designName.toLowerCase())) {
+                    isShiny = true;
+                }
+
                 if (designName) {
-                    items.push({
-                        name: designName,
-                        qty: qty,
-                        shiny: isShiny,
-                        mystery: isMystery,
-                        completed: false
-                    });
+                    items.push({ name: designName, qty, shiny: isShiny, mystery: isMystery, completed: false });
                 }
             }
-
             return items;
         }
 
         async function syncFromGoogleSheets() {
             const statusEl = document.getElementById('sync-status');
-            statusEl.textContent = '🔄 Syncing from Google Sheets...';
+            statusEl.textContent = '🔄 Syncing...';
 
             try {
                 const response = await fetch(GOOGLE_SHEETS_CSV_URL);
                 const csvText = await response.text();
 
-                // Parse CSV properly handling quoted fields
                 const rows = [];
                 let currentRow = [];
                 let currentField = '';
@@ -378,7 +467,7 @@
                     if (char === '"') {
                         if (inQuotes && nextChar === '"') {
                             currentField += '"';
-                            i++; // Skip next quote
+                            i++;
                         } else {
                             inQuotes = !inQuotes;
                         }
@@ -397,28 +486,26 @@
                     }
                 }
 
-                // Don't forget the last field/row
                 if (currentField || currentRow.length > 0) {
                     currentRow.push(currentField.trim());
                     rows.push(currentRow);
                 }
 
                 if (rows.length < 2) {
-                    statusEl.textContent = '❌ No data found in sheet';
+                    statusEl.textContent = '❌ No data';
                     return;
                 }
 
                 const headers = rows[0];
-
-                // Find column indices
                 const timestampIdx = headers.findIndex(h => h.toLowerCase().includes('timestamp'));
                 const nameIdx = headers.findIndex(h => h.toLowerCase().includes('name'));
                 const orderDetailsIdx = headers.findIndex(h => h.toLowerCase().includes('order details'));
                 const shinyIdx = headers.findIndex(h => h.toLowerCase().includes('shiny'));
+                const totalIdx = headers.findIndex(h => h.toLowerCase().includes('order total'));
 
                 let newOrdersCount = 0;
 
-                for (let i = 2; i < rows.length; i++) { // Start at 2 to skip header row
+                for (let i = 2; i < rows.length; i++) {
                     const row = rows[i];
                     if (row.length < 3) continue;
 
@@ -426,15 +513,13 @@
                     const customer = nameIdx >= 0 ? row[nameIdx] : 'Unknown';
                     const orderDetails = orderDetailsIdx >= 0 ? row[orderDetailsIdx] : '';
                     const shinyRequest = shinyIdx >= 0 ? row[shinyIdx] : '';
+                    const totalPrice = totalIdx >= 0 ? parseFloat(row[totalIdx]) || 0 : 0;
 
                     if (!customer || !orderDetails) continue;
 
-                    // Parse items from order details
                     const items = parseOrderDetails(orderDetails, shinyRequest);
-
                     if (items.length === 0) continue;
 
-                    // Check if this order already exists
                     const exists = orders.some(existing => 
                         existing.customer === customer &&
                         existing.source === 'google_sheets' &&
@@ -445,6 +530,7 @@
                         const newOrder = {
                             customer,
                             items,
+                            totalPrice,
                             status: 'pending',
                             date: new Date().toISOString(),
                             source: 'google_sheets',
@@ -459,13 +545,13 @@
                     }
                 }
 
-                statusEl.textContent = `✅ Synced ${newOrdersCount} new orders from Google Sheets`;
+                statusEl.textContent = `✅ Added ${newOrdersCount} orders`;
                 updateStats();
                 renderOrders();
 
             } catch (error) {
                 console.error('Sync error:', error);
-                statusEl.textContent = '❌ Sync failed: ' + error.message;
+                statusEl.textContent = '❌ Sync failed';
             }
         }
 
@@ -476,72 +562,138 @@
             const filamentColors = Object.keys(filament).length;
             const lowStock = Object.values(filament).filter(f => (f.amount || 0) <= 200).length;
 
+            // Calculate total profit
+            let totalProfit = 0;
+            for (const order of orders) {
+                if (order.status === 'completed') {
+                    const calc = calculateOrderProfit(order);
+                    totalProfit += calc.profit;
+                }
+            }
+
             document.getElementById('stat-pending').textContent = pending;
             document.getElementById('stat-printing').textContent = printing;
             document.getElementById('stat-completed').textContent = completed;
             document.getElementById('stat-filament').textContent = filamentColors;
             document.getElementById('stat-low').textContent = lowStock;
+            document.getElementById('stat-profit').textContent = '$' + totalProfit.toFixed(2);
         }
 
         function renderOrders() {
-            const container = document.getElementById('orders-list');
+            const container = document.getElementById('main-content');
 
-            if (orders.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📋</div>
-                        <p>No orders yet</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Click "Sync from Sheets" to import from Google Forms</p>
-                    </div>
-                `;
-                return;
-            }
+            // Separate orders by status
+            const activeOrders = orders.filter(o => o.status !== 'completed');
+            const completedOrders = orders.filter(o => o.status === 'completed');
 
-            // Group by customer
-            const byCustomer = {};
-            orders.forEach(order => {
-                if (!byCustomer[order.customer]) byCustomer[order.customer] = [];
-                byCustomer[order.customer].push(order);
+            // Group active orders by customer
+            const activeByCustomer = {};
+            activeOrders.forEach(order => {
+                if (!activeByCustomer[order.customer]) activeByCustomer[order.customer] = [];
+                activeByCustomer[order.customer].push(order);
+            });
+
+            // Group completed orders by customer
+            const completedByCustomer = {};
+            completedOrders.forEach(order => {
+                if (!completedByCustomer[order.customer]) completedByCustomer[order.customer] = [];
+                completedByCustomer[order.customer].push(order);
             });
 
             let html = '';
-            for (const [customer, customerOrders] of Object.entries(byCustomer)) {
+
+            // ACTIVE ORDERS SECTION
+            if (activeOrders.length > 0) {
                 html += `
-                    <div class="customer-card">
-                        <div class="customer-header" onclick="toggleCustomer(this)">
-                            <div>
-                                <div class="customer-name">${customer}</div>
-                                <div class="customer-meta">${customerOrders.length} order${customerOrders.length > 1 ? 's' : ''}</div>
-                            </div>
-                            <span class="expand-icon">▼</span>
-                        </div>
-                        <div class="orders-container">
-                            ${customerOrders.map(order => renderOrder(order)).join('')}
-                        </div>
+                    <div class="section-header">
+                        <h2>📋 Active Orders</h2>
+                        <span class="section-count">${activeOrders.length}</span>
+                    </div>
+                `;
+
+                for (const [customer, customerOrders] of Object.entries(activeByCustomer)) {
+                    const totalProfit = customerOrders.reduce((sum, o) => sum + calculateOrderProfit(o).profit, 0);
+                    html += renderCustomerCard(customer, customerOrders, totalProfit, false);
+                }
+            }
+
+            // COMPLETED ORDERS SECTION
+            if (completedOrders.length > 0) {
+                html += `
+                    <div class="section-header section-completed">
+                        <h2>✅ Completed Orders</h2>
+                        <span class="section-count">${completedOrders.length}</span>
+                    </div>
+                `;
+
+                for (const [customer, customerOrders] of Object.entries(completedByCustomer)) {
+                    const totalProfit = customerOrders.reduce((sum, o) => sum + calculateOrderProfit(o).profit, 0);
+                    html += renderCustomerCard(customer, customerOrders, totalProfit, true);
+                }
+            }
+
+            if (orders.length === 0) {
+                html = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <p>No orders yet</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Click "Sync Sheets" to import</p>
                     </div>
                 `;
             }
+
             container.innerHTML = html;
         }
 
-        function renderOrder(order) {
+        function renderCustomerCard(customer, customerOrders, totalProfit, isCompleted) {
             return `
-                <div class="order-item">
+                <div class="customer-card ${isCompleted ? 'completed' : ''} ${isCompleted ? '' : 'expanded'}">
+                    <div class="customer-header" onclick="toggleCustomer(this)">
+                        <div>
+                            <div class="customer-name">${customer}</div>
+                            <div class="customer-meta">${customerOrders.length} order${customerOrders.length > 1 ? 's' : ''}</div>
+                            ${totalProfit > 0 ? `<div class="customer-profit">Profit: $${totalProfit.toFixed(2)}</div>` : ''}
+                        </div>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="orders-container">
+                        ${customerOrders.map(order => renderOrder(order)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOrder(order) {
+            const calc = calculateOrderProfit(order);
+            const allCompleted = order.items.every(i => i.completed);
+
+            return `
+                <div class="order-item" id="order-${order.id}">
                     <div class="order-header">
-                        <span class="order-id">#${order.id.substr(0,8)}</span>
-                        <span class="order-status status-${order.status}" onclick="cycleStatus('${order.id}', event)">${order.status}</span>
+                        <div>
+                            <span class="order-id">#${order.id.substr(0,8)}</span>
+                            ${order.totalPrice ? `<span class="order-total">$${order.totalPrice}</span>` : ''}
+                            <span class="order-profit">(${calc.totalGrams}g | Profit: $${calc.profit.toFixed(2)})</span>
+                        </div>
+                        <div class="order-actions">
+                            <span class="order-status status-${order.status}" onclick="cycleStatus('${order.id}', event)">${order.status}</span>
+                        </div>
                     </div>
                     <div class="pokeball-list">
-                        ${order.items.map(item => `
-                            <div class="pokeball-item">
-                                <div class="pokeball ${item.shiny ? 'shiny' : ''} ${item.completed ? 'completed' : ''}" 
-                                     onclick="toggleItemComplete('${order.id}', '${item.name}', event)"></div>
-                                <span class="item-name">${item.name}</span>
-                                <span class="item-qty">x${item.qty}</span>
-                                ${item.shiny ? '<span class="shiny-badge">✨</span>' : ''}
-                                ${item.mystery ? '<span class="mystery-badge">❓</span>' : ''}
-                            </div>
-                        `).join('')}
+                        ${order.items.map((item, idx) => {
+                            const designInfo = getDesignInfo(item.name);
+                            return `
+                                <div class="pokeball-item ${item.completed ? 'completed' : ''}" onclick="toggleItemComplete('${order.id}', ${idx}, event)">
+                                    <div class="pokeball ${item.shiny ? 'shiny' : ''} ${item.completed ? 'completed' : ''}"></div>
+                                    <span class="item-name">${item.name}</span>
+                                    <span class="item-qty">x${item.qty}</span>
+                                    <span class="item-grams">(${designInfo.grams * item.qty}g)</span>
+                                    ${item.shiny ? '<span class="shiny-badge">✨</span>' : ''}
+                                    ${item.mystery ? '<span class="mystery-badge">❓</span>' : ''}
+                                    ${item.qty > 1 ? `<button class="split-btn" onclick="splitItem('${order.id}', ${idx}, event)">Split</button>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
             `;
@@ -558,32 +710,101 @@
 
             const statuses = ['pending', 'printing', 'completed'];
             const currentIndex = statuses.indexOf(order.status);
-            order.status = statuses[(currentIndex + 1) % statuses.length];
+            const newStatus = statuses[(currentIndex + 1) % statuses.length];
 
-            await db.collection('orders').doc(orderId).update({ status: order.status });
+            // If completing order, subtract filament
+            if (newStatus === 'completed' && order.status !== 'completed') {
+                await subtractFilamentForOrder(order);
+            }
+
+            // If un-completing, add filament back
+            if (order.status === 'completed' && newStatus !== 'completed') {
+                await addFilamentForOrder(order);
+            }
+
+            order.status = newStatus;
+            await db.collection('orders').doc(orderId).update({ status: newStatus });
+
             updateStats();
             renderOrders();
         }
 
-        async function toggleItemComplete(orderId, itemName, event) {
+        async function subtractFilamentForOrder(order) {
+            for (const item of order.items) {
+                const designInfo = getDesignInfo(item.name);
+                const gramsNeeded = designInfo.grams * (item.qty || 1);
+
+                for (const color of designInfo.filamentColors) {
+                    if (!filament[color]) filament[color] = { amount: 1000 };
+                    filament[color].amount = Math.max(0, (filament[color].amount || 1000) - gramsNeeded);
+                }
+            }
+            await db.collection('config').doc('filament').set(filament);
+        }
+
+        async function addFilamentForOrder(order) {
+            for (const item of order.items) {
+                const designInfo = getDesignInfo(item.name);
+                const gramsNeeded = designInfo.grams * (item.qty || 1);
+
+                for (const color of designInfo.filamentColors) {
+                    if (!filament[color]) filament[color] = { amount: 1000 };
+                    filament[color].amount = (filament[color].amount || 1000) + gramsNeeded;
+                }
+            }
+            await db.collection('config').doc('filament').set(filament);
+        }
+
+        async function toggleItemComplete(orderId, itemIndex, event) {
             event.stopPropagation();
             const order = orders.find(o => o.id === orderId);
-            if (!order) return;
+            if (!order || !order.items[itemIndex]) return;
 
-            const item = order.items.find(i => i.name === itemName);
-            if (item) {
-                item.completed = !item.completed;
-                await db.collection('orders').doc(orderId).update({ items: order.items });
+            order.items[itemIndex].completed = !order.items[itemIndex].completed;
+            await db.collection('orders').doc(orderId).update({ items: order.items });
+
+            // Check if all items completed
+            const allCompleted = order.items.every(i => i.completed);
+            if (allCompleted && order.status !== 'completed') {
+                await cycleStatus(orderId, event);
+            } else {
                 renderOrders();
             }
+        }
+
+        async function splitItem(orderId, itemIndex, event) {
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+
+            const order = orders.find(o => o.id === orderId);
+            if (!order || !order.items[itemIndex]) return;
+
+            const item = order.items[itemIndex];
+            if (item.qty <= 1) return;
+
+            // Reduce qty of original
+            item.qty -= 1;
+
+            // Add new item with qty 1
+            order.items.splice(itemIndex + 1, 0, {
+                name: item.name,
+                qty: 1,
+                shiny: item.shiny,
+                mystery: item.mystery,
+                completed: false
+            });
+
+            await db.collection('orders').doc(orderId).update({ items: order.items });
+            renderOrders();
         }
 
         async function addOrder() {
             const customer = document.getElementById('new-customer').value.trim();
             const itemsText = document.getElementById('new-items').value.trim();
+            const totalPrice = parseFloat(document.getElementById('new-total').value) || 0;
 
             if (!customer || !itemsText) {
-                alert('Please fill in all fields');
+                alert('Please fill in customer and items');
                 return;
             }
 
@@ -609,6 +830,7 @@
             const newOrder = {
                 customer,
                 items,
+                totalPrice,
                 status: 'pending',
                 date: new Date().toISOString(),
                 source: 'manual'
@@ -622,6 +844,7 @@
                 closeModal('add-order-modal');
                 document.getElementById('new-customer').value = '';
                 document.getElementById('new-items').value = '';
+                document.getElementById('new-total').value = '';
 
                 updateStats();
                 renderOrders();
@@ -663,17 +886,18 @@
                     name: d.title || d.name,
                     pokedexNumber: d.pokedex_number,
                     grams: d.total_weight_grams || d.weight_grams || d.weight || d.grams || 50,
-                    filamentColors: d.filament_colors || d.filaments || [],
+                    filamentColors: d.filament_colors || d.filaments || ['Ivory White'],
                     category: d.category || 'Pokemon',
                     lastSynced: new Date().toISOString()
                 }));
 
                 await db.collection('config').doc('designs').set({ designs });
 
+                // Initialize filament inventory
                 const n3dColors = new Set();
                 designs.forEach(d => { if (d.filamentColors) d.filamentColors.forEach(c => n3dColors.add(c)); });
                 n3dColors.forEach(color => { 
-                    if (!filament[color]) filament[color] = { color: generateColorFromName(color), amount: 1000 }; 
+                    if (!filament[color]) filament[color] = { amount: 1000 }; 
                 });
                 await db.collection('config').doc('filament').set(filament);
 
@@ -686,11 +910,6 @@
             }
         }
 
-        function generateColorFromName(name) {
-            const colors = {'Red': '#e74c3c', 'Blue': '#3498db', 'Green': '#2ecc71', 'Yellow': '#f1c40f', 'Black': '#2c3e50', 'White': '#ecf0f1', 'Purple': '#9b59b6', 'Orange': '#e67e22', 'Pink': '#ff69b4', 'Brown': '#8b4513', 'Gray': '#95a5a6', 'Cyan': '#00bcd4', 'Magenta': '#e91e63', 'Lime': '#cddc39', 'Indigo': '#3f51b5', 'Teal': '#009688', 'Amber': '#ffc107', 'Deep Orange': '#ff5722', 'Light Blue': '#03a9f4', 'Light Green': '#8bc34a'};
-            return colors[name] || '#' + Math.floor(Math.random()*16777215).toString(16);
-        }
-
         async function openFilamentModal() {
             const list = document.getElementById('filament-list');
             let html = '';
@@ -700,15 +919,53 @@
             for (const [color, data] of sortedFilaments) {
                 const isLow = (data.amount || 0) <= 200;
                 html += `
-                    <div class="filament-card">
-                        <span class="filament-name">${color}</span>
-                        <span class="filament-amount ${isLow ? 'filament-low' : ''}">${data.amount || 0}g</span>
+                    <div class="filament-card ${isLow ? 'low-stock' : ''}">
+                        <div>
+                            <span class="filament-name">${color}</span>
+                            <div class="filament-amount ${isLow ? 'filament-low' : ''}">${data.amount || 0}g</div>
+                            <div class="filament-actions">
+                                <button class="filament-btn" onclick="adjustFilament('${color}', -50)">-50g</button>
+                                <button class="filament-btn" onclick="adjustFilament('${color}', 50)">+50g</button>
+                                <button class="filament-btn" onclick="adjustFilament('${color}', 1000)">+1000g</button>
+                            </div>
+                        </div>
                     </div>
                 `;
             }
 
-            list.innerHTML = html || '<p style="color: var(--text-muted); text-align: center;">No filament data</p>';
+            list.innerHTML = html || '<p style="color: var(--text-muted); text-align: center;">No filament data. Sync N3D first.</p>';
             openModal('filament-modal');
+        }
+
+        async function adjustFilament(color, amount) {
+            if (!filament[color]) filament[color] = { amount: 1000 };
+            filament[color].amount = Math.max(0, (filament[color].amount || 1000) + amount);
+            await db.collection('config').doc('filament').set(filament);
+            openFilamentModal(); // Refresh
+            updateStats();
+        }
+
+        function openShoppingModal() {
+            const content = document.getElementById('shopping-content');
+            const lowStock = Object.entries(filament).filter(([color, data]) => (data.amount || 0) <= 200);
+
+            if (lowStock.length === 0) {
+                content.innerHTML = '<p style="color: var(--text-muted);">✅ All filament levels good!</p>';
+            } else {
+                let html = '<div class="shopping-list"><h3>🛒 Need to Restock:</h3>';
+                for (const [color, data] of lowStock) {
+                    html += `
+                        <div class="shopping-item">
+                            <span>${color}</span>
+                            <span style="color: var(--danger);">${data.amount || 0}g remaining</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                content.innerHTML = html;
+            }
+
+            openModal('shopping-modal');
         }
 
         function openModal(id) {
