@@ -7,475 +7,142 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #4a3b8c;
-            --primary-light: #6b5db8;
-            --primary-dark: #2d1f5f;
-            --accent: #ffcb05;
-            --accent-dark: #c7a008;
-            --text: #ffffff;
-            --text-muted: #b8b0d8;
-            --bg: #1a1230;
-            --card-bg: #2d2050;
-            --border: #4a3b8c;
+            --primary: #4a3b8c; --primary-light: #6b5db8; --primary-dark: #2d1f5f;
+            --accent: #ffcb05; --accent-dark: #c7a008; --text: #ffffff;
+            --text-muted: #b8b0d8; --bg: #1a1230; --card-bg: #2d2050; --border: #4a3b8c;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--bg) 0%, var(--primary-dark) 100%);
-            color: var(--text);
-            min-height: 100vh;
+            color: var(--text); min-height: 100vh;
         }
-
         .header {
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            padding: 2rem 1rem;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            padding: 2rem 1rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
-
-        .header h1 {
-            font-size: 3rem;
-            color: var(--primary-dark);
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            text-shadow: 3px 3px 0px rgba(0,0,0,0.2);
-            margin-bottom: 0.5rem;
-        }
-
-        .header p {
-            color: var(--primary-dark);
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
+        .header h1 { font-size: 3rem; color: var(--primary-dark); text-transform: uppercase; letter-spacing: 4px; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); margin-bottom: 0.5rem; }
+        .header p { color: var(--primary-dark); font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; }
         .controls {
-            background: var(--primary);
-            padding: 1.5rem 1rem;
-            border-bottom: 3px solid var(--accent);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
+            background: var(--primary); padding: 1.5rem 1rem; border-bottom: 3px solid var(--accent);
+            display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
         }
-
         .btn {
-            padding: 0.8rem 1.5rem;
-            border: 2px solid var(--border);
-            border-radius: 25px;
-            background: var(--card-bg);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            padding: 0.8rem 1.5rem; border: 2px solid var(--border); border-radius: 25px;
+            background: var(--card-bg); color: var(--text); cursor: pointer; font-size: 0.9rem;
+            transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+            display: flex; align-items: center; gap: 0.5rem;
         }
-
-        .btn:hover {
-            border-color: var(--accent);
-            background: rgba(255,203,5,0.1);
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: var(--primary-dark);
-            border-color: var(--accent);
-            font-weight: bold;
-        }
-
-        .btn-primary:hover {
-            background: #ffd93d;
-        }
-
+        .btn:hover { border-color: var(--accent); background: rgba(255,203,5,0.1); }
+        .btn-primary { background: var(--accent); color: var(--primary-dark); border-color: var(--accent); font-weight: bold; }
+        .btn-primary:hover { background: #ffd93d; }
         .stats-bar {
-            background: var(--primary-dark);
-            padding: 1rem;
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-            border-bottom: 2px solid var(--border);
+            background: var(--primary-dark); padding: 1rem; display: flex; justify-content: center;
+            gap: 2rem; flex-wrap: wrap; border-bottom: 2px solid var(--border);
         }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
-
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 1.8rem; font-weight: bold; color: var(--accent); }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .content { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
         .customer-card {
-            background: var(--card-bg);
-            border: 2px solid var(--border);
-            border-radius: 15px;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            background: var(--card-bg); border: 2px solid var(--border); border-radius: 15px;
+            margin-bottom: 1.5rem; overflow: hidden; transition: all 0.3s ease;
         }
-
-        .customer-card:hover {
-            border-color: var(--accent);
-        }
-
+        .customer-card:hover { border-color: var(--accent); }
         .customer-header {
-            background: var(--primary);
-            padding: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--border);
+            background: var(--primary); padding: 1.5rem; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border);
         }
-
-        .customer-name {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .customer-meta {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 0.3rem;
-        }
-
-        .expand-icon {
-            font-size: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-
-        .customer-card.expanded .expand-icon {
-            transform: rotate(180deg);
-        }
-
-        .orders-container {
-            display: none;
-            padding: 1.5rem;
-        }
-
-        .customer-card.expanded .orders-container {
-            display: block;
-        }
-
+        .customer-name { font-size: 1.3rem; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .customer-meta { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem; }
+        .expand-icon { font-size: 1.5rem; transition: transform 0.3s ease; }
+        .customer-card.expanded .expand-icon { transform: rotate(180deg); }
+        .orders-container { display: none; padding: 1.5rem; }
+        .customer-card.expanded .orders-container { display: block; }
         .order-item {
-            background: var(--primary);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
+            background: var(--primary); border: 2px solid var(--border); border-radius: 10px;
+            padding: 1.5rem; margin-bottom: 1rem; transition: all 0.3s ease;
         }
-
-        .order-item:hover {
-            border-color: var(--accent);
-        }
-
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .order-id {
-            font-weight: bold;
-            color: var(--accent);
-            font-size: 0.9rem;
-        }
-
+        .order-item:hover { border-color: var(--accent); }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .order-id { font-weight: bold; color: var(--accent); font-size: 0.9rem; }
         .order-status {
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
+            cursor: pointer; transition: all 0.3s ease;
         }
-
-        .status-pending {
-            background: #f39c12;
-            color: #000;
-        }
-
-        .status-printing {
-            background: #3498db;
-            color: #fff;
-        }
-
-        .status-completed {
-            background: #2ecc71;
-            color: #000;
-        }
-
-        .pokeball-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            margin-top: 1rem;
-        }
-
+        .status-pending { background: #f39c12; color: #000; }
+        .status-printing { background: #3498db; color: #fff; }
+        .status-completed { background: #2ecc71; color: #000; }
+        .pokeball-list { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
         .pokeball-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: var(--card-bg);
-            border-radius: 20px;
-            border: 2px solid var(--border);
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem; background: var(--card-bg); border-radius: 20px; border: 2px solid var(--border);
         }
-
         .pokeball {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
+            width: 20px; height: 20px; border-radius: 50%;
             background: linear-gradient(to bottom, #ff0000 50%, #fff 50%);
-            border: 2px solid #000;
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.2s ease;
+            border: 2px solid #000; position: relative; cursor: pointer; transition: transform 0.2s ease;
         }
-
-        .pokeball:hover {
-            transform: scale(1.1);
-        }
-
+        .pokeball:hover { transform: scale(1.1); }
         .pokeball::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 6px;
-            height: 6px;
-            background: #fff;
-            border: 2px solid #000;
-            border-radius: 50%;
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 6px; height: 6px;
+            background: #fff; border: 2px solid #000; border-radius: 50%;
         }
-
-        .pokeball.shiny {
-            background: linear-gradient(to bottom, #ffd700 50%, #fff 50%);
-            box-shadow: 0 0 8px #ffd700;
-        }
-
-        .pokeball.completed {
-            background: linear-gradient(to bottom, #2ecc71 50%, #fff 50%);
-        }
-
-        .item-name {
-            font-size: 0.9rem;
-        }
-
-        .item-qty {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-        }
-
-        .shiny-badge {
-            color: #ffd700;
-            font-size: 0.8rem;
-        }
-
+        .pokeball.shiny { background: linear-gradient(to bottom, #ffd700 50%, #fff 50%); box-shadow: 0 0 8px #ffd700; }
+        .pokeball.completed { background: linear-gradient(to bottom, #2ecc71 50%, #fff 50%); }
+        .item-name { font-size: 0.9rem; }
+        .item-qty { color: var(--text-muted); font-size: 0.8rem; }
+        .shiny-badge { color: #ffd700; font-size: 0.8rem; }
+        .mystery-badge { color: #9b59b6; font-size: 0.8rem; }
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;
         }
-
-        .modal.active {
-            display: flex;
-        }
-
+        .modal.active { display: flex; }
         .modal-content {
-            background: var(--card-bg);
-            border: 2px solid var(--accent);
-            border-radius: 20px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
+            background: var(--card-bg); border: 2px solid var(--accent); border-radius: 20px;
+            max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
         }
-
         .modal-header {
-            background: var(--primary);
-            padding: 1.5rem;
-            border-bottom: 2px solid var(--accent);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: var(--primary); padding: 1.5rem; border-bottom: 2px solid var(--accent);
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .modal-title {
-            color: var(--accent);
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        .modal-title { color: var(--accent); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        .modal-close { background: none; border: none; color: var(--text); font-size: 2rem; cursor: pointer; }
+        .modal-body { padding: 2rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 0.8rem 1rem; border: 2px solid var(--border); border-radius: 10px;
+            background: var(--primary); color: var(--text); font-size: 1rem; outline: none; transition: all 0.3s ease;
         }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text);
-            font-size: 2rem;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            background: var(--primary);
-            color: var(--text);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: var(--accent);
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .filament-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .filament-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
         .filament-card {
-            background: var(--primary);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: var(--primary); border: 2px solid var(--border); border-radius: 10px;
+            padding: 1rem; display: flex; justify-content: space-between; align-items: center;
         }
-
-        .filament-name {
-            font-weight: bold;
-        }
-
-        .filament-amount {
-            color: var(--accent);
-            font-weight: bold;
-        }
-
-        .filament-low {
-            color: #ff4444;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-muted);
-        }
-
+        .filament-name { font-weight: bold; }
+        .filament-amount { color: var(--accent); font-weight: bold; }
+        .filament-low { color: #ff4444; }
+        .loading { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-muted);
-        }
-
-        .empty-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+        .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+        .sync-status { text-align: center; padding: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .stats-bar {
-                gap: 1rem;
-            }
-
-            .stat-value {
-                font-size: 1.5rem;
-            }
-
-            .controls {
-                flex-direction: column;
-                align-items: center;
-            }
+            .header h1 { font-size: 2rem; }
+            .stats-bar { gap: 1rem; }
+            .stat-value { font-size: 1.5rem; }
+            .controls { flex-direction: column; align-items: center; }
         }
     </style>
 <base target="_blank">
@@ -487,16 +154,21 @@
     </header>
 
     <div class="controls">
-        <button class="btn btn-primary" onclick="openAddOrderModal()">
+        <button class="btn btn-primary" onclick="syncFromGoogleSheets()">
+            <span>🔄</span> Sync from Sheets
+        </button>
+        <button class="btn" onclick="openAddOrderModal()">
             <span>➕</span> New Order
         </button>
         <button class="btn" onclick="openFilamentModal()">
             <span>🧵</span> Filament
         </button>
         <button class="btn" onclick="syncN3D()">
-            <span>🔄</span> Sync N3D
+            <span>📥</span> Sync N3D
         </button>
     </div>
+
+    <div class="sync-status" id="sync-status">Ready to sync</div>
 
     <div class="stats-bar">
         <div class="stat-item">
@@ -525,7 +197,7 @@
         <div id="orders-list">
             <div class="loading">
                 <div class="spinner"></div>
-                <p>Loading orders from Firebase...</p>
+                <p>Loading orders...</p>
             </div>
         </div>
     </div>
@@ -569,57 +241,38 @@
     <script>
         // Firebase Config
         const firebaseConfig = {
-  apiKey: "AIzaSyAOlEJfO7NFJ2Cde7thfTwX0P8NZ56zTgw",
-  authDomain: "pokeprintadmin.firebaseapp.com",
-  projectId: "pokeprintadmin",
-  storageBucket: "pokeprintadmin.firebasestorage.app",
-  messagingSenderId: "610025346733",
-  appId: "1:610025346733:web:56dfec4b198739f1e49824",
-  measurementId: "G-LENPY376HE"
-};
+            apiKey: "AIzaSyAOlEJfO7NFJ2Cde7thfTwX0P8NZ56zTgw",
+            authDomain: "pokeprintadmin.firebaseapp.com",
+            projectId: "pokeprintadmin",
+            storageBucket: "pokeprintadmin.firebasestorage.app",
+            messagingSenderId: "610025346733",
+            appId: "1:610025346733:web:56dfec4b198739f1e49824"
+        };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Global data
         let orders = [];
         let filament = {};
         let designs = [];
 
-        // N3D API Config
         const N3D_API_KEY = 'n3d_sk_SgjHghzsNDmra3wqxB3-ed4nvyZYu6Ja';
+        const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk8BdvDMwzoPI2A5X863_8OAXKaSWs5a-aijyX7qMJRWFDoquKJs3gM20wcS-ggas_UuGjU8mCmz1V/pub?output=csv';
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
         });
 
-        // Google Sheets Config
-        const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk8BdvDMwzoPI2A5X863_8OAXKaSWs5a-aijyX7qMJRWFDoquKJs3gM20wcS-ggas_UuGjU8mCmz1V/pub?output=csv';
-
-        // Load all data from Firestore and Google Sheets
         async function loadData() {
             try {
-                // Load orders from Firestore
                 const ordersSnapshot = await db.collection('orders').orderBy('date', 'desc').get();
-                orders = ordersSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Load filament
                 const filamentDoc = await db.collection('config').doc('filament').get();
                 filament = filamentDoc.exists ? filamentDoc.data() : {};
 
-                // Load designs
                 const designsDoc = await db.collection('config').doc('designs').get();
                 designs = designsDoc.exists ? designsDoc.data().designs || [] : [];
-
-                // Sync from Google Sheets
-                if (GOOGLE_SHEETS_CSV_URL && GOOGLE_SHEETS_CSV_URL !== 'YOUR_GOOGLE_SHEETS_CSV_URL_HERE') {
-                    await syncFromGoogleSheets();
-                }
 
                 updateStats();
                 renderOrders();
@@ -634,100 +287,188 @@
             }
         }
 
-        // Sync orders from Google Sheets
+        // FIXED: Parse order details from Google Sheets format
+        function parseOrderDetails(orderDetailsStr, shinyRequest) {
+            const items = [];
+            if (!orderDetailsStr) return items;
+
+            // Split by <br> or newlines
+            const lines = orderDetailsStr.split(/<br\s*\/?>|\n/);
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+
+                // Match patterns like:
+                // "Pikachu (x1) - $8.00"
+                // "Bulbasaur x1 ($8 each)"
+                // "Bulbasaur - Rose x1"
+                // "Mystery: Sprigatito (x1) - $6.00"
+                // "Shiny Metagross (x1) - $7.00"
+
+                let isMystery = trimmed.toLowerCase().startsWith('mystery:');
+                let isShiny = trimmed.toLowerCase().includes('shiny') || 
+                              (shinyRequest && shinyRequest.toLowerCase().includes(trimmed.split('(')[0].trim().toLowerCase()));
+
+                // Remove "Mystery:" prefix for parsing
+                let cleanLine = trimmed;
+                if (isMystery) {
+                    cleanLine = trimmed.replace(/^mystery:\s*/i, '');
+                }
+
+                // Extract quantity - look for (xN) or xN
+                let qty = 1;
+                const qtyMatch = cleanLine.match(/\(x(\d+)\)/i) || cleanLine.match(/\bx(\d+)\b/i);
+                if (qtyMatch) {
+                    qty = parseInt(qtyMatch[1]);
+                }
+
+                // Extract design name - everything before (xN) or xN or - $
+                let designName = cleanLine;
+
+                // Remove price info
+                designName = designName.replace(/\s*-\s*\$[\d.]+/g, '');
+                designName = designName.replace(/\s*\(\$[\d.]+[^)]*\)/g, '');
+
+                // Remove quantity
+                designName = designName.replace(/\s*\(x\d+\)/gi, '');
+                designName = designName.replace(/\s*x\d+\b/gi, '');
+
+                // Clean up
+                designName = designName.replace(/\s+/g, ' ').trim();
+
+                // Remove "Shiny" from name if present (we track it separately)
+                if (designName.toLowerCase().startsWith('shiny ')) {
+                    designName = designName.substring(6).trim();
+                    isShiny = true;
+                }
+
+                if (designName) {
+                    items.push({
+                        name: designName,
+                        qty: qty,
+                        shiny: isShiny,
+                        mystery: isMystery,
+                        completed: false
+                    });
+                }
+            }
+
+            return items;
+        }
+
         async function syncFromGoogleSheets() {
+            const statusEl = document.getElementById('sync-status');
+            statusEl.textContent = '🔄 Syncing from Google Sheets...';
+
             try {
                 const response = await fetch(GOOGLE_SHEETS_CSV_URL);
                 const csvText = await response.text();
 
-                // Parse CSV
-                const lines = csvText.split('\n');
-                const sheetOrders = [];
+                // Parse CSV properly handling quoted fields
+                const rows = [];
+                let currentRow = [];
+                let currentField = '';
+                let inQuotes = false;
 
-                for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
+                for (let i = 0; i < csvText.length; i++) {
+                    const char = csvText[i];
+                    const nextChar = csvText[i + 1];
 
-                    // Parse CSV line (handle quoted fields)
-                    const fields = [];
-                    let field = '';
-                    let inQuotes = false;
-
-                    for (let j = 0; j < line.length; j++) {
-                        const char = line[j];
-                        if (char === '"') {
-                            inQuotes = !inQuotes;
-                        } else if (char === ',' && !inQuotes) {
-                            fields.push(field.trim().replace(/^"|"$/g, ''));
-                            field = '';
+                    if (char === '"') {
+                        if (inQuotes && nextChar === '"') {
+                            currentField += '"';
+                            i++; // Skip next quote
                         } else {
-                            field += char;
+                            inQuotes = !inQuotes;
                         }
-                    }
-                    fields.push(field.trim().replace(/^"|"$/g, ''));
-
-                    // Assuming columns: Timestamp, Customer Name, Order Details, Email, etc.
-                    if (fields.length >= 3) {
-                        const timestamp = fields[0];
-                        const customer = fields[1] || 'Unknown';
-                        const orderDetails = fields[2] || '';
-
-                        if (customer && orderDetails) {
-                            // Parse items from order details
-                            const items = orderDetails.split('\n').map(itemLine => {
-                                const match = itemLine.match(/(.+?)\s*x\s*(\d+)(?:\s*(shiny))?/i);
-                                if (match) {
-                                    return {
-                                        name: match[1].trim(),
-                                        qty: parseInt(match[2]) || 1,
-                                        shiny: itemLine.toLowerCase().includes('shiny'),
-                                        completed: false
-                                    };
-                                }
-                                return null;
-                            }).filter(Boolean);
-
-                            if (items.length > 0) {
-                                sheetOrders.push({
-                                    customer,
-                                    items,
-                                    status: 'pending',
-                                    date: new Date().toISOString(),
-                                    source: 'google_sheets',
-                                    sheetsTimestamp: timestamp
-                                });
-                            }
+                    } else if (char === ',' && !inQuotes) {
+                        currentRow.push(currentField.trim());
+                        currentField = '';
+                    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                        if (currentField || currentRow.length > 0) {
+                            currentRow.push(currentField.trim());
+                            rows.push(currentRow);
+                            currentRow = [];
+                            currentField = '';
                         }
+                    } else {
+                        currentField += char;
                     }
                 }
 
-                // Add new orders from sheets that don't exist in Firebase
+                // Don't forget the last field/row
+                if (currentField || currentRow.length > 0) {
+                    currentRow.push(currentField.trim());
+                    rows.push(currentRow);
+                }
+
+                if (rows.length < 2) {
+                    statusEl.textContent = '❌ No data found in sheet';
+                    return;
+                }
+
+                const headers = rows[0];
+
+                // Find column indices
+                const timestampIdx = headers.findIndex(h => h.toLowerCase().includes('timestamp'));
+                const nameIdx = headers.findIndex(h => h.toLowerCase().includes('name'));
+                const orderDetailsIdx = headers.findIndex(h => h.toLowerCase().includes('order details'));
+                const shinyIdx = headers.findIndex(h => h.toLowerCase().includes('shiny'));
+
                 let newOrdersCount = 0;
-                for (const sheetOrder of sheetOrders) {
-                    // Check if this order already exists (by customer + items match)
+
+                for (let i = 2; i < rows.length; i++) { // Start at 2 to skip header row
+                    const row = rows[i];
+                    if (row.length < 3) continue;
+
+                    const timestamp = timestampIdx >= 0 ? row[timestampIdx] : '';
+                    const customer = nameIdx >= 0 ? row[nameIdx] : 'Unknown';
+                    const orderDetails = orderDetailsIdx >= 0 ? row[orderDetailsIdx] : '';
+                    const shinyRequest = shinyIdx >= 0 ? row[shinyIdx] : '';
+
+                    if (!customer || !orderDetails) continue;
+
+                    // Parse items from order details
+                    const items = parseOrderDetails(orderDetails, shinyRequest);
+
+                    if (items.length === 0) continue;
+
+                    // Check if this order already exists
                     const exists = orders.some(existing => 
-                        existing.customer === sheetOrder.customer &&
+                        existing.customer === customer &&
                         existing.source === 'google_sheets' &&
-                        existing.sheetsTimestamp === sheetOrder.sheetsTimestamp
+                        existing.sheetsTimestamp === timestamp
                     );
 
                     if (!exists) {
-                        const docRef = await db.collection('orders').add(sheetOrder);
-                        sheetOrder.id = docRef.id;
-                        orders.unshift(sheetOrder);
+                        const newOrder = {
+                            customer,
+                            items,
+                            status: 'pending',
+                            date: new Date().toISOString(),
+                            source: 'google_sheets',
+                            sheetsTimestamp: timestamp,
+                            shinyRequest: shinyRequest || ''
+                        };
+
+                        const docRef = await db.collection('orders').add(newOrder);
+                        newOrder.id = docRef.id;
+                        orders.unshift(newOrder);
                         newOrdersCount++;
                     }
                 }
 
-                if (newOrdersCount > 0) {
-                    console.log(`Added ${newOrdersCount} new orders from Google Sheets`);
-                }
+                statusEl.textContent = `✅ Synced ${newOrdersCount} new orders from Google Sheets`;
+                updateStats();
+                renderOrders();
+
             } catch (error) {
-                console.error('Error syncing from Google Sheets:', error);
+                console.error('Sync error:', error);
+                statusEl.textContent = '❌ Sync failed: ' + error.message;
             }
         }
 
-        // Update statistics
         function updateStats() {
             const pending = orders.filter(o => o.status === 'pending').length;
             const printing = orders.filter(o => o.status === 'printing').length;
@@ -742,7 +483,6 @@
             document.getElementById('stat-low').textContent = lowStock;
         }
 
-        // Render orders grouped by customer
         function renderOrders() {
             const container = document.getElementById('orders-list');
 
@@ -751,7 +491,7 @@
                     <div class="empty-state">
                         <div class="empty-icon">📋</div>
                         <p>No orders yet</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Click "New Order" to add one</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Click "Sync from Sheets" to import from Google Forms</p>
                     </div>
                 `;
                 return;
@@ -799,6 +539,7 @@
                                 <span class="item-name">${item.name}</span>
                                 <span class="item-qty">x${item.qty}</span>
                                 ${item.shiny ? '<span class="shiny-badge">✨</span>' : ''}
+                                ${item.mystery ? '<span class="mystery-badge">❓</span>' : ''}
                             </div>
                         `).join('')}
                     </div>
@@ -810,7 +551,6 @@
             header.parentElement.classList.toggle('expanded');
         }
 
-        // Cycle order status
         async function cycleStatus(orderId, event) {
             event.stopPropagation();
             const order = orders.find(o => o.id === orderId);
@@ -825,7 +565,6 @@
             renderOrders();
         }
 
-        // Toggle item completion
         async function toggleItemComplete(orderId, itemName, event) {
             event.stopPropagation();
             const order = orders.find(o => o.id === orderId);
@@ -839,7 +578,6 @@
             }
         }
 
-        // Add new order
         async function addOrder() {
             const customer = document.getElementById('new-customer').value.trim();
             const itemsText = document.getElementById('new-items').value.trim();
@@ -856,6 +594,7 @@
                         name: match[1].trim(),
                         qty: parseInt(match[2]),
                         shiny: !!match[3],
+                        mystery: false,
                         completed: false
                     };
                 }
@@ -871,7 +610,8 @@
                 customer,
                 items,
                 status: 'pending',
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                source: 'manual'
             };
 
             try {
@@ -890,9 +630,9 @@
             }
         }
 
-        // Sync N3D designs
         async function syncN3D() {
             const btn = event.target.closest('.btn');
+            const originalText = btn.innerHTML;
             btn.innerHTML = '<span>⏳</span> Syncing...';
 
             try {
@@ -930,7 +670,6 @@
 
                 await db.collection('config').doc('designs').set({ designs });
 
-                // Add new filament colors
                 const n3dColors = new Set();
                 designs.forEach(d => { if (d.filamentColors) d.filamentColors.forEach(c => n3dColors.add(c)); });
                 n3dColors.forEach(color => { 
@@ -943,7 +682,7 @@
             } catch (error) {
                 alert('Sync failed: ' + error.message);
             } finally {
-                btn.innerHTML = '<span>🔄</span> Sync N3D';
+                btn.innerHTML = originalText;
             }
         }
 
@@ -952,7 +691,6 @@
             return colors[name] || '#' + Math.floor(Math.random()*16777215).toString(16);
         }
 
-        // Filament modal
         async function openFilamentModal() {
             const list = document.getElementById('filament-list');
             let html = '';
@@ -973,7 +711,6 @@
             openModal('filament-modal');
         }
 
-        // Modal helpers
         function openModal(id) {
             document.getElementById(id).classList.add('active');
         }
@@ -986,7 +723,6 @@
             openModal('add-order-modal');
         }
 
-        // Close modals on outside click
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) modal.classList.remove('active');
