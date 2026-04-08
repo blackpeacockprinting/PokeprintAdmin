@@ -2,7 +2,9 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { Octokit } = require('@octokit/rest');
 
+// Initialize Firebase Admin
 admin.initializeApp();
+
 const db = admin.firestore();
 
 // CORS middleware
