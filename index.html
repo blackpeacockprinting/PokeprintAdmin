@@ -452,14 +452,26 @@
             return response.json();
         }
 
-        async function getFileContents(path) {
-            try {
-                const data = await githubApi(`/contents/${path}`);
-                return { content: JSON.parse(atob(data.content)), sha: data.sha };
-            } catch (e) { if (e.message.includes('404')) return { content: null, sha: null }; throw e; }
-        }
-
-        async function saveFileContents(path, content, sha, message) {
+        async function githubApi(endpoint, options = {}) {
+    const apiUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}${endpoint}`;
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(apiUrl)}`;
+    
+    const response = await fetch(proxyUrl, {
+        headers: { 
+            'Authorization': `Bearer ${githubConfig.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            ...options.headers 
+        },
+        ...options
+    });
+    
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(error.message || `HTTP ${response.status}`);
+    }
+    return response.json();
+}
+ {
             const contentEncoded = btoa(JSON.stringify(content, null, 2));
             const body = { message: message || `Update ${path}`, content: contentEncoded, branch: 'main' };
             if (sha) body.sha = sha;
