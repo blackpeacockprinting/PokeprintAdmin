@@ -595,10 +595,13 @@
             loadData();
         });
 
-        // Load all data from Firestore
+        // Google Sheets Config
+        const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk8BdvPI2A5X863_8OAXKaSWs5a-aijyX7qMJRWFDoquKJs3gM20wcS-ggas_UuGjU8mCmz1V/pub?output=csv';
+
+        // Load all data from Firestore and Google Sheets
         async function loadData() {
             try {
-                // Load orders
+                // Load orders from Firestore
                 const ordersSnapshot = await db.collection('orders').orderBy('date', 'desc').get();
                 orders = ordersSnapshot.docs.map(doc => ({
                     id: doc.id,
@@ -613,6 +616,11 @@
                 const designsDoc = await db.collection('config').doc('designs').get();
                 designs = designsDoc.exists ? designsDoc.data().designs || [] : [];
 
+                // Sync from Google Sheets
+                if (GOOGLE_SHEETS_CSV_URL && GOOGLE_SHEETS_CSV_URL !== 'YOUR_GOOGLE_SHEETS_CSV_URL_HERE') {
+                    await syncFromGoogleSheets();
+                }
+
                 updateStats();
                 renderOrders();
             } catch (error) {
@@ -623,6 +631,99 @@
                         <p>Error loading data</p>
                     </div>
                 `;
+            }
+        }
+
+        // Sync orders from Google Sheets
+        async function syncFromGoogleSheets() {
+            try {
+                const response = await fetch(GOOGLE_SHEETS_CSV_URL);
+                const csvText = await response.text();
+
+                // Parse CSV
+                const lines = csvText.split('\n');
+                const sheetOrders = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    // Parse CSV line (handle quoted fields)
+                    const fields = [];
+                    let field = '';
+                    let inQuotes = false;
+
+                    for (let j = 0; j < line.length; j++) {
+                        const char = line[j];
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            fields.push(field.trim().replace(/^"|"$/g, ''));
+                            field = '';
+                        } else {
+                            field += char;
+                        }
+                    }
+                    fields.push(field.trim().replace(/^"|"$/g, ''));
+
+                    // Assuming columns: Timestamp, Customer Name, Order Details, Email, etc.
+                    if (fields.length >= 3) {
+                        const timestamp = fields[0];
+                        const customer = fields[1] || 'Unknown';
+                        const orderDetails = fields[2] || '';
+
+                        if (customer && orderDetails) {
+                            // Parse items from order details
+                            const items = orderDetails.split('\n').map(itemLine => {
+                                const match = itemLine.match(/(.+?)\s*x\s*(\d+)(?:\s*(shiny))?/i);
+                                if (match) {
+                                    return {
+                                        name: match[1].trim(),
+                                        qty: parseInt(match[2]) || 1,
+                                        shiny: itemLine.toLowerCase().includes('shiny'),
+                                        completed: false
+                                    };
+                                }
+                                return null;
+                            }).filter(Boolean);
+
+                            if (items.length > 0) {
+                                sheetOrders.push({
+                                    customer,
+                                    items,
+                                    status: 'pending',
+                                    date: new Date().toISOString(),
+                                    source: 'google_sheets',
+                                    sheetsTimestamp: timestamp
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Add new orders from sheets that don't exist in Firebase
+                let newOrdersCount = 0;
+                for (const sheetOrder of sheetOrders) {
+                    // Check if this order already exists (by customer + items match)
+                    const exists = orders.some(existing => 
+                        existing.customer === sheetOrder.customer &&
+                        existing.source === 'google_sheets' &&
+                        existing.sheetsTimestamp === sheetOrder.sheetsTimestamp
+                    );
+
+                    if (!exists) {
+                        const docRef = await db.collection('orders').add(sheetOrder);
+                        sheetOrder.id = docRef.id;
+                        orders.unshift(sheetOrder);
+                        newOrdersCount++;
+                    }
+                }
+
+                if (newOrdersCount > 0) {
+                    console.log(`Added ${newOrdersCount} new orders from Google Sheets`);
+                }
+            } catch (error) {
+                console.error('Error syncing from Google Sheets:', error);
             }
         }
 
