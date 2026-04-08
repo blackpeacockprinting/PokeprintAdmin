@@ -26,6 +26,6 @@ jobs:
     - name: Deploy to Firebase
       uses: w9jds/firebase-action@master
       with:
-        args: deploy --only functions
+        args: deploy --only functions --project blackpeacockprinting-fbb65
       env:
         GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
