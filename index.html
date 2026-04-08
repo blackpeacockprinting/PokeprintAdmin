@@ -445,7 +445,7 @@
         async function githubApi(endpoint, options = {}) {
             const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}${endpoint}`;
             const response = await fetch(url, {
-                headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3+json', ...options.headers },
+                headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3+json', ...options.headers },
                 ...options
             });
             if (!response.ok) { const error = await response.json(); throw new Error(error.message || `HTTP ${response.status}`); }
