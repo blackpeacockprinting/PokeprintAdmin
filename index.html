@@ -41,6 +41,7 @@
         .btn:hover { transform: translateY(-2px); opacity: 0.9; }
         .btn-primary { background: var(--accent); color: var(--primary-dark); }
         .btn-danger { background: var(--danger); color: #fff; }
+        .btn-success { background: var(--success); color: var(--primary-dark); }
 
         .stats-bar {
             background: var(--primary-dark); padding: 1rem;
@@ -183,10 +184,81 @@
             border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Modal styles */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+            padding: 1rem;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--card-bg); border-radius: 16px; width: 100%; max-width: 500px;
+            max-height: 90vh; overflow-y: auto; border: 1px solid var(--border);
+        }
+        .modal-header {
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-dark) 100%);
+            padding: 1rem; color: var(--primary-dark); font-weight: 700; font-size: 1.1rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--primary-dark); }
+        .modal-body { padding: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; text-transform: uppercase; }
+        .form-input {
+            width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--primary); color: var(--text); font-size: 1rem;
+        }
+        .form-input:focus { outline: none; border-color: var(--accent); }
+        .items-list { margin: 1rem 0; }
+        .item-row {
+            display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;
+        }
+        .item-input { flex: 1; }
+        .qty-input { width: 60px; }
+        .remove-btn { background: var(--danger); border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; }
+        .add-item-btn {
+            width: 100%; padding: 0.8rem; border: 2px dashed var(--border); border-radius: 8px;
+            background: transparent; color: var(--text-muted); cursor: pointer; margin-top: 0.5rem;
+        }
+        .modal-footer {
+            padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem;
+        }
+        .modal-footer .btn { flex: 1; justify-content: center; }
     </style>
 <base target="_blank">
 </head>
 <body>
+    <div class="modal-overlay" id="addOrderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span>➕ Add New Order</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Customer Name</label>
+                    <input type="text" class="form-input" id="customerName" placeholder="Enter customer name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Items</label>
+                    <div class="items-list" id="itemsList">
+                        <div class="item-row">
+                            <input type="text" class="form-input item-input" placeholder="Design name (e.g., Pikachu)">
+                            <input type="number" class="form-input qty-input" value="1" min="1">
+                            <button class="remove-btn" onclick="removeItemRow(this)">🗑️</button>
+                        </div>
+                    </div>
+                    <button class="add-item-btn" onclick="addItemRow()">+ Add Another Item</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveOrder()">💾 Save Order</button>
+            </div>
+        </div>
+    </div>
+
     <header class="header">
         <h1>⚡ POKEPRINT</h1>
         <p>ORDER TRACKER</p>
@@ -194,11 +266,12 @@
 
     <div class="controls">
         <button class="btn btn-primary" onclick="syncFromGoogleSheets()">🔄 Sync Sheets</button>
+        <button class="btn btn-success" onclick="openAddModal()">➕ Add Order</button>
         <button class="btn" onclick="syncN3D()">📥 Sync N3D</button>
         <button class="btn btn-danger" onclick="deleteAllCompleted()">🗑️ Clear Done</button>
     </div>
 
-    <div class="sync-status" id="sync-status">Ready - Click Sync Sheets to load orders</div>
+    <div class="sync-status" id="sync-status">Ready - Click Sync Sheets or Add Order</div>
 
     <div class="stats-bar">
         <div class="stat-item">
@@ -245,8 +318,22 @@
             appId: "1:1025287520257:web:ff8d4ab1b69fd859c20000"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // Initialize Firebase with error handling
+        let db;
+        let firebaseInitialized = false;
+
+        try {
+            // Check if already initialized to prevent "already exists" error
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+            firebaseInitialized = true;
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase init error:', error);
+            document.getElementById('sync-status').textContent = '⚠️ Firebase init failed - using offline mode';
+        }
 
         let orders = [];
         let designs = {};
@@ -297,14 +384,31 @@
             'quaxly': { grams: 36, filaments: { 'Blue': 36 }}
         };
 
-        document.addEventListener('DOMContentLoaded', loadData);
-
+        // Load data with timeout
         async function loadData() {
+            const statusEl = document.getElementById('sync-status');
+
+            if (!firebaseInitialized) {
+                statusEl.textContent = '⚠️ Firebase not available - using demo mode';
+                orders = [];
+                renderOrders();
+                return;
+            }
+
+            // Set a timeout for Firebase operations
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Firebase timeout')), 10000);
+            });
+
             try {
-                const [ordersSnap, designsDoc] = await Promise.all([
+                statusEl.textContent = '🔄 Loading data...';
+
+                const loadPromise = Promise.all([
                     db.collection('orders').orderBy('date', 'desc').get(),
                     db.collection('config').doc('designs').get()
                 ]);
+
+                const [ordersSnap, designsDoc] = await Promise.race([loadPromise, timeoutPromise]);
 
                 orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -315,28 +419,126 @@
                 }
 
                 console.log('Loaded', orders.length, 'orders,', Object.keys(designs).length, 'designs');
+                statusEl.textContent = `✅ Loaded ${orders.length} orders`;
                 updateStats();
                 renderOrders();
-            } catch (e) {
-                console.error(e);
-                document.getElementById('main-content').innerHTML = '<div class="empty-state">Error loading</div>';
+            } catch (error) {
+                console.error('Load error:', error);
+                statusEl.textContent = '⚠️ Load failed - tap Sync Sheets to retry';
+                orders = [];
+                renderOrders();
+            }
+        }
+
+        // Modal functions
+        function openAddModal() {
+            document.getElementById('addOrderModal').classList.add('show');
+            document.getElementById('customerName').value = '';
+            document.getElementById('itemsList').innerHTML = `
+                <div class="item-row">
+                    <input type="text" class="form-input item-input" placeholder="Design name (e.g., Pikachu)">
+                    <input type="number" class="form-input qty-input" value="1" min="1">
+                    <button class="remove-btn" onclick="removeItemRow(this)">🗑️</button>
+                </div>
+            `;
+        }
+
+        function closeModal() {
+            document.getElementById('addOrderModal').classList.remove('show');
+        }
+
+        function addItemRow() {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <input type="text" class="form-input item-input" placeholder="Design name">
+                <input type="number" class="form-input qty-input" value="1" min="1">
+                <button class="remove-btn" onclick="removeItemRow(this)">🗑️</button>
+            `;
+            document.getElementById('itemsList').appendChild(row);
+        }
+
+        function removeItemRow(btn) {
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length > 1) {
+                btn.closest('.item-row').remove();
+            }
+        }
+
+        async function saveOrder() {
+            const customer = document.getElementById('customerName').value.trim();
+            if (!customer) {
+                alert('Please enter customer name');
+                return;
+            }
+
+            const rows = document.querySelectorAll('.item-row');
+            const items = [];
+            let totalPrice = 0;
+
+            rows.forEach(row => {
+                const name = row.querySelector('.item-input').value.trim();
+                const qty = parseInt(row.querySelector('.qty-input').value) || 1;
+                if (name) {
+                    const designId = name.toLowerCase().replace(/\s+/g, '-');
+                    const design = getDesign(name);
+                    const price = design.price * qty;
+                    totalPrice += price;
+
+                    for (let i = 0; i < qty; i++) {
+                        items.push({
+                            id: designId + '-' + i,
+                            name: name,
+                            qty: 1,
+                            status: 'pending',
+                            shiny: false,
+                            mystery: false
+                        });
+                    }
+                }
+            });
+
+            if (items.length === 0) {
+                alert('Please add at least one item');
+                return;
+            }
+
+            const order = {
+                customer: customer,
+                items: items,
+                totalPrice: totalPrice,
+                status: 'pending',
+                date: new Date().toISOString(),
+                source: 'manual'
+            };
+
+            try {
+                if (firebaseInitialized) {
+                    const docRef = await db.collection('orders').add(order);
+                    order.id = docRef.id;
+                }
+                orders.unshift(order);
+                closeModal();
+                renderOrders();
+                updateStats();
+                document.getElementById('sync-status').textContent = '✅ Order added successfully';
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Failed to save order');
             }
         }
 
         function getDesign(name) {
             const clean = name.toLowerCase().trim().replace(/\s+/g, '-');
 
-            // Try synced designs
             if (designs[clean]) return designs[clean];
 
-            // Try name matching
             for (const [id, design] of Object.entries(designs)) {
                 if (design.name && design.name.toLowerCase() === name.toLowerCase()) {
                     return design;
                 }
             }
 
-            // Fallback
             const fb = FALLBACK_DESIGNS[clean];
             if (fb) {
                 return { 
@@ -348,7 +550,6 @@
                 };
             }
 
-            // Ultimate fallback
             return { id: clean, name: name, grams: 50, filamentColors: ['Ivory White'], price: 8 };
         }
 
@@ -400,7 +601,7 @@
             }
 
             if (orders.length === 0) {
-                html = '<div class="empty-state">No orders yet<br><small>Click "Sync Sheets" to import from Google Sheets</small></div>';
+                html = '<div class="empty-state">No orders yet<br><small>Click "Add Order" to create one or "Sync Sheets" to import</small></div>';
             }
 
             container.innerHTML = html;
@@ -537,16 +738,17 @@
 
             order.items[itemIdx].status = status;
 
-            // Check if all items complete
             const allComplete = order.items.every(i => i.status === 'completed');
             if (allComplete && order.status !== 'completed') {
                 order.status = 'completed';
             }
 
-            await db.collection('orders').doc(orderId).update({ 
-                items: order.items,
-                status: order.status
-            });
+            if (firebaseInitialized) {
+                await db.collection('orders').doc(orderId).update({ 
+                    items: order.items,
+                    status: order.status
+                });
+            }
 
             renderOrders();
             updateStats();
@@ -557,7 +759,9 @@
             if (!order || !order.items[itemIdx]) return;
 
             order.items[itemIdx].shiny = !order.items[itemIdx].shiny;
-            await db.collection('orders').doc(orderId).update({ items: order.items });
+            if (firebaseInitialized) {
+                await db.collection('orders').doc(orderId).update({ items: order.items });
+            }
             renderOrders();
         }
 
@@ -568,7 +772,6 @@
             const item = order.items[itemIdx];
             const qty = item.qty;
 
-            // Remove original and add individual items
             order.items.splice(itemIdx, 1);
             for (let i = 0; i < qty; i++) {
                 order.items.push({
@@ -580,7 +783,9 @@
                 });
             }
 
-            await db.collection('orders').doc(orderId).update({ items: order.items });
+            if (firebaseInitialized) {
+                await db.collection('orders').doc(orderId).update({ items: order.items });
+            }
             renderOrders();
             updateStats();
         }
@@ -588,7 +793,9 @@
         async function deleteOrder(orderId) {
             if (!confirm('Delete this order?')) return;
 
-            await db.collection('orders').doc(orderId).delete();
+            if (firebaseInitialized) {
+                await db.collection('orders').doc(orderId).delete();
+            }
             orders = orders.filter(o => o.id !== orderId);
             renderOrders();
             updateStats();
@@ -600,8 +807,10 @@
             if (completed.length === 0) return alert('No completed orders to delete');
             if (!confirm(`Delete ${completed.length} completed orders?`)) return;
 
-            for (const order of completed) {
-                await db.collection('orders').doc(order.id).delete();
+            if (firebaseInitialized) {
+                for (const order of completed) {
+                    await db.collection('orders').doc(order.id).delete();
+                }
             }
             orders = orders.filter(o => o.status !== 'completed');
             renderOrders();
@@ -674,6 +883,7 @@
                             allDesigns.push(...data.data);
                             if (data.data.length < 200) break;
                             page++;
+                            await new Promise(r => setTimeout(r, 500));
                         }
 
                         if (allDesigns.length > 0) break;
@@ -682,16 +892,16 @@
                     }
                 }
 
-                // Save to Firebase
-                const designsArray = Object.values(designs);
-                await db.collection('config').doc('designs').set({ designs: designsArray });
+                if (firebaseInitialized) {
+                    const designsArray = Object.values(designs);
+                    await db.collection('config').doc('designs').set({ designs: designsArray });
+                }
 
                 status.textContent = `✅ Synced ${allDesigns.length} designs from N3D`;
             } catch (e) {
                 console.error(e);
                 status.textContent = '❌ N3D sync failed, using fallback data';
 
-                // Load fallback
                 for (const [name, data] of Object.entries(FALLBACK_DESIGNS)) {
                     designs[name] = {
                         id: name,
@@ -732,7 +942,6 @@
                     const details = row[detailsIdx];
                     if (!customer || !details) continue;
 
-                    // Check if exists
                     const exists = orders.some(o => 
                         o.customer === customer && o.sheetsTimestamp === row[timeIdx]
                     );
@@ -740,7 +949,7 @@
                     if (!exists) {
                         const items = parseItems(details);
                         if (items.length > 0) {
-                            await db.collection('orders').add({
+                            const order = {
                                 customer,
                                 items,
                                 totalPrice: parseFloat(row[totalIdx]) || 0,
@@ -748,14 +957,24 @@
                                 date: new Date().toISOString(),
                                 source: 'sheets',
                                 sheetsTimestamp: row[timeIdx]
-                            });
+                            };
+
+                            if (firebaseInitialized) {
+                                const docRef = await db.collection('orders').add(order);
+                                order.id = docRef.id;
+                            } else {
+                                order.id = 'local-' + Date.now() + '-' + i;
+                            }
+
+                            orders.push(order);
                             added++;
                         }
                     }
                 }
 
                 status.textContent = `✅ Added ${added} new orders from Sheets`;
-                await loadData();
+                renderOrders();
+                updateStats();
             } catch (e) {
                 console.error(e);
                 status.textContent = '❌ Sheets sync failed: ' + e.message;
@@ -821,6 +1040,19 @@
             }
             return items;
         }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Try to load data, but don't hang if Firebase fails
+            loadData();
+
+            // Also try N3D sync in background
+            setTimeout(() => {
+                if (Object.keys(designs).length === 0) {
+                    syncN3D();
+                }
+            }, 2000);
+        });
     </script>
 </body>
 </html>
