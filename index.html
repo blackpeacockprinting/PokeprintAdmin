@@ -6,7 +6,6 @@
     <title>PokePrint Order Tracker</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-functions-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -41,6 +40,7 @@
         }
         .btn:hover { transform: translateY(-2px); opacity: 0.9; }
         .btn-primary { background: var(--accent); color: var(--primary-dark); }
+        .btn-danger { background: var(--danger); color: #fff; }
 
         .stats-bar {
             background: var(--primary-dark); padding: 1rem;
@@ -60,9 +60,8 @@
         .customer-header {
             background: linear-gradient(90deg, var(--primary-light) 0%, var(--primary) 100%);
             padding: 1rem; display: flex; align-items: center; gap: 0.8rem;
-            cursor: pointer; position: relative; user-select: none;
+            cursor: pointer;
         }
-        .customer-header:hover { opacity: 0.95; }
         .customer-avatar {
             width: 40px; height: 40px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
@@ -73,23 +72,21 @@
         .customer-name { font-size: 1.1rem; font-weight: 700; color: var(--text); }
         .customer-meta { display: flex; gap: 1rem; margin-top: 0.2rem; }
         .meta-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-muted); }
-        .collapse-icon {
-            margin-left: auto;
-            font-size: 1.2rem;
-            color: var(--accent);
-            font-weight: bold;
-            transition: transform 0.3s ease;
-        }
+
+        .orders-container { display: none; }
+        .customer-section.expanded .orders-container { display: block; }
+        .expand-icon { margin-left: auto; font-size: 1.2rem; transition: transform 0.3s; }
+        .customer-section.expanded .expand-icon { transform: rotate(180deg); }
 
         .order-card {
             background: var(--primary); margin: 0.8rem; border-radius: 12px;
             border: 1px solid var(--border); overflow: hidden;
-            transition: all 0.3s ease;
         }
         .order-header {
             background: var(--primary-light); padding: 0.8rem 1rem;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid var(--border);
+            cursor: pointer;
         }
         .order-id { color: var(--purple); font-weight: 700; font-size: 0.9rem; }
         .order-status {
@@ -99,16 +96,22 @@
         .status-pending { background: var(--warning); color: #000; }
         .status-printing { background: var(--info); color: #fff; }
         .status-completed { background: var(--success); color: #000; }
+        .delete-btn {
+            background: var(--danger); border: none; border-radius: 50%;
+            width: 28px; height: 28px; cursor: pointer; font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .items-container { display: none; padding: 0.8rem; }
+        .order-card.expanded .items-container { display: block; }
 
         .item-card {
-            padding: 1rem; border-bottom: 1px solid var(--border);
+            padding: 1rem; border-bottom: 1px solid var(--border); cursor: pointer;
         }
         .item-card:last-child { border-bottom: none; }
         .item-header {
             display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem;
-            cursor: pointer; position: relative; user-select: none;
         }
-        .item-header:hover { opacity: 0.95; }
         .pokeball {
             width: 36px; height: 36px; border-radius: 50%;
             background: linear-gradient(to bottom, #ff0000 50%, #fff 50%);
@@ -125,25 +128,12 @@
         .item-name { font-size: 1.1rem; font-weight: 700; color: var(--text); }
         .item-price { color: var(--cyan); font-size: 1rem; font-weight: 600; }
 
-        .filament-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;
-            margin: 0.8rem 0;
-            transition: all 0.3s ease;
-        }
-        .filament-item {
-            background: var(--card-bg); padding: 0.5rem; border-radius: 8px;
-            display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;
-        }
-        .filament-dot {
-            width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
-        }
-        .filament-name { color: var(--text-muted); }
-        .filament-grams { color: var(--text); font-weight: 600; margin-left: auto; }
+        .item-details { display: none; margin-top: 0.8rem; }
+        .item-card.expanded .item-details { display: block; }
 
         .stats-grid {
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;
             margin: 0.8rem 0;
-            transition: all 0.3s ease;
         }
         .stat-box {
             background: var(--card-bg); padding: 0.8rem; border-radius: 8px; text-align: center;
@@ -158,7 +148,6 @@
         .action-buttons {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
             margin-top: 0.8rem;
-            transition: all 0.3s ease;
         }
         .action-btn {
             padding: 0.6rem; border: none; border-radius: 10px;
@@ -186,41 +175,7 @@
             padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.8rem; font-weight: 700;
         }
 
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: var(--card-bg); border-radius: 16px; width: 100%; max-width: 400px;
-            max-height: 90vh; overflow-y: auto; border: 1px solid var(--border);
-        }
-        .modal-header {
-            background: var(--primary); padding: 1rem; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .modal-title { font-size: 1.1rem; font-weight: 700; }
-        .modal-close { background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
-        .modal-body { padding: 1rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
-        .form-group input, .form-group textarea {
-            width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px;
-            background: var(--primary); color: var(--text); font-size: 0.9rem;
-        }
-
-        .shopping-item {
-            background: var(--primary); padding: 0.8rem; border-radius: 8px;
-            display: flex; justify-content: space-between; margin-bottom: 0.5rem;
-            border-left: 3px solid var(--danger);
-        }
-
         .sync-status { text-align: center; padding: 0.5rem; font-size: 0.75rem; color: var(--text-muted); }
-        .debug-info { 
-            background: #0d1117; border: 1px solid var(--border); border-radius: 8px;
-            padding: 0.8rem; margin: 0.5rem; font-family: monospace; font-size: 0.7rem;
-            color: #7ee787; max-height: 150px; overflow-y: auto; white-space: pre-wrap;
-        }
         .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
         .loading { text-align: center; padding: 3rem; }
         .spinner {
@@ -230,7 +185,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 <base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <header class="header">
@@ -239,15 +193,12 @@
     </header>
 
     <div class="controls">
-        <button class="btn btn-primary" onclick="syncFromGoogleSheets()">🔄 Sync</button>
-        <button class="btn" onclick="openAddOrderModal()">➕ New</button>
-        <button class="btn" onclick="openFilamentModal()">🧵 Filament</button>
-        <button class="btn" onclick="openShoppingModal()">🛒 Shop</button>
-        <button class="btn" onclick="syncN3D()">📥 N3D</button>
+        <button class="btn btn-primary" onclick="syncFromGoogleSheets()">🔄 Sync Sheets</button>
+        <button class="btn" onclick="syncN3D()">📥 Sync N3D</button>
+        <button class="btn btn-danger" onclick="deleteAllCompleted()">🗑️ Clear Done</button>
     </div>
 
-    <div class="sync-status" id="sync-status">Ready - Click N3D to sync designs</div>
-    <div class="debug-info" id="debug-log" style="display: none;"></div>
+    <div class="sync-status" id="sync-status">Ready - Click Sync Sheets to load orders</div>
 
     <div class="stats-bar">
         <div class="stat-item">
@@ -267,12 +218,12 @@
             <div class="stat-label">Profit</div>
         </div>
         <div class="stat-item">
-            <div class="stat-value" id="stat-filament">0</div>
-            <div class="stat-label">Colors</div>
+            <div class="stat-value" id="stat-orders">0</div>
+            <div class="stat-label">Orders</div>
         </div>
         <div class="stat-item">
-            <div class="stat-value" id="stat-low">0</div>
-            <div class="stat-label">Low</div>
+            <div class="stat-value" id="stat-revenue">$0</div>
+            <div class="stat-label">Revenue</div>
         </div>
     </div>
 
@@ -283,86 +234,39 @@
         </div>
     </div>
 
-    <!-- Add Order Modal -->
-    <div class="modal" id="add-order-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">New Order</h3>
-                <button class="modal-close" onclick="closeModal('add-order-modal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Customer</label>
-                    <input type="text" id="new-customer" placeholder="Name">
-                </div>
-                <div class="form-group">
-                    <label>Items (Name xQty)</label>
-                    <textarea id="new-items" placeholder="Pikachu x2&#10;Bulbasaur x1"></textarea>
-                </div>
-                <button class="btn btn-primary" onclick="addOrder()" style="width: 100%;">Add Order</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filament Modal -->
-    <div class="modal" id="filament-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Filament</h3>
-                <button class="modal-close" onclick="closeModal('filament-modal')">&times;</button>
-            </div>
-            <div class="modal-body" id="filament-list"></div>
-        </div>
-    </div>
-
-    <!-- Shopping Modal -->
-    <div class="modal" id="shopping-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Shopping List</h3>
-                <button class="modal-close" onclick="closeModal('shopping-modal')">&times;</button>
-            </div>
-            <div class="modal-body" id="shopping-list"></div>
-        </div>
-    </div>
-
     <script>
+        // Firebase Config - BlackPeacockPrinting
         const firebaseConfig = {
-            apiKey: "AIzaSyAOlEJfO7NFJ2Cde7thfTwX0P8NZ56zTgw",
-            authDomain: "pokeprintadmin.firebaseapp.com",
-            projectId: "pokeprintadmin",
-            storageBucket: "pokeprintadmin.firebasestorage.app",
-            messagingSenderId: "610025346733",
-            appId: "1:610025346733:web:56dfec4b198739f1e49824"
+            apiKey: "AIzaSyBTp9aLB3VaKIKpztrR029mG3mVEw5MNOQ",
+            authDomain: "blackpeacockprinting-fbb65.firebaseapp.com",
+            projectId: "blackpeacockprinting-fbb65",
+            storageBucket: "blackpeacockprinting-fbb65.firebasestorage.app",
+            messagingSenderId: "1025287520257",
+            appId: "1:1025287520257:web:ff8d4ab1b69fd859c20000"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const functions = firebase.functions();
 
         let orders = [];
-        let filament = {};
-        let designs = [];
-        const FILAMENT_COST = 0.012; // $12/kg
+        let designs = {};
+        const FILAMENT_COST = 0.012; // $12/kg = $0.012/g
 
-        // Fallback: Direct N3D API v1.2.0 config
+        // N3D API v1.2.0 config
         const N3D_API_KEY = 'n3d_sk_SgjHghzsNDmra3wqxB3-ed4nvyZYu6Ja';
         const N3D_BASE_URL = 'https://www.n3dmelbourne.com/api/v1';
-        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk8BdvDMwzoPI2A5X863_8OAXKaSWs5a-aijyX7qMJRWFDoquKJs3gM20wcS-ggas_UuGjU8mCmz1V/pub?output=csv';
+        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1mfRlr9EaR-XVMEf3W0LaJEEUQ9uS9llLsWTr0jz88ng/export?format=csv';
 
-        // Your shop pricing tiers
+        // Pricing tiers
         function getPrice(grams) {
             if (grams <= 149) return 8;
             if (grams <= 249) return 10;
             return 12;
         }
 
-        // Fallback designs with correct N3D-style data
+        // Fallback designs
         const FALLBACK_DESIGNS = {
-            'eevee': { 
-                grams: 103.7, 
-                filaments: { 'Desert Tan': 17.4, 'Caramel': 67.8, 'Dark Brown': 1.3, 'Charcoal Black': 16.1, 'Ivory White': 1.2 }
-            },
+            'eevee': { grams: 103.7, filaments: { 'Desert Tan': 17.4, 'Caramel': 67.8, 'Dark Brown': 1.3, 'Charcoal Black': 16.1, 'Ivory White': 1.2 }},
             'vaporeon': { grams: 45, filaments: { 'Blue': 45 } },
             'jolteon': { grams: 42, filaments: { 'Yellow': 42 } },
             'flareon': { grams: 40, filaments: { 'Orange Red': 40 } },
@@ -393,42 +297,24 @@
             'quaxly': { grams: 36, filaments: { 'Blue': 36 }}
         };
 
-        const FILAMENT_COLORS = {
-            'Desert Tan': '#d4a574', 'Caramel': '#c68e17', 'Dark Brown': '#5d4037',
-            'Charcoal Black': '#36454f', 'Ivory White': '#fffff0', 'Yellow': '#ffeb3b',
-            'Orange Red': '#ff4500', 'Light Purple': '#da70d6', 'Black': '#212121',
-            'Light Green': '#90ee90', 'Cyan': '#00bcd4', 'Pink': '#ffc0cb',
-            'Green': '#4caf50', 'Blue': '#2196f3', 'Silver': '#c0c0c0',
-            'Brown': '#795548', 'Red': '#f44336', 'Orange': '#ff9800',
-            'Purple': '#9c27b0', 'White': '#ffffff', 'Gold': '#ffd700',
-            'Grey': '#9e9e9e', 'Teal': '#00897b', 'Cream': '#fffdd0'
-        };
-
-        function log(msg) {
-            console.log(msg);
-            const debug = document.getElementById('debug-log');
-            if (debug) {
-                debug.style.display = 'block';
-                debug.textContent += msg + '\n';
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', loadData);
 
         async function loadData() {
             try {
-                const [ordersSnap, filamentDoc, designsDoc] = await Promise.all([
+                const [ordersSnap, designsDoc] = await Promise.all([
                     db.collection('orders').orderBy('date', 'desc').get(),
-                    db.collection('config').doc('filament').get(),
                     db.collection('config').doc('designs').get()
                 ]);
 
                 orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                filament = filamentDoc.exists ? filamentDoc.data() : {};
-                designs = designsDoc.exists ? designsDoc.data().designs || [] : [];
 
-                log(`Loaded ${orders.length} orders, ${designs.length} designs, ${Object.keys(filament).length} filaments`);
+                if (designsDoc.exists) {
+                    const data = designsDoc.data().designs || [];
+                    designs = {};
+                    data.forEach(d => designs[d.id] = d);
+                }
 
+                console.log('Loaded', orders.length, 'orders,', Object.keys(designs).length, 'designs');
                 updateStats();
                 renderOrders();
             } catch (e) {
@@ -438,47 +324,46 @@
         }
 
         function getDesign(name) {
-            const clean = name.toLowerCase().trim();
+            const clean = name.toLowerCase().trim().replace(/\s+/g, '-');
 
-            // Try synced designs from N3D
-            let d = designs.find(x => x.name.toLowerCase() === clean);
-            if (!d) d = designs.find(x => clean.includes(x.name.toLowerCase()));
-            if (d) {
-                const filaments = {};
-                (d.filamentColors || ['Ivory White']).forEach((c, i) => {
-                    filaments[c] = (d.grams || 50) / (d.filamentColors?.length || 1);
-                });
-                return { grams: d.grams || 50, price: getPrice(d.grams || 50), filaments };
+            // Try synced designs
+            if (designs[clean]) return designs[clean];
+
+            // Try name matching
+            for (const [id, design] of Object.entries(designs)) {
+                if (design.name && design.name.toLowerCase() === name.toLowerCase()) {
+                    return design;
+                }
             }
 
             // Fallback
             const fb = FALLBACK_DESIGNS[clean];
             if (fb) {
-                return { ...fb, price: getPrice(fb.grams) };
+                return { 
+                    id: clean,
+                    name: name,
+                    grams: fb.grams, 
+                    filamentColors: Object.keys(fb.filaments),
+                    price: getPrice(fb.grams)
+                };
             }
 
             // Ultimate fallback
-            return { grams: 50, price: 8, filaments: { 'Ivory White': 50 }};
+            return { id: clean, name: name, grams: 50, filamentColors: ['Ivory White'], price: 8 };
         }
 
         function calcItem(item) {
             const design = getDesign(item.name);
             const grams = design.grams * item.qty;
             const cost = grams * FILAMENT_COST;
-            const price = design.price * item.qty;
-
-            // Scale filaments by qty
-            const scaledFilaments = {};
-            for (const [color, g] of Object.entries(design.filaments)) {
-                scaledFilaments[color] = g * item.qty;
-            }
+            const price = (design.price || getPrice(design.grams)) * item.qty;
 
             return { 
                 grams, 
                 cost, 
                 price, 
                 profit: price - cost,
-                filaments: scaledFilaments
+                filamentColors: design.filamentColors || ['Ivory White']
             };
         }
 
@@ -515,83 +400,22 @@
             }
 
             if (orders.length === 0) {
-                html = '<div class="empty-state">No orders yet<br><small>Click Sync to import from Google Sheets</small></div>';
+                html = '<div class="empty-state">No orders yet<br><small>Click "Sync Sheets" to import from Google Sheets</small></div>';
             }
 
             container.innerHTML = html;
-
-            // Initialize collapse handlers after rendering
-            setTimeout(initCollapseHandlers, 100);
-        }
-
-        // COLLAPSE/EXPAND FUNCTIONALITY
-        function initCollapseHandlers() {
-            // Customer section collapse
-            document.querySelectorAll('.customer-header').forEach(header => {
-                // Remove existing listeners to prevent duplicates
-                header.removeEventListener('click', handleCustomerClick);
-                header.addEventListener('click', handleCustomerClick);
-            });
-
-            // Item collapse
-            document.querySelectorAll('.item-header').forEach(header => {
-                header.removeEventListener('click', handleItemClick);
-                header.addEventListener('click', handleItemClick);
-            });
-        }
-
-        function handleCustomerClick(e) {
-            // Don't collapse if clicking on action buttons
-            if (e.target.closest('button')) return;
-
-            const header = e.currentTarget;
-            const section = header.closest('.customer-section');
-            const orders = section.querySelectorAll('.order-card');
-            const isCollapsed = header.dataset.collapsed === 'true';
-
-            orders.forEach(order => {
-                order.style.display = isCollapsed ? 'block' : 'none';
-            });
-
-            header.dataset.collapsed = !isCollapsed;
-            updateToggleIcon(header, !isCollapsed);
-        }
-
-        function handleItemClick(e) {
-            // Don't collapse if clicking on action buttons
-            if (e.target.closest('button')) return;
-
-            const header = e.currentTarget;
-            const card = header.closest('.item-card');
-            const details = card.querySelectorAll('.filament-grid, .stats-grid, .action-buttons');
-            const isCollapsed = header.dataset.collapsed === 'true';
-
-            details.forEach(el => {
-                el.style.display = isCollapsed ? 'grid' : 'none';
-            });
-
-            header.dataset.collapsed = !isCollapsed;
-            updateToggleIcon(header, !isCollapsed);
-        }
-
-        function updateToggleIcon(element, collapsed) {
-            let icon = element.querySelector('.collapse-icon');
-            if (!icon) {
-                icon = document.createElement('span');
-                icon.className = 'collapse-icon';
-                element.appendChild(icon);
-            }
-            icon.textContent = collapsed ? '▶' : '▼';
-            icon.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
         }
 
         function renderCustomerSection(customer, custOrders, isCompleted = false) {
             const pendingCount = custOrders.filter(o => o.status === 'pending').length;
             const printingCount = custOrders.filter(o => o.status === 'printing').length;
+            const totalProfit = custOrders.reduce((sum, o) => {
+                return sum + o.items.reduce((itemSum, item) => itemSum + calcItem(item).profit, 0);
+            }, 0);
 
-            let html = `<div class="customer-section">`;
+            let html = `<div class="customer-section" id="cust-${customer.replace(/\s+/g, '-')}">`;
             html += `
-                <div class="customer-header" data-collapsed="false">
+                <div class="customer-header" onclick="toggleCustomer('${customer.replace(/\s+/g, '-')}')">
                     <div class="customer-avatar">👤</div>
                     <div class="customer-info">
                         <div class="customer-name">${customer}</div>
@@ -599,17 +423,19 @@
                             ${pendingCount > 0 ? `<span class="meta-item">⏳ ${pendingCount}</span>` : ''}
                             ${printingCount > 0 ? `<span class="meta-item">🖨️ ${printingCount}</span>` : ''}
                             <span class="meta-item">📦 ${custOrders.length}</span>
+                            <span class="meta-item">💰 $${totalProfit.toFixed(0)}</span>
                         </div>
                     </div>
-                    <span class="collapse-icon">▼</span>
+                    <div class="expand-icon">▼</div>
                 </div>
+                <div class="orders-container">
             `;
 
             for (const order of custOrders) {
                 html += renderOrderCard(order);
             }
 
-            html += '</div>';
+            html += '</div></div>';
             return html;
         }
 
@@ -618,313 +444,272 @@
                 '#ORD-' + new Date(order.sheetsTimestamp).toISOString().slice(0,10).replace(/-/g,'') : 
                 '#' + order.id.substr(0,8).toUpperCase();
 
-            let itemsHtml = '';
+            const totalProfit = order.items.reduce((sum, item) => sum + calcItem(item).profit, 0);
+            const completedItems = order.items.filter(i => i.status === 'completed').length;
 
+            let itemsHtml = '';
             for (const item of order.items || []) {
                 const calc = calcItem(item);
-
-                // Build filament breakdown
-                let filHtml = '';
-                for (const [color, grams] of Object.entries(calc.filaments)) {
-                    const colorCode = FILAMENT_COLORS[color] || '#888';
-                    filHtml += `
-                        <div class="filament-item">
-                            <div class="filament-dot" style="background: ${colorCode}"></div>
-                            <span class="filament-name">${color}:</span>
-                            <span class="filament-grams">${grams.toFixed(1)}g</span>
-                        </div>
-                    `;
-                }
+                const itemIdx = order.items.indexOf(item);
 
                 itemsHtml += `
-                    <div class="item-card">
-                        <div class="item-header" data-collapsed="false">
-                            <div class="pokeball ${item.shiny ? 'shiny' : ''} ${item.completed ? 'completed' : ''}"></div>
+                    <div class="item-card" id="item-${order.id}-${itemIdx}" onclick="toggleItem('${order.id}', ${itemIdx})">
+                        <div class="item-header">
+                            <div class="pokeball ${item.shiny ? 'shiny' : ''} ${item.status === 'completed' ? 'completed' : ''}"></div>
                             <div class="item-info">
-                                <div class="item-name">${item.name}</div>
+                                <div class="item-name">${item.name} ${item.qty > 1 ? 'x' + item.qty : ''}</div>
                                 <div class="item-price">$${calc.price.toFixed(2)}</div>
                             </div>
-                            <span class="collapse-icon">▼</span>
                         </div>
-                        <div class="filament-grid">${filHtml}</div>
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <div class="stat-box-label">Grams</div>
-                                <div class="stat-box-value grams">${calc.grams.toFixed(1)}g</div>
+                        <div class="item-details">
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <div class="stat-box-label">Grams</div>
+                                    <div class="stat-box-value grams">${calc.grams.toFixed(1)}g</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-label">Cost</div>
+                                    <div class="stat-box-value cost">$${calc.cost.toFixed(2)}</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-label">Price</div>
+                                    <div class="stat-box-value revenue">$${calc.price.toFixed(2)}</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-label">Profit</div>
+                                    <div class="stat-box-value profit">$${calc.profit.toFixed(2)}</div>
+                                </div>
                             </div>
-                            <div class="stat-box">
-                                <div class="stat-box-label">Cost</div>
-                                <div class="stat-box-value cost">$${calc.cost.toFixed(2)}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                Colors: ${calc.filamentColors.join(', ')}
                             </div>
-                            <div class="stat-box">
-                                <div class="stat-box-label">Revenue</div>
-                                <div class="stat-box-value revenue">$${calc.price.toFixed(2)}</div>
+                            <div class="action-buttons">
+                                <button class="action-btn btn-pending ${item.status === 'pending' ? 'active' : ''}" onclick="event.stopPropagation(); setItemStatus('${order.id}', ${itemIdx}, 'pending')">⏳</button>
+                                <button class="action-btn btn-printing ${item.status === 'printing' ? 'active' : ''}" onclick="event.stopPropagation(); setItemStatus('${order.id}', ${itemIdx}, 'printing')">🖨️</button>
+                                <button class="action-btn btn-complete ${item.status === 'completed' ? 'active' : ''}" onclick="event.stopPropagation(); setItemStatus('${order.id}', ${itemIdx}, 'completed')">✅</button>
+                                <button class="action-btn btn-shiny ${item.shiny ? 'active' : ''}" onclick="event.stopPropagation(); toggleShiny('${order.id}', ${itemIdx})">✨</button>
                             </div>
-                            <div class="stat-box">
-                                <div class="stat-box-label">Profit</div>
-                                <div class="stat-box-value profit">$${calc.profit.toFixed(2)}</div>
-                            </div>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="action-btn btn-pending ${order.status === 'pending' ? 'active' : ''}" onclick="setStatus('${order.id}', 'pending')">⏳ Pending</button>
-                            <button class="action-btn btn-printing ${order.status === 'printing' ? 'active' : ''}" onclick="setStatus('${order.id}', 'printing')">🖨️ Printing</button>
-                            <button class="action-btn btn-complete ${order.status === 'completed' ? 'active' : ''}" onclick="setStatus('${order.id}', 'completed')">✅ Complete</button>
-                            <button class="action-btn btn-shiny ${item.shiny ? 'active' : ''}" onclick="toggleShiny('${order.id}', ${order.items.indexOf(item)})">✨ Shiny</button>
+                            ${item.qty > 1 ? `<button class="btn" style="width: 100%; margin-top: 0.5rem;" onclick="event.stopPropagation(); splitItem('${order.id}', ${itemIdx})">Split x${item.qty}</button>` : ''}
                         </div>
                     </div>
                 `;
             }
 
             return `
-                <div class="order-card">
-                    <div class="order-header">
-                        <span class="order-id">${orderNum}</span>
-                        <span class="order-status status-${order.status}">${order.status}</span>
+                <div class="order-card" id="order-${order.id}">
+                    <div class="order-header" onclick="toggleOrder('${order.id}')">
+                        <div>
+                            <span class="order-id">${orderNum}</span>
+                            <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 0.5rem;">$${totalProfit.toFixed(2)} profit • ${completedItems}/${order.items.length} done</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="order-status status-${order.status}">${order.status}</span>
+                            <button class="delete-btn" onclick="event.stopPropagation(); deleteOrder('${order.id}')">🗑️</button>
+                        </div>
                     </div>
-                    ${itemsHtml}
+                    <div class="items-container">
+                        ${itemsHtml}
+                    </div>
                 </div>
             `;
         }
 
-        async function setStatus(orderId, status) {
+        // Toggle functions
+        function toggleCustomer(customerId) {
+            const el = document.getElementById('cust-' + customerId);
+            el.classList.toggle('expanded');
+        }
+
+        function toggleOrder(orderId) {
+            const el = document.getElementById('order-' + orderId);
+            el.classList.toggle('expanded');
+        }
+
+        function toggleItem(orderId, itemIdx) {
+            const el = document.getElementById('item-' + orderId + '-' + itemIdx);
+            el.classList.toggle('expanded');
+        }
+
+        // Actions
+        async function setItemStatus(orderId, itemIdx, status) {
             const order = orders.find(o => o.id === orderId);
-            if (!order) return;
+            if (!order || !order.items[itemIdx]) return;
 
-            const oldStatus = order.status;
-            order.status = status;
-            await db.collection('orders').doc(orderId).update({ status });
+            order.items[itemIdx].status = status;
 
-            if (status === 'completed' && oldStatus !== 'completed') {
-                for (const item of order.items) {
-                    const calc = calcItem(item);
-                    for (const [color, grams] of Object.entries(calc.filaments)) {
-                        if (!filament[color]) filament[color] = { amount: 1000 };
-                        filament[color].amount = Math.max(0, filament[color].amount - grams);
-                    }
-                }
-                await db.collection('config').doc('filament').set(filament);
+            // Check if all items complete
+            const allComplete = order.items.every(i => i.status === 'completed');
+            if (allComplete && order.status !== 'completed') {
+                order.status = 'completed';
             }
 
-            updateStats();
+            await db.collection('orders').doc(orderId).update({ 
+                items: order.items,
+                status: order.status
+            });
+
             renderOrders();
+            updateStats();
         }
 
         async function toggleShiny(orderId, itemIdx) {
             const order = orders.find(o => o.id === orderId);
             if (!order || !order.items[itemIdx]) return;
+
             order.items[itemIdx].shiny = !order.items[itemIdx].shiny;
             await db.collection('orders').doc(orderId).update({ items: order.items });
             renderOrders();
         }
 
-        function updateStats() {
-            const pending = orders.filter(o => o.status === 'pending').length;
-            const printing = orders.filter(o => o.status === 'printing').length;
-            const completed = orders.filter(o => o.status === 'completed').length;
-            const colors = Object.keys(filament).length;
-            const low = Object.values(filament).filter(f => (f.amount || 0) <= 200).length;
+        async function splitItem(orderId, itemIdx) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order || !order.items[itemIdx] || order.items[itemIdx].qty <= 1) return;
 
-            let profit = 0;
-            for (const o of orders) {
-                if (o.status === 'completed') {
-                    for (const item of o.items) {
-                        profit += calcItem(item).profit;
-                    }
-                }
+            const item = order.items[itemIdx];
+            const qty = item.qty;
+
+            // Remove original and add individual items
+            order.items.splice(itemIdx, 1);
+            for (let i = 0; i < qty; i++) {
+                order.items.push({
+                    ...item,
+                    id: (item.id || item.name) + '-split-' + i,
+                    qty: 1,
+                    status: item.status,
+                    shiny: item.shiny
+                });
             }
+
+            await db.collection('orders').doc(orderId).update({ items: order.items });
+            renderOrders();
+            updateStats();
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm('Delete this order?')) return;
+
+            await db.collection('orders').doc(orderId).delete();
+            orders = orders.filter(o => o.id !== orderId);
+            renderOrders();
+            updateStats();
+            document.getElementById('sync-status').textContent = '✅ Order deleted';
+        }
+
+        async function deleteAllCompleted() {
+            const completed = orders.filter(o => o.status === 'completed');
+            if (completed.length === 0) return alert('No completed orders to delete');
+            if (!confirm(`Delete ${completed.length} completed orders?`)) return;
+
+            for (const order of completed) {
+                await db.collection('orders').doc(order.id).delete();
+            }
+            orders = orders.filter(o => o.status !== 'completed');
+            renderOrders();
+            updateStats();
+            document.getElementById('sync-status').textContent = `✅ Deleted ${completed.length} orders`;
+        }
+
+        function updateStats() {
+            let pending = 0, printing = 0, completed = 0, totalProfit = 0, totalRevenue = 0;
+
+            orders.forEach(order => {
+                order.items.forEach(item => {
+                    const calc = calcItem(item);
+                    if (item.status === 'pending') pending += item.qty;
+                    else if (item.status === 'printing') printing += item.qty;
+                    else if (item.status === 'completed') completed += item.qty;
+
+                    if (order.status === 'completed') {
+                        totalProfit += calc.profit;
+                        totalRevenue += calc.price;
+                    }
+                });
+            });
 
             document.getElementById('stat-pending').textContent = pending;
             document.getElementById('stat-printing').textContent = printing;
             document.getElementById('stat-completed').textContent = completed;
-            document.getElementById('stat-profit').textContent = '$' + profit.toFixed(0);
-            document.getElementById('stat-filament').textContent = colors;
-            document.getElementById('stat-low').textContent = low;
+            document.getElementById('stat-profit').textContent = '$' + totalProfit.toFixed(0);
+            document.getElementById('stat-orders').textContent = orders.length;
+            document.getElementById('stat-revenue').textContent = '$' + totalRevenue.toFixed(0);
         }
 
-        // FIREBASE CALLABLE FUNCTION N3D SYNC (Primary method)
+        // Sync N3D
         async function syncN3D() {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '⏳';
-
-            const statusEl = document.getElementById('sync-status');
-            statusEl.textContent = '🔄 Syncing via Cloud Function...';
-            log('Starting N3D sync via Firebase Callable Function...');
+            const status = document.getElementById('sync-status');
+            status.textContent = '🔄 Syncing N3D...';
 
             try {
-                // Create a callable function reference
-                const syncN3DFunction = functions.httpsCallable('syncN3D');
-
-                // Call the function
-                const result = await syncN3DFunction({});
-
-                log(`Cloud Function result: ${JSON.stringify(result.data)}`);
-
-                if (result.data.success) {
-                    // Reload data from Firestore (Cloud Function saves it there)
-                    await loadData();
-
-                    statusEl.textContent = `✅ Synced ${result.data.count} designs via Cloud Function!`;
-                    alert(`Successfully synced ${result.data.count} designs from N3D!\n\nExamples:\n- ${designs[0]?.name} (${designs[0]?.grams}g)\n- ${designs[1]?.name} (${designs[1]?.grams}g)`);
-                } else {
-                    throw new Error(result.data.message || 'Unknown error');
-                }
-
-            } catch (error) {
-                log(`Cloud Function failed: ${error.message}`);
-                statusEl.textContent = '❌ Cloud Function failed, trying fallback...';
-
-                // Fall back to direct API
-                await syncN3DDirect();
-            } finally {
-                btn.textContent = originalText;
-            }
-        }
-
-        // DIRECT N3D SYNC (Fallback method)
-        async function syncN3DDirect() {
-            const statusEl = document.getElementById('sync-status');
-            log('Starting direct N3D sync (fallback)...');
-
-            try {
-                // Try multiple CORS proxies
                 const proxies = [
-                    { url: 'https://corsproxy.io/?url=', name: 'corsproxy.io' },
-                    { url: 'https://api.allorigins.win/raw?url=', name: 'allorigins' },
-                    { url: 'https://api.codetabs.com/v1/proxy?quest=', name: 'codetabs' }
+                    'https://corsproxy.io/?url=',
+                    'https://api.allorigins.win/raw?url='
                 ];
 
                 let allDesigns = [];
-                let lastError = null;
 
                 for (const proxy of proxies) {
                     try {
-                        log(`Trying ${proxy.name}...`);
-                        allDesigns = [];
                         let page = 1;
-                        let hasMore = true;
-
-                        while (hasMore && page <= 5) {
-                            const apiUrl = `${N3D_BASE_URL}/designs?page=${page}&limit=200`;
-                            const fullUrl = proxy.url + encodeURIComponent(apiUrl);
-
-                            log(`Fetching page ${page}...`);
-
-                            const response = await fetch(fullUrl, {
-                                method: 'GET',
-                                headers: {
-                                    'Authorization': `Bearer ${N3D_API_KEY}`,
-                                    'Accept': 'application/json'
-                                }
+                        while (page <= 5) {
+                            const url = proxy + encodeURIComponent(`${N3D_BASE_URL}/designs?page=${page}&limit=200`);
+                            const res = await fetch(url, {
+                                headers: { 'Authorization': 'Bearer ' + N3D_API_KEY }
                             });
 
-                            if (!response.ok) {
-                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                            }
+                            if (!res.ok) throw new Error('Failed');
 
-                            const data = await response.json();
-                            log(`Page ${page}: ${data.data?.length || 0} designs`);
+                            const data = await res.json();
+                            if (!data.data || !data.data.length) break;
 
-                            const pageDesigns = data.data || [];
-
-                            if (pageDesigns.length === 0) {
-                                hasMore = false;
-                            } else {
-                                // Map N3D v1.2.0 format
-                                const mapped = pageDesigns.map(d => ({
-                                    id: d.slug || d.id,
+                            data.data.forEach(d => {
+                                designs[d.slug] = {
+                                    id: d.slug,
                                     name: d.title || d.name,
-                                    pokedexNumber: d.pokedex_number,
-                                    grams: d.total_weight_grams || d.weight_grams || d.weight || 50,
-                                    filamentColors: d.filament_colors || d.filaments || ['Ivory White'],
-                                    category: d.category || 'Pokemon',
-                                    entitled: d.entitled || false,
-                                    lastSynced: new Date().toISOString()
-                                }));
+                                    grams: d.total_weight_grams || d.weight_grams || 50,
+                                    filamentColors: d.filament_colors || ['Ivory White'],
+                                    price: getPrice(d.total_weight_grams || 50)
+                                };
+                            });
 
-                                allDesigns.push(...mapped);
-                                page++;
-                            }
+                            allDesigns.push(...data.data);
+                            if (data.data.length < 200) break;
+                            page++;
                         }
 
-                        if (allDesigns.length > 0) {
-                            log(`✅ Success with ${proxy.name}: ${allDesigns.length} designs`);
-                            break;
-                        }
+                        if (allDesigns.length > 0) break;
                     } catch (e) {
-                        log(`❌ ${proxy.name} failed: ${e.message}`);
-                        lastError = e;
-                        continue;
+                        console.log('Proxy failed, trying next...');
                     }
                 }
 
-                if (allDesigns.length === 0) {
-                    throw new Error(`All proxies failed. Last error: ${lastError?.message}`);
+                // Save to Firebase
+                const designsArray = Object.values(designs);
+                await db.collection('config').doc('designs').set({ designs: designsArray });
+
+                status.textContent = `✅ Synced ${allDesigns.length} designs from N3D`;
+            } catch (e) {
+                console.error(e);
+                status.textContent = '❌ N3D sync failed, using fallback data';
+
+                // Load fallback
+                for (const [name, data] of Object.entries(FALLBACK_DESIGNS)) {
+                    designs[name] = {
+                        id: name,
+                        name: name.charAt(0).toUpperCase() + name.slice(1),
+                        grams: data.grams,
+                        filamentColors: Object.keys(data.filaments),
+                        price: getPrice(data.grams)
+                    };
                 }
-
-                // Save to Firestore
-                designs = allDesigns;
-                await db.collection('config').doc('designs').set({ designs });
-                log(`✅ Saved ${designs.length} designs to Firebase`);
-
-                // Initialize filament inventory from designs
-                const colorSet = new Set();
-                designs.forEach(d => {
-                    if (d.filamentColors) {
-                        d.filamentColors.forEach(c => colorSet.add(c));
-                    }
-                });
-
-                colorSet.forEach(color => {
-                    if (!filament[color]) filament[color] = { amount: 1000 };
-                });
-
-                await db.collection('config').doc('filament').set(filament);
-                log(`✅ Initialized ${colorSet.size} filament colors`);
-
-                statusEl.textContent = `✅ Synced ${designs.length} designs (fallback)`;
-                updateStats();
-                renderOrders();
-
-                alert(`Synced ${designs.length} designs via fallback.\n\nExamples:\n- ${designs[0]?.name} (${designs[0]?.grams}g)\n- ${designs[1]?.name} (${designs[1]?.grams}g)`);
-
-            } catch (error) {
-                log(`❌ Direct sync failed: ${error.message}`);
-                statusEl.textContent = '❌ N3D failed - using fallback data';
-
-                // Use fallback designs
-                designs = Object.entries(FALLBACK_DESIGNS).map(([name, data]) => ({
-                    id: name,
-                    name: name.charAt(0).toUpperCase() + name.slice(1),
-                    grams: data.grams,
-                    filamentColors: Object.keys(data.filaments),
-                    pokedexNumber: null,
-                    category: 'Pokemon',
-                    lastSynced: new Date().toISOString()
-                }));
-
-                await db.collection('config').doc('designs').set({ designs });
-
-                // Init filament from fallback
-                const fbColors = new Set();
-                Object.values(FALLBACK_DESIGNS).forEach(d => {
-                    Object.keys(d.filaments).forEach(c => fbColors.add(c));
-                });
-                fbColors.forEach(c => {
-                    if (!filament[c]) filament[c] = { amount: 1000 };
-                });
-                await db.collection('config').doc('filament').set(filament);
-
-                updateStats();
-                renderOrders();
-
-                alert(`N3D sync failed, but loaded ${designs.length} fallback designs.\n\nError: ${error.message}\n\nYou can still use the app!`);
             }
+
+            renderOrders();
         }
 
+        // Sync Google Sheets
         async function syncFromGoogleSheets() {
             const status = document.getElementById('sync-status');
-            status.textContent = '🔄 Syncing from Google Sheets...';
+            status.textContent = '🔄 Loading from Google Sheets...';
 
             try {
                 const res = await fetch(SHEETS_URL);
@@ -936,7 +721,6 @@
                 const headers = rows[0];
                 const nameIdx = headers.findIndex(h => h.toLowerCase().includes('name'));
                 const detailsIdx = headers.findIndex(h => h.toLowerCase().includes('order details'));
-                const shinyIdx = headers.findIndex(h => h.toLowerCase().includes('shiny'));
                 const totalIdx = headers.findIndex(h => h.toLowerCase().includes('order total'));
                 const timeIdx = headers.findIndex(h => h.toLowerCase().includes('timestamp'));
 
@@ -948,32 +732,33 @@
                     const details = row[detailsIdx];
                     if (!customer || !details) continue;
 
-                    const items = parseItems(details, row[shinyIdx]);
-                    if (items.length === 0) continue;
-
+                    // Check if exists
                     const exists = orders.some(o => 
                         o.customer === customer && o.sheetsTimestamp === row[timeIdx]
                     );
 
                     if (!exists) {
-                        await db.collection('orders').add({
-                            customer,
-                            items,
-                            totalPrice: parseFloat(row[totalIdx]) || 0,
-                            status: 'pending',
-                            date: new Date().toISOString(),
-                            source: 'sheets',
-                            sheetsTimestamp: row[timeIdx]
-                        });
-                        added++;
+                        const items = parseItems(details);
+                        if (items.length > 0) {
+                            await db.collection('orders').add({
+                                customer,
+                                items,
+                                totalPrice: parseFloat(row[totalIdx]) || 0,
+                                status: 'pending',
+                                date: new Date().toISOString(),
+                                source: 'sheets',
+                                sheetsTimestamp: row[timeIdx]
+                            });
+                            added++;
+                        }
                     }
                 }
 
-                status.textContent = `✅ Added ${added} orders from Sheets`;
+                status.textContent = `✅ Added ${added} new orders from Sheets`;
                 await loadData();
             } catch (e) {
-                status.textContent = '❌ Sheets sync failed';
                 console.error(e);
+                status.textContent = '❌ Sheets sync failed: ' + e.message;
             }
         }
 
@@ -988,7 +773,9 @@
                     else { inQuotes = !inQuotes; }
                 } else if (char === ',' && !inQuotes) {
                     row.push(field.trim()); field = '';
-                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                } else if ((char === '
+' || char === '
+') && !inQuotes) {
                     if (field || row.length) { row.push(field.trim()); rows.push(row); row = []; field = ''; }
                 } else { field += char; }
             }
@@ -996,9 +783,10 @@
             return rows;
         }
 
-        function parseItems(details, shinyReq) {
+        function parseItems(details) {
             const items = [];
-            const lines = details.split(/<br\s*\/?>|\n/);
+            const lines = details.split(/<br\s*\/?>|
+/);
 
             for (const line of lines) {
                 const t = line.trim();
@@ -1006,71 +794,33 @@
 
                 let name = t, qty = 1, shiny = false, mystery = false;
 
-                if (t.toLowerCase().startsWith('mystery:')) { mystery = true; name = t.replace(/^mystery:\s*/i, ''); }
-                if (name.toLowerCase().startsWith('shiny ')) { shiny = true; name = name.substring(6); }
+                if (t.toLowerCase().startsWith('mystery:')) { 
+                    mystery = true; 
+                    name = t.replace(/^mystery:\s*/i, ''); 
+                }
+                if (name.toLowerCase().startsWith('shiny ')) { 
+                    shiny = true; 
+                    name = name.substring(6); 
+                }
 
-                const qm = name.match(/\(x(\d+)\)/i) || name.match(/\bx(\d+)\b/i);
+                const qm = name.match(/\(x(\d+)\)/i) || name.match(/x(\d+)/i);
                 if (qm) qty = parseInt(qm[1]);
 
                 name = name.replace(/\s*[-(].*$/g, '').replace(/\s+x\d+$/i, '').trim();
 
-                if (shinyReq && shinyReq.toLowerCase().includes(name.toLowerCase())) shiny = true;
-
-                if (name) items.push({ name, qty, shiny, mystery, completed: false });
+                if (name) {
+                    items.push({ 
+                        id: name.toLowerCase().replace(/\s+/g, '-'),
+                        name, 
+                        qty, 
+                        shiny, 
+                        mystery, 
+                        status: 'pending' 
+                    });
+                }
             }
             return items;
         }
-
-        async function addOrder() {
-            const customer = document.getElementById('new-customer').value.trim();
-            const itemsText = document.getElementById('new-items').value.trim();
-            if (!customer || !itemsText) return alert('Fill all fields');
-
-            const items = itemsText.split('\n').map(line => {
-                const m = line.match(/(.+?)\s*x\s*(\d+)/i);
-                return m ? { name: m[1].trim(), qty: parseInt(m[2]), shiny: false, mystery: false, completed: false } : null;
-            }).filter(Boolean);
-
-            if (items.length === 0) return alert('Invalid items');
-
-            await db.collection('orders').add({
-                customer, items, totalPrice: 0, status: 'pending',
-                date: new Date().toISOString(), source: 'manual'
-            });
-
-            closeModal('add-order-modal');
-            document.getElementById('new-customer').value = '';
-            document.getElementById('new-items').value = '';
-            await loadData();
-        }
-
-        function openFilamentModal() {
-            const list = document.getElementById('filament-list');
-            let html = '';
-            Object.entries(filament).sort((a,b) => b[1].amount - a[1].amount).forEach(([color, data]) => {
-                const low = data.amount <= 200;
-                html += `<div class="shopping-item" style="border-color: ${low ? 'var(--danger)' : 'var(--success)'}"><span>${color}</span><span style="color: ${low ? 'var(--danger)' : 'var(--success)'}">${data.amount}g</span></div>`;
-            });
-            list.innerHTML = html || '<p style="color: var(--text-muted)">No filament data. Click N3D Sync first.</p>';
-            openModal('filament-modal');
-        }
-
-        function openShoppingModal() {
-            const list = document.getElementById('shopping-list');
-            const low = Object.entries(filament).filter(([c,d]) => d.amount <= 200);
-            let html = low.length ? '' : '<p style="color: var(--text-muted)">✅ All stocked!</p>';
-            low.forEach(([color, data]) => {
-                html += `<div class="shopping-item"><span>${color}</span><span style="color: var(--danger)">${data.amount}g left</span></div>`;
-            });
-            list.innerHTML = html;
-            openModal('shopping-modal');
-        }
-
-        function openAddOrderModal() { openModal('add-order-modal'); }
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-        document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }));
     </script>
 </body>
 </html>
