@@ -343,7 +343,10 @@
         let designs = [];
         const FILAMENT_COST = 0.012; // $12/kg
 
-        // N3D API v1.2.0 config
+        // Cloud Function URL for N3D sync
+        const CLOUD_FUNCTION_URL = 'https://syncn3d-mglznpa3zq-uc.a.run.app';
+
+        // Fallback: Direct N3D API v1.2.0 config
         const N3D_API_KEY = 'n3d_sk_SgjHghzsNDmra3wqxB3-ed4nvyZYu6Ja';
         const N3D_BASE_URL = 'https://www.n3dmelbourne.com/api/v1';
         const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk8BdvDMwzoPI2A5X863_8OAXKaSWs5a-aijyX7qMJRWFDoquKJs3gM20wcS-ggas_UuGjU8mCmz1V/pub?output=csv';
@@ -589,7 +592,7 @@
 
             let html = `<div class="customer-section">`;
             html += `
-                <div class="customer-header" data-collapsed="true">
+                <div class="customer-header" data-collapsed="false">
                     <div class="customer-avatar">👤</div>
                     <div class="customer-info">
                         <div class="customer-name">${customer}</div>
@@ -636,7 +639,7 @@
 
                 itemsHtml += `
                     <div class="item-card">
-                        <div class="item-header" data-collapsed="true">
+                        <div class="item-header" data-collapsed="false">
                             <div class="pokeball ${item.shiny ? 'shiny' : ''} ${item.completed ? 'completed' : ''}"></div>
                             <div class="item-info">
                                 <div class="item-name">${item.name}</div>
@@ -739,47 +742,58 @@
             document.getElementById('stat-low').textContent = low;
         }
 
-        // Cloud Function N3D Sync (when deployed)
-        async function syncN3DCloudFunction() {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '⏳';
-
-            const statusEl = document.getElementById('sync-status');
-            statusEl.textContent = '🔄 Calling Cloud Function...';
-
-            try {
-                // Call the deployed Cloud Function
-                const functions = firebase.functions();
-                const syncN3D = functions.httpsCallable('syncN3D');
-                const result = await syncN3D();
-
-                log(`Cloud Function result: ${JSON.stringify(result.data)}`);
-
-                // Reload data from Firestore
-                await loadData();
-
-                statusEl.textContent = `✅ Synced ${result.data.count} designs via Cloud Function!`;
-                alert(`Successfully synced ${result.data.count} designs from N3D!`);
-            } catch (error) {
-                log(`Cloud Function failed: ${error.message}`);
-                statusEl.textContent = '❌ Cloud Function failed, trying direct API...';
-                // Fall back to direct API
-                await syncN3D();
-            } finally {
-                btn.textContent = originalText;
-            }
-        }
-
-        // Direct N3D Sync with v1.2.0 API (fallback)
+        // CLOUD FUNCTION N3D SYNC (Primary method)
         async function syncN3D() {
             const btn = event.target;
             const originalText = btn.textContent;
             btn.textContent = '⏳';
 
             const statusEl = document.getElementById('sync-status');
-            statusEl.textContent = '🔄 Connecting to N3D API v1.2.0...';
-            log('Starting N3D sync...');
+            statusEl.textContent = '🔄 Syncing via Cloud Function...';
+            log('Starting N3D sync via Cloud Function...');
+
+            try {
+                // Call the Cloud Function
+                const response = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                log(`Cloud Function result: ${JSON.stringify(result)}`);
+
+                if (result.success) {
+                    // Reload data from Firestore (Cloud Function saves it there)
+                    await loadData();
+
+                    statusEl.textContent = `✅ Synced ${result.count} designs via Cloud Function!`;
+                    alert(`Successfully synced ${result.count} designs from N3D!\n\nExamples:\n- ${designs[0]?.name} (${designs[0]?.grams}g)\n- ${designs[1]?.name} (${designs[1]?.grams}g)`);
+                } else {
+                    throw new Error(result.message || 'Unknown error');
+                }
+
+            } catch (error) {
+                log(`Cloud Function failed: ${error.message}`);
+                statusEl.textContent = '❌ Cloud Function failed, trying fallback...';
+
+                // Fall back to direct API
+                await syncN3DDirect();
+            } finally {
+                btn.textContent = originalText;
+            }
+        }
+
+        // DIRECT N3D SYNC (Fallback method)
+        async function syncN3DDirect() {
+            const statusEl = document.getElementById('sync-status');
+            log('Starting direct N3D sync (fallback)...');
 
             try {
                 // Try multiple CORS proxies
@@ -830,9 +844,7 @@
                                     id: d.slug || d.id,
                                     name: d.title || d.name,
                                     pokedexNumber: d.pokedex_number,
-                                    // N3D v1.2.0 uses total_weight_grams
                                     grams: d.total_weight_grams || d.weight_grams || d.weight || 50,
-                                    // v1.2.0 uses filament_colors array
                                     filamentColors: d.filament_colors || d.filaments || ['Ivory White'],
                                     category: d.category || 'Pokemon',
                                     entitled: d.entitled || false,
@@ -846,12 +858,12 @@
 
                         if (allDesigns.length > 0) {
                             log(`✅ Success with ${proxy.name}: ${allDesigns.length} designs`);
-                            break; // Success!
+                            break;
                         }
                     } catch (e) {
                         log(`❌ ${proxy.name} failed: ${e.message}`);
                         lastError = e;
-                        continue; // Try next proxy
+                        continue;
                     }
                 }
 
@@ -879,16 +891,14 @@
                 await db.collection('config').doc('filament').set(filament);
                 log(`✅ Initialized ${colorSet.size} filament colors`);
 
-                statusEl.textContent = `✅ Synced ${designs.length} designs from N3D!`;
+                statusEl.textContent = `✅ Synced ${designs.length} designs (fallback)`;
                 updateStats();
                 renderOrders();
 
-                alert(`Successfully synced ${designs.length} designs from N3D!\n\nExamples:
-- ${designs[0]?.name} (${designs[0]?.grams}g)\n- ${designs[1]?.name} (${designs[1]?.grams}g)`);
+                alert(`Synced ${designs.length} designs via fallback.\n\nExamples:\n- ${designs[0]?.name} (${designs[0]?.grams}g)\n- ${designs[1]?.name} (${designs[1]?.grams}g)`);
 
             } catch (error) {
-                log(`❌ N3D Sync Error: ${error.message}`);
-                console.error('N3D Sync Error:', error);
+                log(`❌ Direct sync failed: ${error.message}`);
                 statusEl.textContent = '❌ N3D failed - using fallback data';
 
                 // Use fallback designs
@@ -918,8 +928,6 @@
                 renderOrders();
 
                 alert(`N3D sync failed, but loaded ${designs.length} fallback designs.\n\nError: ${error.message}\n\nYou can still use the app!`);
-            } finally {
-                btn.textContent = originalText;
             }
         }
 
