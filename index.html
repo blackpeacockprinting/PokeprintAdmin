@@ -59,7 +59,9 @@
         .customer-header {
             background: linear-gradient(90deg, var(--primary-light) 0%, var(--primary) 100%);
             padding: 1rem; display: flex; align-items: center; gap: 0.8rem;
+            cursor: pointer; position: relative; user-select: none;
         }
+        .customer-header:hover { opacity: 0.95; }
         .customer-avatar {
             width: 40px; height: 40px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
@@ -70,10 +72,18 @@
         .customer-name { font-size: 1.1rem; font-weight: 700; color: var(--text); }
         .customer-meta { display: flex; gap: 1rem; margin-top: 0.2rem; }
         .meta-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-muted); }
+        .collapse-icon {
+            margin-left: auto;
+            font-size: 1.2rem;
+            color: var(--accent);
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
 
         .order-card {
             background: var(--primary); margin: 0.8rem; border-radius: 12px;
             border: 1px solid var(--border); overflow: hidden;
+            transition: all 0.3s ease;
         }
         .order-header {
             background: var(--primary-light); padding: 0.8rem 1rem;
@@ -95,7 +105,9 @@
         .item-card:last-child { border-bottom: none; }
         .item-header {
             display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem;
+            cursor: pointer; position: relative; user-select: none;
         }
+        .item-header:hover { opacity: 0.95; }
         .pokeball {
             width: 36px; height: 36px; border-radius: 50%;
             background: linear-gradient(to bottom, #ff0000 50%, #fff 50%);
@@ -115,6 +127,7 @@
         .filament-grid {
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;
             margin: 0.8rem 0;
+            transition: all 0.3s ease;
         }
         .filament-item {
             background: var(--card-bg); padding: 0.5rem; border-radius: 8px;
@@ -129,6 +142,7 @@
         .stats-grid {
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;
             margin: 0.8rem 0;
+            transition: all 0.3s ease;
         }
         .stat-box {
             background: var(--card-bg); padding: 0.8rem; border-radius: 8px; text-align: center;
@@ -143,6 +157,7 @@
         .action-buttons {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
             margin-top: 0.8rem;
+            transition: all 0.3s ease;
         }
         .action-btn {
             padding: 0.6rem; border: none; border-radius: 10px;
@@ -213,6 +228,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -501,6 +517,70 @@
             }
 
             container.innerHTML = html;
+
+            // Initialize collapse handlers after rendering
+            setTimeout(initCollapseHandlers, 100);
+        }
+
+        // COLLAPSE/EXPAND FUNCTIONALITY
+        function initCollapseHandlers() {
+            // Customer section collapse
+            document.querySelectorAll('.customer-header').forEach(header => {
+                // Remove existing listeners to prevent duplicates
+                header.removeEventListener('click', handleCustomerClick);
+                header.addEventListener('click', handleCustomerClick);
+            });
+
+            // Item collapse
+            document.querySelectorAll('.item-header').forEach(header => {
+                header.removeEventListener('click', handleItemClick);
+                header.addEventListener('click', handleItemClick);
+            });
+        }
+
+        function handleCustomerClick(e) {
+            // Don't collapse if clicking on action buttons
+            if (e.target.closest('button')) return;
+
+            const header = e.currentTarget;
+            const section = header.closest('.customer-section');
+            const orders = section.querySelectorAll('.order-card');
+            const isCollapsed = header.dataset.collapsed === 'true';
+
+            orders.forEach(order => {
+                order.style.display = isCollapsed ? 'block' : 'none';
+            });
+
+            header.dataset.collapsed = !isCollapsed;
+            updateToggleIcon(header, !isCollapsed);
+        }
+
+        function handleItemClick(e) {
+            // Don't collapse if clicking on action buttons
+            if (e.target.closest('button')) return;
+
+            const header = e.currentTarget;
+            const card = header.closest('.item-card');
+            const details = card.querySelectorAll('.filament-grid, .stats-grid, .action-buttons');
+            const isCollapsed = header.dataset.collapsed === 'true';
+
+            details.forEach(el => {
+                el.style.display = isCollapsed ? 'grid' : 'none';
+            });
+
+            header.dataset.collapsed = !isCollapsed;
+            updateToggleIcon(header, !isCollapsed);
+        }
+
+        function updateToggleIcon(element, collapsed) {
+            let icon = element.querySelector('.collapse-icon');
+            if (!icon) {
+                icon = document.createElement('span');
+                icon.className = 'collapse-icon';
+                element.appendChild(icon);
+            }
+            icon.textContent = collapsed ? '▶' : '▼';
+            icon.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
         }
 
         function renderCustomerSection(customer, custOrders, isCompleted = false) {
@@ -509,7 +589,7 @@
 
             let html = `<div class="customer-section">`;
             html += `
-                <div class="customer-header">
+                <div class="customer-header" data-collapsed="false">
                     <div class="customer-avatar">👤</div>
                     <div class="customer-info">
                         <div class="customer-name">${customer}</div>
@@ -519,6 +599,7 @@
                             <span class="meta-item">📦 ${custOrders.length}</span>
                         </div>
                     </div>
+                    <span class="collapse-icon">▼</span>
                 </div>
             `;
 
@@ -555,12 +636,13 @@
 
                 itemsHtml += `
                     <div class="item-card">
-                        <div class="item-header">
+                        <div class="item-header" data-collapsed="false">
                             <div class="pokeball ${item.shiny ? 'shiny' : ''} ${item.completed ? 'completed' : ''}"></div>
                             <div class="item-info">
                                 <div class="item-name">${item.name}</div>
                                 <div class="item-price">$${calc.price.toFixed(2)}</div>
                             </div>
+                            <span class="collapse-icon">▼</span>
                         </div>
                         <div class="filament-grid">${filHtml}</div>
                         <div class="stats-grid">
@@ -657,7 +739,39 @@
             document.getElementById('stat-low').textContent = low;
         }
 
-        // FIXED N3D Sync with v1.2.0 API
+        // Cloud Function N3D Sync (when deployed)
+        async function syncN3DCloudFunction() {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '⏳';
+
+            const statusEl = document.getElementById('sync-status');
+            statusEl.textContent = '🔄 Calling Cloud Function...';
+
+            try {
+                // Call the deployed Cloud Function
+                const functions = firebase.functions();
+                const syncN3D = functions.httpsCallable('syncN3D');
+                const result = await syncN3D();
+
+                log(`Cloud Function result: ${JSON.stringify(result.data)}`);
+
+                // Reload data from Firestore
+                await loadData();
+
+                statusEl.textContent = `✅ Synced ${result.data.count} designs via Cloud Function!`;
+                alert(`Successfully synced ${result.data.count} designs from N3D!`);
+            } catch (error) {
+                log(`Cloud Function failed: ${error.message}`);
+                statusEl.textContent = '❌ Cloud Function failed, trying direct API...';
+                // Fall back to direct API
+                await syncN3D();
+            } finally {
+                btn.textContent = originalText;
+            }
+        }
+
+        // Direct N3D Sync with v1.2.0 API (fallback)
         async function syncN3D() {
             const btn = event.target;
             const originalText = btn.textContent;
