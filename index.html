@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#b8960c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BPP Admin">
+  <link rel="apple-touch-icon" href="icon-192.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Black Peacock — Tracker</title>
@@ -742,5 +748,6 @@ function getBallSVG(n){var b=getBallBorder(n);return '<svg width="18" height="18
 function getBallSVGLarge(n){var b=getBallBorder(n);return '<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" stroke="'+b+'" stroke-width="1.5"/><path d="M2 18h32" stroke="'+b+'" stroke-width="1.5"/><circle cx="18" cy="18" r="5" stroke="'+b+'" stroke-width="1.2"/></svg>';}
 function getFilamentColor(n){var l=n.toLowerCase();if(l.includes('red'))return '#cc3333';if(l.includes('blue'))return '#3366cc';if(l.includes('green'))return '#33aa33';if(l.includes('yellow'))return '#ddcc00';if(l.includes('orange'))return '#ee7722';if(l.includes('pink')||l.includes('sakura'))return '#ee88aa';if(l.includes('purple')||l.includes('violet'))return '#8844cc';if(l.includes('black')||l.includes('dark'))return '#333333';if(l.includes('white')||l.includes('ivory'))return '#dddddd';if(l.includes('grey')||l.includes('gray'))return '#888888';if(l.includes('brown'))return '#885533';if(l.includes('gold'))return '#c9a84c';if(l.includes('silver'))return '#aaaaaa';if(l.includes('teal')||l.includes('cyan'))return '#33aaaa';return '#888780';}
 </script>
+  <script>if("serviceWorker" in navigator){ navigator.serviceWorker.register("/PokeprintAdmin/sw.js"); }</script>
 </body>
 </html>
