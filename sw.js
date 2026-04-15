@@ -1,4 +1,4 @@
-const CACHE = 'bpp-v1';
+const CACHE = 'bpp-v3';
 const SHELL = ['/PokeprintAdmin/', '/PokeprintAdmin/index.html'];
 const API_ORIGINS = ['us-central1.run.app'];
 
