@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BPP — Print Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#07070a;--s1:#0d0d14;--s2:#13131c;--s3:#1a1a26;--gold:#c9a84c;--gold2:#e8c96a;--gdim:rgba(201,168,76,0.1);--border:rgba(201,168,76,0.1);--muted:#4a4860;--text:#ddd9cf;--red:#d94f4a;--green:#4ab87a;--blue:#4a9fd4;--orange:#d98a4a;--purple:#9b6fd4;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+header{position:sticky;top:0;z-index:100;background:rgba(7,7,10,0.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
+.logo em{color:var(--muted);font-style:normal}
+.hright{display:flex;align-items:center;gap:8px}
+.hbadge{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--muted);background:var(--s2);border:1px solid var(--border);padding:3px 8px;border-radius:3px}
+.clock{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold)}
+.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--border);position:sticky;top:49px;z-index:99}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:'IBM Plex Mono',monospace}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+main{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:14px 14px 80px}
+.page{display:none}.page.active{display:block}
+.window-banner{border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;border:1px solid}
+.window-banner.work{background:rgba(74,159,212,0.07);border-color:rgba(74,159,212,0.25)}
+.window-banner.afternoon{background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.25)}
+.window-banner.sleep{background:rgba(155,111,212,0.07);border-color:rgba(155,111,212,0.25)}
+.wb-icon{font-size:22px;flex-shrink:0}.wb-info{flex:1}.wb-title{font-size:13px;font-weight:600;color:#fff}.wb-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.wb-time{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;flex-shrink:0}
+.wb-time.work{color:var(--blue)}.wb-time.afternoon{color:var(--gold)}.wb-time.sleep{color:var(--purple)}
+.sumrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.sc{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:11px 10px}
+.sc-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.sc-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;line-height:1}
+.sc-val.gold{color:var(--gold)}.sc-val.green{color:var(--green)}.sc-val.blue{color:var(--blue)}.sc-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.prog-wrap{margin-bottom:14px}.prog-row{display:flex;justify-content:space-between;margin-bottom:5px}.prog-name{font-size:11px;color:var(--muted)}.prog-pct{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold)}
+.prog-bar{height:5px;background:var(--s3);border-radius:3px;overflow:hidden}.prog-fill{height:100%;border-radius:3px;transition:width .5s ease}.pf-gold{background:linear-gradient(90deg,var(--gold),var(--gold2))}.pf-blue{background:var(--blue)}
+.sh{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px}
+.sh-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:6px}
+.sh-label::before{content:'';display:block;width:3px;height:11px;background:currentColor;border-radius:2px}
+.sh-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted)}
+.frow{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}.frow::-webkit-scrollbar{display:none}
+.fbtn{background:var(--s1);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;white-space:nowrap;font-family:'IBM Plex Mono',monospace;transition:all .15s;flex-shrink:0}
+.fbtn.active{background:var(--gold);color:#07070a;border-color:var(--gold)}
+.pi{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .12s}
+.pi:active{background:var(--s2)}.pi.work-job{border-left:3px solid var(--blue)}.pi.afternoon-job{border-left:3px solid var(--gold)}.pi.sleep-job{border-left:3px solid var(--purple)}.pi.slab-job{border-left:3px solid var(--muted)}
+.pi.done{opacity:.4}.pi.done .pi-name{text-decoration:line-through}
+.pi-check{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pi-check.on{background:var(--green);border-color:var(--green)}.pi-check.on::after{content:'✓';font-size:11px;color:#fff;font-weight:700}
+.pi-body{flex:1;min-width:0}.pi-name{font-size:13px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pi-meta{font-size:10px;color:var(--muted);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.pi-right{text-align:right;flex-shrink:0}.pi-time{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);font-weight:600}
+.pi-tag{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border-radius:3px;margin-top:3px;display:inline-block}
+.tag-work{background:rgba(74,159,212,0.15);color:var(--blue)}.tag-afternoon{background:rgba(201,168,76,0.15);color:var(--gold)}.tag-sleep{background:rgba(155,111,212,0.15);color:var(--purple)}.tag-slab{background:rgba(74,74,96,0.4);color:var(--muted)}.tag-done{background:rgba(74,184,122,0.15);color:var(--green)}
+.plate-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);background:var(--s3);border:1px solid var(--border);padding:1px 5px;border-radius:3px;margin-left:4px}
+.sched-window{border-radius:10px;overflow:hidden;margin-bottom:12px;border:1px solid var(--border)}
+.sw-head{padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sw-head.work{background:rgba(74,159,212,0.08)}.sw-head.afternoon{background:rgba(201,168,76,0.08)}.sw-head.sleep{background:rgba(155,111,212,0.08)}
+.sw-icon{font-size:16px}.sw-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;flex:1}
+.sw-title.work{color:var(--blue)}.sw-title.afternoon{color:var(--gold)}.sw-title.sleep{color:var(--purple)}
+.sw-hrs{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted)}
+.sw-printers{display:grid;grid-template-columns:1fr 1fr}.sw-printer{padding:8px}.sw-printer+.sw-printer{border-left:1px solid var(--border)}
+.sp-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.sp-job{padding:5px 7px;border-radius:5px;margin-bottom:4px;display:flex;align-items:center;gap:6px;border:1px solid transparent}
+.sp-job.work{background:rgba(74,159,212,0.07);border-color:rgba(74,159,212,0.18)}.sp-job.afternoon{background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.18)}.sp-job.sleep{background:rgba(155,111,212,0.07);border-color:rgba(155,111,212,0.18)}
+.sp-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}.sp-dot.work{background:var(--blue)}.sp-dot.afternoon{background:var(--gold)}.sp-dot.sleep{background:var(--purple)}
+.sp-name{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}.sp-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0}
+.sp-empty{padding:8px;font-size:10px;color:var(--muted);text-align:center;font-family:'IBM Plex Mono',monospace}
+.info-box{font-size:11px;color:var(--muted);padding:10px 12px;background:var(--s1);border:1px solid var(--border);border-radius:8px}
+.info-box.green{color:var(--green);background:rgba(74,184,122,0.06);border-color:rgba(74,184,122,0.2)}
+.loading{text-align:center;padding:3rem 1rem;color:var(--muted)}.spinner{width:22px;height:22px;border:2px solid rgba(201,168,76,0.15);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}.empty{text-align:center;padding:2rem 1rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">BPP <em>/</em> Planner</div>
+  <div class="hright"><div class="hbadge" id="window-badge">—</div><div class="clock" id="clock">—</div></div>
+</header>
+<div class="tabs">
+  <div class="tab active" onclick="showTab('today',this)">Today</div>
+  <div class="tab" onclick="showTab('queue',this)">Queue</div>
+  <div class="tab" onclick="showTab('event',this)">Event</div>
+</div>
+<main>
+  <div class="page active" id="tab-today">
+    <div id="today-banner"></div>
+    <div class="sumrow">
+      <div class="sc"><div class="sc-label">Plates Left</div><div class="sc-val gold" id="s-left">—</div><div class="sc-sub">to print</div></div>
+      <div class="sc"><div class="sc-label">Done</div><div class="sc-val green" id="s-done">—</div><div class="sc-sub">complete</div></div>
+      <div class="sc"><div class="sc-label">Hrs Left</div><div class="sc-val blue" id="s-hrs">—</div><div class="sc-sub">total</div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-row"><span class="prog-name">Overall Progress</span><span class="prog-pct" id="s-pct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill pf-gold" id="s-bar" style="width:0%"></div></div>
+    </div>
+    <div id="today-schedule"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>
+  </div>
+  <div class="page" id="tab-queue">
+    <div class="frow">
+      <div class="fbtn active" onclick="setFilter('all',this)">All</div>
+      <div class="fbtn" onclick="setFilter('todo',this)">To Do</div>
+      <div class="fbtn" onclick="setFilter('work',this)">Work</div>
+      <div class="fbtn" onclick="setFilter('afternoon',this)">Afternoon</div>
+      <div class="fbtn" onclick="setFilter('sleep',this)">Sleep</div>
+      <div class="fbtn" onclick="setFilter('slab',this)">Slabs</div>
+    </div>
+    <div id="queue-list"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+  <div class="page" id="tab-event">
+    <div class="sumrow">
+      <div class="sc"><div class="sc-label">Characters</div><div class="sc-val gold">60</div><div class="sc-sub">designs</div></div>
+      <div class="sc"><div class="sc-label">Slabs</div><div class="sc-val blue">20</div><div class="sc-sub">last</div></div>
+      <div class="sc"><div class="sc-label">Total</div><div class="sc-val green">80</div><div class="sc-sub">items</div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-row"><span class="prog-name">Characters</span><span class="prog-pct" id="e-cpct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill pf-gold" id="e-cbar" style="width:0%"></div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-row"><span class="prog-name">Slabs (last)</span><span class="prog-pct" id="e-spct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill pf-blue" id="e-sbar" style="width:0%"></div></div>
+    </div>
+    <div class="sh"><div class="sh-label">Characters</div><div class="sh-count" id="e-ccount"></div></div>
+    <div id="event-chars"></div>
+    <div class="sh"><div class="sh-label" style="color:var(--muted)">Slabs — Print Last</div><div class="sh-count">charcoal heavy</div></div>
+    <div id="event-slabs"></div>
+  </div>
+</main>
+<script>
+var DATA_URL='https://raw.githubusercontent.com/blackpeacockprinting/PokeprintAdmin/main/print-planner.json';
+var STATE_KEY='bpp_planner_v2';
+var designs=[];var state=loadState();var currentFilter='all';
+function loadState(){try{return JSON.parse(localStorage.getItem(STATE_KEY)||'{}')}catch(e){return{}}}
+function saveState(){try{localStorage.setItem(STATE_KEY,JSON.stringify(state))}catch(e){}}
+fetch(DATA_URL).then(function(r){return r.json();}).then(function(d){
+  designs=d.designs||[];
+  designs.forEach(function(des){
+    if(des.preprinted){des.plates.forEach(function(_,pi){var k=des.id+'_'+pi;if(state[k]===undefined)state[k]=true;});}
+  });
+  saveState();render();
+}).catch(function(){document.getElementById('today-schedule').innerHTML='<div class="empty"><p>Could not load planner data</p></div>';});
+function nowHour(){return new Date().getHours()+new Date().getMinutes()/60}
+function currentWindow(){var h=nowHour();if(h>=7&&h<15)return'work';if(h>=15&&h<23)return'afternoon';return'sleep';}
+function windowCap(w){return w==='sleep'?6:8}
+function windowLabel(w){
+  if(w==='work')return{icon:'💼',title:'Work Window',time:'7am–3pm',sub:'Load longest plates before you leave'};
+  if(w==='afternoon')return{icon:'🌅',title:'Afternoon Window',time:'3pm–11pm',sub:'Short plates — swap as you go'};
+  return{icon:'🌙',title:'Sleep Window',time:'11pm–5am',sub:'Load plates that finish by 5am'};
+}
+function assignWindow(t){if(t<3)return'afternoon';if(t<=6)return'sleep';return'work';}
+function fmt(h){var hr=Math.floor(h),mn=Math.round((h-hr)*60);if(mn===0)return hr+'h';if(hr===0)return mn+'m';return hr+'h '+mn+'m';}
+function isChecked(id,pi){return!!state[id+'_'+pi]}
+function toggle(id,pi){state[id+'_'+pi]=!state[id+'_'+pi];saveState();render();}
+function toggleDesign(id){
+  var d=designs.find(function(x){return x.id===id;});if(!d)return;
+  var allDone=d.plates.every(function(_,pi){return isChecked(id,pi);});
+  d.plates.forEach(function(_,pi){state[id+'_'+pi]=!allDone;});saveState();render();
+}
+function isDone(d){return d.plates.every(function(_,pi){return isChecked(d.id,pi);})}
+function totalPlates(arr){return arr.reduce(function(s,d){return s+d.plates.length;},0)}
+function donePlates(arr){return arr.reduce(function(s,d){return s+d.plates.filter(function(_,pi){return isChecked(d.id,pi);}).length;},0)}
+function totalHrs(arr,undone){return arr.reduce(function(s,d){return s+d.plates.reduce(function(ps,t,pi){return ps+(undone&&isChecked(d.id,pi)?0:t);},0);},0)}
+function buildJobs(){
+  var jobs=[];
+  var chars=designs.filter(function(d){return d.type==='character';});
+  var slabs=designs.filter(function(d){return d.type==='slab';});
+  [...chars,...slabs].forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({design:d,plateIdx:pi,time:t,window:d.type==='slab'?'slab':assignWindow(t),done:isChecked(d.id,pi)});});});
+  return jobs;
+}
+function scheduleWindow(win,cap){
+  var jobs=buildJobs().filter(function(j){return!j.done&&j.window===win;});
+  jobs.sort(function(a,b){return b.time-a.time;});
+  var p1=[],p2=[],h1=0,h2=0;
+  jobs.forEach(function(j){
+    if(h1<=h2&&h1+j.time<=cap){p1.push(j);h1+=j.time;}
+    else if(h2+j.time<=cap){p2.push(j);h2+=j.time;}
+    else if(h1<=h2){p1.push(j);h1+=j.time;}
+    else{p2.push(j);h2+=j.time;}
+  });
+  return{p1,p2,h1,h2};
+}
+function render(){renderClock();renderSummary();renderToday();renderQueue();renderEvent();}
+function renderClock(){
+  var now=new Date();
+  document.getElementById('clock').textContent=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  var labels={work:'WORK',afternoon:'AFTERNOON',sleep:'SLEEP'};
+  document.getElementById('window-badge').textContent=labels[currentWindow()];
+}
+function renderSummary(){
+  if(!designs.length)return;
+  var total=totalPlates(designs),done=donePlates(designs),pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('s-left').textContent=total-done;
+  document.getElementById('s-done').textContent=done;
+  document.getElementById('s-hrs').textContent=fmt(totalHrs(designs,true));
+  document.getElementById('s-pct').textContent=pct+'%';
+  document.getElementById('s-bar').style.width=pct+'%';
+}
+function renderToday(){
+  if(!designs.length)return;
+  var win=currentWindow(),lbl=windowLabel(win);
+  document.getElementById('today-banner').innerHTML='<div class="window-banner '+win+'"><div class="wb-icon">'+lbl.icon+'</div><div class="wb-info"><div class="wb-title">'+lbl.title+'</div><div class="wb-sub">'+lbl.sub+'</div></div><div class="wb-time '+win+'">'+lbl.time+'</div></div>';
+  var html='';
+  ['work','afternoon','sleep'].forEach(function(w){
+    var cap=windowCap(w),sched=scheduleWindow(w,cap),wlbl=windowLabel(w),isNow=w===win;
+    html+='<div class="sched-window" style="'+(isNow?'border-color:rgba(201,168,76,0.3)':'')+'">';
+    html+='<div class="sw-head '+w+'"><div class="sw-icon">'+wlbl.icon+'</div>';
+    html+='<div class="sw-title '+w+'">'+wlbl.title+(isNow?' ◀ NOW':'')+' <span style="color:var(--muted);font-weight:400">'+wlbl.time+'</span></div>';
+    html+='<div class="sw-hrs">'+fmt(sched.h1+sched.h2)+'</div></div><div class="sw-printers">';
+    [sched.p1,sched.p2].forEach(function(jobs,pi){
+      html+='<div class="sw-printer"><div class="sp-label">Printer '+(pi+1)+'</div>';
+      if(!jobs.length){html+='<div class="sp-empty">Free</div>';}
+      else jobs.forEach(function(j){
+        var multi=j.design.plates.length>1;
+        html+='<div class="sp-job '+w+'"><div class="sp-dot '+w+'"></div><div class="sp-name">'+j.design.name+(multi?' P'+(j.plateIdx+1):'')+' </div><div class="sp-time">'+fmt(j.time)+'</div></div>';
+      });
+      html+='</div>';
+    });
+    html+='</div></div>';
+  });
+  var slabsLeft=buildJobs().filter(function(j){return j.window==='slab'&&!j.done;}).length;
+  html+='<div class="sh"><div class="sh-label" style="color:var(--muted)">Slabs — Print Last</div><div class="sh-count">'+slabsLeft+' remaining</div></div>';
+  html+='<div class="info-box'+(slabsLeft===0?' green':'')+'">'+( slabsLeft===0?'All slabs complete ✓':'Print once all characters are done. Heavy charcoal use.')+'</div>';
+  document.getElementById('today-schedule').innerHTML=html;
+}
+function renderQueue(){
+  if(!designs.length)return;
+  var jobs=buildJobs();
+  var filtered=jobs.filter(function(j){
+    if(currentFilter==='todo')return!j.done;
+    if(currentFilter==='work')return j.window==='work';
+    if(currentFilter==='afternoon')return j.window==='afternoon';
+    if(currentFilter==='sleep')return j.window==='sleep';
+    if(currentFilter==='slab')return j.window==='slab';
+    return true;
+  });
+  if(!filtered.length){document.getElementById('queue-list').innerHTML='<div class="empty"><p>Nothing here ✓</p></div>';return;}
+  var html='';
+  filtered.forEach(function(j){
+    var checked=isChecked(j.design.id,j.plateIdx),multi=j.design.plates.length>1,win=j.window;
+    var wc=win==='slab'?'slab-job':win+'-job',tc=win==='slab'?'tag-slab':'tag-'+win,tl=win==='slab'?'SLAB':win.toUpperCase();
+    html+='<div class="pi '+wc+' '+(checked?'done':'')+'" onclick="toggle('+j.design.id+','+j.plateIdx+')">';
+    html+='<div class="pi-check '+(checked?'on':'')+'"></div>';
+    html+='<div class="pi-body"><div class="pi-name">'+j.design.name+(multi?'<span class="plate-badge">P'+(j.plateIdx+1)+'/'+j.design.plates.length+'</span>':'')+'</div>';
+    html+='<div class="pi-meta">'+j.design.type+' · '+fmt(j.time)+'</div></div>';
+    html+='<div class="pi-right"><div class="pi-time">'+fmt(j.time)+'</div><div class="pi-tag '+(checked?'tag-done':tc)+'">'+(checked?'DONE':tl)+'</div></div></div>';
+  });
+  document.getElementById('queue-list').innerHTML=html;
+}
+function renderEvent(){
+  if(!designs.length)return;
+  var chars=designs.filter(function(d){return d.type==='character';});
+  var slabs=designs.filter(function(d){return d.type==='slab';});
+  var cdone=chars.filter(isDone).length,sdone=slabs.filter(isDone).length;
+  document.getElementById('e-cpct').textContent=Math.round(cdone/chars.length*100)+'%';
+  document.getElementById('e-cbar').style.width=Math.round(cdone/chars.length*100)+'%';
+  document.getElementById('e-spct').textContent=(slabs.length?Math.round(sdone/slabs.length*100):0)+'%';
+  document.getElementById('e-sbar').style.width=(slabs.length?Math.round(sdone/slabs.length*100):0)+'%';
+  document.getElementById('e-ccount').textContent=cdone+'/'+chars.length+' done';
+  function renderList(arr,elId){
+    var html='';
+    arr.forEach(function(d){
+      var done=isDone(d),t=d.plates.reduce(function(s,h){return s+h;},0);
+      html+='<div class="pi '+(d.type==='slab'?'slab-job':'afternoon-job')+' '+(done?'done':'')+'" onclick="toggleDesign('+d.id+')">';
+      html+='<div class="pi-check '+(done?'on':'')+'"></div>';
+      html+='<div class="pi-body"><div class="pi-name">'+d.name+'</div><div class="pi-meta">'+d.plates.length+' plate'+(d.plates.length>1?'s':'')+' · '+fmt(t)+'</div></div>';
+      html+='<div class="pi-right"><div class="pi-time">'+fmt(t)+'</div><div class="pi-tag '+(done?'tag-done':(d.type==='slab'?'tag-slab':'tag-afternoon'))+'">'+(done?'DONE':(d.type==='slab'?'SLAB':'EVENT'))+'</div></div></div>';
+    });
+    document.getElementById(elId).innerHTML=html||'<div class="empty"><p>All done! ✓</p></div>';
+  }
+  renderList(chars,'event-chars');renderList(slabs,'event-slabs');
+}
+function showTab(name,el){document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});document.getElementById('tab-'+name).classList.add('active');el.classList.add('active');}
+function setFilter(f,el){currentFilter=f;document.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');renderQueue();}
+setInterval(renderClock,30000);
+</script>
+</body>
+</html>
