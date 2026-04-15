@@ -7,12 +7,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="BPP Admin">
   <link rel="apple-touch-icon" href="icon-192.png">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Black Peacock — Tracker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Black Peacock — Admin</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--gold:#c9a84c;--gold-light:#f0d080;--gold-dim:#7a6228;--surface:#13131a;--surface2:#1c1c26;--surface3:#242430;--border:rgba(201,168,76,0.18);--muted:#8a8680;--red:#e24b4a;--green:#4ab84a;--blue:#4a9fd4}
+:root{--gold:#c9a84c;--gold-light:#f0d080;--gold-dim:#7a6228;--surface:#13131a;--surface2:#1c1c26;--surface3:#242430;--border:rgba(201,168,76,0.18);--muted:#8a8680;--red:#e24b4a;--green:#4ab84a;--blue:#4a9fd4;--purple:#9b6fd4}
 html,body{height:100%;overflow:hidden}
 body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column}
 #pin-screen{position:fixed;inset:0;background:#0a0a0f;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
@@ -20,65 +20,49 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 .pin-sub{font-size:12px;color:var(--muted);margin-bottom:2rem}
 .pin-dots{display:flex;gap:14px;margin-bottom:2rem}
 .pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--gold-dim);transition:all 0.15s}
-.pin-dot.filled{background:var(--gold);border-color:var(--gold)}
-.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-dot.filled{background:var(--gold);border-color:var(--gold)}.pin-dot.error{background:var(--red);border-color:var(--red)}
 .pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:220px}
 .pin-btn{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:16px;text-align:center;font-size:20px;font-weight:500;color:#fff;cursor:pointer;transition:background 0.1s}
-.pin-btn:active{background:var(--surface2)}
-.pin-error{font-size:12px;color:var(--red);margin-top:1rem;height:16px}
+.pin-btn:active{background:var(--surface2)}.pin-error{font-size:12px;color:var(--red);margin-top:1rem;height:16px}
 .topbar{background:#0f0f18;border-bottom:0.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .topbar-title{font-size:14px;font-weight:600;color:#fff;letter-spacing:0.08em;text-transform:uppercase}
 .topbar-sub{font-size:11px;color:var(--muted);margin-top:1px}
 .topbar-btn{background:var(--gold);color:#0a0a0f;border:none;padding:6px 14px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer}
 .tab-bar{display:flex;background:#0f0f18;border-bottom:0.5px solid var(--border);flex-shrink:0}
-.tab{flex:1;padding:10px 4px 9px;text-align:center;font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all 0.2s}
+.tab{flex:1;padding:10px 2px 9px;text-align:center;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all 0.2s}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 .content{flex:1;overflow-y:auto;padding:12px}
-.page{display:none}
-.page.active{display:block}
+.page{display:none}.page.active{display:block}
 .filter-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
 .filter-row::-webkit-scrollbar{display:none}
 .fbtn{background:var(--surface);border:0.5px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .fbtn.active{background:var(--gold);color:#0a0a0f;border-color:var(--gold)}
-.fbtn.printing{border-color:#1a5a8a;color:var(--blue)}
-.fbtn.printing.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-.fbtn.pending{border-color:var(--gold-dim);color:var(--gold)}
-.fbtn.pending.active{background:var(--gold);color:#0a0a0f}
-.fbtn.completed{border-color:#1a5a1a;color:var(--green)}
-.fbtn.completed.active{background:var(--green);color:#fff;border-color:var(--green)}
+.fbtn.printing{border-color:#1a5a8a;color:var(--blue)}.fbtn.printing.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.fbtn.pending{border-color:var(--gold-dim);color:var(--gold)}.fbtn.pending.active{background:var(--gold);color:#0a0a0f}
+.fbtn.completed{border-color:#1a5a1a;color:var(--green)}.fbtn.completed.active{background:var(--green);color:#fff;border-color:var(--green)}
 .order-card{background:var(--surface);border:0.5px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
-.order-card.printing{border-color:#1a5a8a}
-.order-card.pending{border-color:var(--gold-dim)}
+.order-card.printing{border-color:#1a5a8a}.order-card.pending{border-color:var(--gold-dim)}
 .order-card-header{padding:12px;cursor:pointer;display:flex;align-items:center;gap:10px}
 .order-card-header:active{background:var(--surface2)}
 .order-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.order-status-dot.printing{background:var(--blue)}
-.order-status-dot.pending{background:var(--gold)}
-.order-status-dot.completed{background:var(--green)}
+.order-status-dot.printing{background:var(--blue)}.order-status-dot.pending{background:var(--gold)}.order-status-dot.completed{background:var(--green)}
 .order-card-info{flex:1;min-width:0}
 .order-ref{font-size:10px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase}
 .order-name{font-size:14px;font-weight:500;color:#fff}
 .order-meta{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.order-right{text-align:right;flex-shrink:0}
-.order-total{font-size:15px;font-weight:600;color:var(--gold)}
+.order-right{text-align:right;flex-shrink:0}.order-total{font-size:15px;font-weight:600;color:var(--gold)}
 .status-pill{font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;padding:2px 7px;border-radius:10px;display:inline-block;margin-top:3px}
-.pill-printing{background:rgba(74,159,212,0.15);color:var(--blue)}
-.pill-pending{background:rgba(201,168,76,0.15);color:var(--gold)}
-.pill-completed{background:rgba(74,184,74,0.15);color:var(--green)}
-.order-expand{display:none;border-top:0.5px solid var(--border)}
-.order-expand.open{display:block}
+.pill-printing{background:rgba(74,159,212,0.15);color:var(--blue)}.pill-pending{background:rgba(201,168,76,0.15);color:var(--gold)}.pill-completed{background:rgba(74,184,74,0.15);color:var(--green)}
+.order-expand{display:none;border-top:0.5px solid var(--border)}.order-expand.open{display:block}
 .design-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:0.5px solid var(--border);cursor:pointer}
-.design-item:last-child{border-bottom:none}
-.design-item:active{background:var(--surface2)}
+.design-item:last-child{border-bottom:none}.design-item:active{background:var(--surface2)}
 .design-ball{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .design-info{flex:1;min-width:0}
 .design-name{font-size:13px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .design-sub{font-size:11px;color:var(--muted);margin-top:1px}
 .design-right{text-align:right;flex-shrink:0}
 .design-status{font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-top:2px}
-.ds-pending{color:var(--gold)}
-.ds-printing{color:var(--blue)}
-.ds-completed{color:var(--green)}
+.ds-pending{color:var(--gold)}.ds-printing{color:var(--blue)}.ds-completed{color:var(--green)}
 .shiny-star{font-size:10px;margin-left:3px;color:var(--gold)}
 .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:none}
 .sheet-overlay.open{display:block}
@@ -101,11 +85,9 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
 .stat-box{background:var(--surface);border-radius:6px;padding:10px}
 .stat-label{font-size:10px;color:var(--muted);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:3px}
-.stat-value{font-size:17px;font-weight:600;color:#fff}
-.stat-value.green{color:var(--green)}
+.stat-value{font-size:17px;font-weight:600;color:#fff}.stat-value.green{color:var(--green)}
 .toggle-row{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-radius:6px;padding:12px;margin-bottom:14px}
-.toggle-text .tl{font-size:13px;color:#fff}
-.toggle-text .ts{font-size:11px;color:var(--muted);margin-top:1px}
+.toggle-text .tl{font-size:13px;color:#fff}.toggle-text .ts{font-size:11px;color:var(--muted);margin-top:1px}
 .toggle-sw{width:38px;height:22px;border-radius:11px;background:var(--surface2);border:0.5px solid var(--border);position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0}
 .toggle-sw.on{background:var(--gold)}
 .toggle-sw:after{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left 0.2s}
@@ -116,26 +98,96 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 .field{margin-bottom:14px}
 .field-label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block}
 .field-input{width:100%;background:var(--surface);border:0.5px solid rgba(201,168,76,0.22);border-radius:4px;padding:10px 12px;color:#e8e4dc;font-size:14px;font-family:inherit;outline:none}
-.field-input:focus{border-color:var(--gold)}
-.field-input::placeholder{color:var(--muted)}
+.field-input:focus{border-color:var(--gold)}.field-input::placeholder{color:var(--muted)}
 .field-select{width:100%;background:var(--surface);border:0.5px solid rgba(201,168,76,0.22);border-radius:4px;padding:10px 12px;color:#e8e4dc;font-size:14px;font-family:inherit;outline:none;appearance:none}
 .field-select option{background:#13131a}
 .filament-card{background:var(--surface);border-radius:8px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer}
 .filament-card:active{background:var(--surface2)}
 .fil-swatch{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,0.1)}
-.fil-info{flex:1}
-.fil-name{font-size:14px;font-weight:500;color:#fff;margin-bottom:4px}
+.fil-info{flex:1}.fil-name{font-size:14px;font-weight:500;color:#fff;margin-bottom:4px}
 .fil-bar-bg{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
 .fil-bar{height:100%;border-radius:3px}
-.fil-grams{font-size:13px;font-weight:500;flex-shrink:0}
-.fil-low{color:var(--red)}
-.fil-ok{color:var(--muted)}
+.fil-grams{font-size:13px;font-weight:500;flex-shrink:0}.fil-low{color:var(--red)}.fil-ok{color:var(--muted)}
 .restock-banner{background:rgba(226,75,74,0.06);border:0.5px solid rgba(226,75,74,0.2);border-radius:8px;padding:12px;margin-bottom:12px}
 .restock-title{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:8px;font-weight:600}
 .restock-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .restock-row:last-child{margin-bottom:0}
-.restock-name{font-size:13px;color:#fff}
-.restock-grams{font-size:11px;color:var(--red)}
+.restock-name{font-size:13px;color:#fff}.restock-grams{font-size:11px;color:var(--red)}
+.sync-btn{width:100%;background:rgba(74,159,212,0.1);color:var(--blue);border:0.5px solid #1a5a8a;border-radius:4px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:12px;text-align:center}
+.summary-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.summary-box{background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:12px}
+.summary-label{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.summary-value{font-size:20px;font-weight:600;color:var(--gold)}
+.shiny-name{color:var(--gold)}
+.search-wrap{margin-bottom:10px}
+.search-input{width:100%;background:var(--surface);border:0.5px solid rgba(201,168,76,0.22);border-radius:6px;padding:10px 14px;color:#e8e4dc;font-size:14px;font-family:inherit;outline:none}
+.search-input:focus{border-color:var(--gold)}.search-input::placeholder{color:var(--muted)}
+.added-designs-list{margin-bottom:14px}
+.added-design-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:4px;padding:8px 10px;margin-bottom:6px}
+.added-design-name{font-size:13px;color:#fff}.added-design-price{font-size:12px;color:var(--gold)}
+.added-design-remove{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:0;line-height:1}
+.planner-window-banner{border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;border:1px solid}
+.planner-window-banner.work{background:rgba(74,159,212,0.07);border-color:rgba(74,159,212,0.25)}
+.planner-window-banner.afternoon{background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.25)}
+.planner-window-banner.sleep{background:rgba(155,111,212,0.07);border-color:rgba(155,111,212,0.25)}
+.pwb-icon{font-size:20px;flex-shrink:0}.pwb-info{flex:1}
+.pwb-title{font-size:13px;font-weight:600;color:#fff}.pwb-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.pwb-time{font-size:11px;font-weight:600;flex-shrink:0}
+.pwb-time.work{color:var(--blue)}.pwb-time.afternoon{color:var(--gold)}.pwb-time.sleep{color:var(--purple)}
+.planner-sumrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.psc{background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:10px}
+.psc-label{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.psc-val{font-size:19px;font-weight:600;line-height:1}
+.psc-val.gold{color:var(--gold)}.psc-val.green{color:var(--green)}.psc-val.blue{color:var(--blue)}
+.psc-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.planner-prog{margin-bottom:14px}
+.pp-row{display:flex;justify-content:space-between;margin-bottom:4px}
+.pp-name{font-size:11px;color:var(--muted)}.pp-pct{font-size:11px;color:var(--gold)}
+.pp-bar{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.pp-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width .4s}
+.planner-sh{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px}
+.planner-sh-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:5px}
+.planner-sh-label::before{content:'';display:block;width:3px;height:10px;background:currentColor;border-radius:2px}
+.planner-sh-count{font-size:10px;color:var(--muted)}
+.sched-window{border-radius:8px;overflow:hidden;margin-bottom:10px;border:0.5px solid var(--border)}
+.sw-head{padding:9px 12px;display:flex;align-items:center;gap:8px;border-bottom:0.5px solid var(--border)}
+.sw-head.work{background:rgba(74,159,212,0.08)}.sw-head.afternoon{background:rgba(201,168,76,0.08)}.sw-head.sleep{background:rgba(155,111,212,0.08)}
+.sw-icon{font-size:14px}.sw-title{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;flex:1}
+.sw-title.work{color:var(--blue)}.sw-title.afternoon{color:var(--gold)}.sw-title.sleep{color:var(--purple)}
+.sw-hrs{font-size:10px;color:var(--muted)}
+.sw-printers{display:grid;grid-template-columns:1fr 1fr}
+.sw-printer{padding:7px}.sw-printer+.sw-printer{border-left:0.5px solid var(--border)}
+.sp-label{font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px}
+.sp-job{padding:5px 7px;border-radius:4px;margin-bottom:3px;display:flex;align-items:center;gap:5px;border:0.5px solid transparent}
+.sp-job.work{background:rgba(74,159,212,0.07);border-color:rgba(74,159,212,0.18)}
+.sp-job.afternoon{background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.18)}
+.sp-job.sleep{background:rgba(155,111,212,0.07);border-color:rgba(155,111,212,0.18)}
+.sp-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sp-dot.work{background:var(--blue)}.sp-dot.afternoon{background:var(--gold)}.sp-dot.sleep{background:var(--purple)}
+.sp-name{flex:1;color:#e8e4dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.sp-time{font-size:10px;color:var(--muted);flex-shrink:0}
+.sp-empty{padding:8px;font-size:10px;color:var(--muted);text-align:center}
+.planner-item{background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.planner-item:active{background:var(--surface2)}
+.planner-item.work-j{border-left:3px solid var(--blue)}.planner-item.afternoon-j{border-left:3px solid var(--gold)}.planner-item.sleep-j{border-left:3px solid var(--purple)}.planner-item.slab-j{border-left:3px solid var(--muted)}
+.planner-item.done{opacity:.4}.planner-item.done .pi-name{text-decoration:line-through}
+.pi-check{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pi-check.on{background:var(--green);border-color:var(--green)}.pi-check.on::after{content:'✓';font-size:11px;color:#fff;font-weight:700}
+.pi-body{flex:1;min-width:0}.pi-name{font-size:13px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.pi-right{text-align:right;flex-shrink:0}.pi-time{font-size:12px;color:var(--gold);font-weight:600}
+.pi-tag{font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;padding:2px 6px;border-radius:3px;margin-top:3px;display:inline-block}
+.tag-work{background:rgba(74,159,212,0.15);color:var(--blue)}.tag-afternoon{background:rgba(201,168,76,0.15);color:var(--gold)}.tag-sleep{background:rgba(155,111,212,0.15);color:var(--purple)}.tag-slab{background:rgba(74,74,96,0.3);color:var(--muted)}.tag-done{background:rgba(74,184,74,0.15);color:var(--green)}
+.plate-badge{font-size:9px;color:var(--muted);background:var(--surface2);border:0.5px solid var(--border);padding:1px 5px;border-radius:3px;margin-left:4px}
+.planner-frow{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px}
+.planner-frow::-webkit-scrollbar{display:none}
+.planner-fbtn{background:var(--surface);border:0.5px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.planner-fbtn.active{background:var(--gold);color:#0a0a0f;border-color:var(--gold)}
+.planner-info-box{font-size:11px;color:var(--muted);padding:10px 12px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px}
+.planner-info-box.green{color:var(--green);background:rgba(74,184,74,0.06);border-color:rgba(74,184,74,0.2)}
+.planner-subtab{display:flex;gap:6px;margin-bottom:12px}
+.pst{flex:1;padding:8px 4px;text-align:center;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;border-radius:6px;border:0.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer}
+.pst.active{background:rgba(201,168,76,0.12);color:var(--gold);border-color:var(--gold-dim)}
 .empty{text-align:center;padding:4rem 2rem;color:var(--muted)}
 .empty-icon{font-size:40px;margin-bottom:1rem;opacity:0.4}
 .empty-title{font-size:15px;font-weight:500;color:#fff;margin-bottom:6px}
@@ -143,21 +195,6 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 .loading{text-align:center;padding:3rem 2rem;color:var(--muted)}
 .spinner{width:28px;height:28px;border:2px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem}
 @keyframes spin{to{transform:rotate(360deg)}}
-.search-wrap{margin-bottom:10px}
-.search-input{width:100%;background:var(--surface);border:0.5px solid rgba(201,168,76,0.22);border-radius:6px;padding:10px 14px;color:#e8e4dc;font-size:14px;font-family:inherit;outline:none}
-.search-input:focus{border-color:var(--gold)}
-.search-input::placeholder{color:var(--muted)}
-.added-designs-list{margin-bottom:14px}
-.added-design-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:4px;padding:8px 10px;margin-bottom:6px}
-.added-design-name{font-size:13px;color:#fff}
-.added-design-price{font-size:12px;color:var(--gold)}
-.added-design-remove{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:0;line-height:1}
-.summary-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.summary-box{background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:12px}
-.summary-label{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-.summary-value{font-size:20px;font-weight:600;color:var(--gold)}
-.shiny-name{color:var(--gold)}
-.sync-btn{width:100%;background:rgba(74,159,212,0.1);color:var(--blue);border:0.5px solid #1a5a8a;border-radius:4px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:12px;text-align:center}
 @media(min-width:600px){
   .bottom-sheet{max-width:480px;left:50%;transform:translateX(-50%) translateY(100%);right:auto;border-radius:16px 16px 0 0}
   .bottom-sheet.open{transform:translateX(-50%) translateY(0)}
@@ -165,7 +202,6 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 </style>
 </head>
 <body>
-
 <div id="pin-screen">
   <p class="pin-logo">Black Peacock</p>
   <p class="pin-sub">Enter your PIN to continue</p>
@@ -183,571 +219,230 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
   </div>
   <div class="pin-error" id="pin-error"></div>
 </div>
-
 <div id="app" style="display:none;flex-direction:column;height:100%">
   <div class="topbar">
-    <div>
-      <div class="topbar-title" id="page-title">Orders</div>
-      <div class="topbar-sub" id="page-sub">Loading...</div>
-    </div>
+    <div><div class="topbar-title" id="page-title">Orders</div><div class="topbar-sub" id="page-sub">Loading...</div></div>
     <button class="topbar-btn" id="topbar-action" onclick="topbarAction()">+ New</button>
   </div>
   <div class="tab-bar">
     <div class="tab active" onclick="showPage('orders')">📋 Orders</div>
+    <div class="tab" onclick="showPage('planner')">🖨️ Planner</div>
     <div class="tab" onclick="showPage('filament')">🧵 Filament</div>
     <div class="tab" onclick="showPage('restock')">🛒 Restock</div>
   </div>
   <div class="content" id="content">
     <div class="page active" id="page-orders"><div class="loading"><div class="spinner"></div><p>Loading orders...</p></div></div>
+    <div class="page" id="page-planner"><div class="loading"><div class="spinner"></div><p>Loading planner...</p></div></div>
     <div class="page" id="page-filament"><div class="loading"><div class="spinner"></div><p>Loading filament...</p></div></div>
     <div class="page" id="page-restock"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>
   </div>
 </div>
-
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
 <div class="bottom-sheet" id="bottom-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-header">
-    <div class="sheet-title" id="sheet-title"></div>
-    <div class="sheet-sub" id="sheet-sub"></div>
-  </div>
+  <div class="sheet-header"><div class="sheet-title" id="sheet-title"></div><div class="sheet-sub" id="sheet-sub"></div></div>
   <div class="sheet-body" id="sheet-body"></div>
   <div class="sheet-footer" id="sheet-footer"></div>
 </div>
-
 <script>
-var PIN = '9559'; // Change this to your PIN
-var URLS = {
-  getOrders:      'https://getorders-610025346733.us-central1.run.app',
-  updateItem:     'https://updateitem-610025346733.us-central1.run.app',
-  deleteItem:     'https://deleteitem-610025346733.us-central1.run.app',
-  addItem:        'https://additem-610025346733.us-central1.run.app',
-  createOrder:    'https://createorder-610025346733.us-central1.run.app',
-  updateFilament: 'https://updatefilament-610025346733.us-central1.run.app',
-  addFilament:    'https://addfilament-610025346733.us-central1.run.app',
-  deductFilament: 'https://deductfilament-610025346733.us-central1.run.app',
-  deleteOrder:    'https://deleteorder-610025346733.us-central1.run.app',
-};
-var DESIGNS_URL = 'https://blackpeacockprinting.github.io/Pokeshop/designs.json';
-var COST_PER_GRAM = 0.013;
-var LOW_THRESHOLD = 200;
-
-var orders=[], items=[], filament=[], designs=[];
-var currentPage='orders', orderFilter='all', selectedItem=null, pinEntry='';
-var newOrderDesigns=[];
-
+var PIN='9559';
+var URLS={getOrders:'https://getorders-610025346733.us-central1.run.app',updateItem:'https://updateitem-610025346733.us-central1.run.app',deleteItem:'https://deleteitem-610025346733.us-central1.run.app',addItem:'https://additem-610025346733.us-central1.run.app',createOrder:'https://createorder-610025346733.us-central1.run.app',updateFilament:'https://updatefilament-610025346733.us-central1.run.app',addFilament:'https://addfilament-610025346733.us-central1.run.app',deductFilament:'https://deductfilament-610025346733.us-central1.run.app',deleteOrder:'https://deleteorder-610025346733.us-central1.run.app'};
+var DESIGNS_URL='https://blackpeacockprinting.github.io/Pokeshop/designs.json';
+var PLANNER_URL='https://raw.githubusercontent.com/blackpeacockprinting/PokeprintAdmin/main/print-planner.json';
+var COST_PER_GRAM=0.013,LOW_THRESHOLD=200,PLANNER_KEY='bpp_planner_v2';
+var orders=[],items=[],filament=[],designs=[],plannerDesigns=[];
+var currentPage='orders',orderFilter='all',selectedItem=null,pinEntry='',newOrderDesigns=[];
+var plannerState=loadPlannerState(),plannerFilter='all',plannerSubTab='today';
+function loadPlannerState(){try{return JSON.parse(localStorage.getItem(PLANNER_KEY)||'{}')}catch(e){return{}}}
+function savePlannerState(){try{localStorage.setItem(PLANNER_KEY,JSON.stringify(plannerState))}catch(e){}}
 function pinTap(n){
-  if(pinEntry.length>=4)return;
-  pinEntry+=n;
-  updatePinDots();
+  if(pinEntry.length>=4)return;pinEntry+=n;updatePinDots();
   if(pinEntry.length===4){
-    if(pinEntry===PIN){
-      document.getElementById('pin-screen').style.display='none';
-      var app=document.getElementById('app');
-      app.style.display='flex';
-      loadData();
-    } else {
-      document.getElementById('pin-error').textContent='Incorrect PIN';
-      document.querySelectorAll('.pin-dot').forEach(function(d){d.classList.add('error');});
-      setTimeout(function(){
-        pinEntry='';updatePinDots();
-        document.querySelectorAll('.pin-dot').forEach(function(d){d.classList.remove('error');});
-        document.getElementById('pin-error').textContent='';
-      },800);
-    }
+    if(pinEntry===PIN){document.getElementById('pin-screen').style.display='none';document.getElementById('app').style.display='flex';loadData();}
+    else{document.getElementById('pin-error').textContent='Incorrect PIN';document.querySelectorAll('.pin-dot').forEach(function(d){d.classList.add('error');});setTimeout(function(){pinEntry='';updatePinDots();document.querySelectorAll('.pin-dot').forEach(function(d){d.classList.remove('error');});document.getElementById('pin-error').textContent='';},800);}
   }
 }
 function pinDel(){pinEntry=pinEntry.slice(0,-1);updatePinDots();}
 function updatePinDots(){for(var i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinEntry.length);}
-
-function api(key,method,body){
-  var opts={method:method||'GET',headers:{'Content-Type':'application/json'}};
-  if(body)opts.body=JSON.stringify(body);
-  return fetch(URLS[key],opts).then(function(r){return r.json();});
-}
-
+function api(key,method,body){var opts={method:method||'GET',headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);return fetch(URLS[key],opts).then(function(r){return r.json();});}
 function loadData(){
-  api('getOrders').then(function(data){
-    orders=data.orders||[];
-    items=data.items||[];
-    filament=data.filament||[];
-    renderOrders();
-    renderFilament();
-    renderRestock();
-  }).catch(function(e){
-    document.getElementById('page-orders').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load</div><div class="empty-sub">'+e.message+'</div></div>';
-  });
+  api('getOrders').then(function(data){orders=data.orders||[];items=data.items||[];filament=data.filament||[];renderOrders();renderFilament();renderRestock();if(currentPage==='planner')renderPlanner();}).catch(function(e){document.getElementById('page-orders').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load</div><div class="empty-sub">'+e.message+'</div></div>';});
   fetch(DESIGNS_URL).then(function(r){return r.json();}).then(function(d){designs=d.data||[];}).catch(function(){});
+  fetch(PLANNER_URL).then(function(r){return r.json();}).then(function(d){plannerDesigns=d.designs||[];plannerDesigns.forEach(function(des){if(des.preprinted){des.plates.forEach(function(_,pi){var k=des.id+'_'+pi;if(plannerState[k]===undefined)plannerState[k]=true;});}});savePlannerState();if(currentPage==='planner')renderPlanner();}).catch(function(){});
 }
-
-function getOrderStatus(id){
-  var oi=items.filter(function(it){return it.orderRef===id;});
-  if(!oi.length)return 'pending';
-  var s=oi.map(function(it){return(it.status||'pending').toLowerCase();});
-  if(s.some(function(x){return x==='printing';}))return 'printing';
-  if(s.every(function(x){return x==='completed';}))return 'completed';
-  return 'pending';
-}
-
-function getOrderTotal(id){
-  return items.filter(function(it){return it.orderRef===id;}).reduce(function(s,it){return s+(it.price||0);},0);
-}
-
-function sortOrders(list){
-  var pr=[],pe=[],co=[];
-  list.forEach(function(o){
-    var s=getOrderStatus(o.id);
-    if(s==='printing')pr.push(o);
-    else if(s==='completed')co.push(o);
-    else pe.push(o);
-  });
-  return pr.concat(pe).concat(co);
-}
-
+function getOrderStatus(id){var oi=items.filter(function(it){return it.orderRef===id;});if(!oi.length)return'pending';var s=oi.map(function(it){return(it.status||'pending').toLowerCase();});if(s.some(function(x){return x==='printing';}))return'printing';if(s.every(function(x){return x==='completed';}))return'completed';return'pending';}
+function getOrderTotal(id){return items.filter(function(it){return it.orderRef===id;}).reduce(function(s,it){return s+(it.price||0);},0);}
+function sortOrders(list){var pr=[],pe=[],co=[];list.forEach(function(o){var s=getOrderStatus(o.id);if(s==='printing')pr.push(o);else if(s==='completed')co.push(o);else pe.push(o);});return pr.concat(pe).concat(co);}
 function renderOrders(){
-  var filtered=orders;
-  if(orderFilter!=='all')filtered=orders.filter(function(o){return getOrderStatus(o.id)===orderFilter;});
-  filtered=sortOrders(filtered);
-  var printing=orders.filter(function(o){return getOrderStatus(o.id)==='printing';}).length;
-  var pending=orders.filter(function(o){return getOrderStatus(o.id)==='pending';}).length;
+  var filtered=orders;if(orderFilter!=='all')filtered=orders.filter(function(o){return getOrderStatus(o.id)===orderFilter;});filtered=sortOrders(filtered);
+  var printing=orders.filter(function(o){return getOrderStatus(o.id)==='printing';}).length;var pending=orders.filter(function(o){return getOrderStatus(o.id)==='pending';}).length;
   document.getElementById('page-sub').textContent=printing+' printing · '+pending+' pending';
-  var totalRev=orders.reduce(function(s,o){return s+getOrderTotal(o.id);},0);
-  var totalProfit=totalRev-items.reduce(function(s,it){return s+(it.cost||0);},0);
+  var totalRev=orders.reduce(function(s,o){return s+getOrderTotal(o.id);},0);var totalProfit=totalRev-items.reduce(function(s,it){return s+(it.cost||0);},0);
   var summaryHtml='<div class="summary-row"><div class="summary-box"><div class="summary-label">Total Revenue</div><div class="summary-value">$'+totalRev.toFixed(0)+'</div></div><div class="summary-box"><div class="summary-label">Total Profit</div><div class="summary-value">$'+totalProfit.toFixed(0)+'</div></div></div>';
-  if(!filtered.length){
-    document.getElementById('page-orders').innerHTML=summaryHtml+'<div class="search-wrap"><input class="search-input" placeholder="Search orders..." oninput="searchOrders(this.value)"></div><div class="filter-row">'+filterBtns()+'</div><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No orders</div><div class="empty-sub">Tap + New to create an order.</div></div>';
-    return;
-  }
-  var html=summaryHtml+'<div class="search-wrap"><input class="search-input" placeholder="Search orders..." oninput="searchOrders(this.value)" id="order-search"></div>';
-  html+='<div class="filter-row">'+filterBtns()+'</div>';
+  if(!filtered.length){document.getElementById('page-orders').innerHTML=summaryHtml+'<div class="search-wrap"><input class="search-input" placeholder="Search orders..." oninput="searchOrders(this.value)"></div><div class="filter-row">'+filterBtns()+'</div><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No orders</div><div class="empty-sub">Tap + New to create an order.</div></div>';return;}
+  var html=summaryHtml+'<div class="search-wrap"><input class="search-input" placeholder="Search orders..." oninput="searchOrders(this.value)" id="order-search"></div><div class="filter-row">'+filterBtns()+'</div>';
   filtered.forEach(function(o){
-    var status=getOrderStatus(o.id);
-    var total=getOrderTotal(o.id);
-    var oi=items.filter(function(it){return it.orderRef===o.id;});
+    var status=getOrderStatus(o.id),total=getOrderTotal(o.id),oi=items.filter(function(it){return it.orderRef===o.id;});
     var metaText=oi.length+' figure'+(oi.length!==1?'s':'')+' · '+(o.payment||'Cash');
-    html+='<div class="order-card '+status+'">';
-    html+='<div class="order-card-header" onclick="toggleOrder(\''+o.id+'\')">';
-    html+='<div class="order-status-dot '+status+'"></div>';
-    html+='<div class="order-card-info">';
-    html+='<div class="order-ref">'+o.id+'</div>';
-    html+='<div class="order-name">'+(o.customer||'Unknown')+'</div>';
-    html+='<div class="order-meta">'+metaText+'</div>';
-    html+='</div>';
-    html+='<div class="order-right">';
-    html+='<div class="order-total">$'+total.toFixed(0)+'</div>';
-    html+='<div class="status-pill pill-'+status+'">'+status+'</div>';
-    html+='</div></div>';
+    html+='<div class="order-card '+status+'"><div class="order-card-header" onclick="toggleOrder(\''+o.id+'\')"><div class="order-status-dot '+status+'"></div><div class="order-card-info"><div class="order-ref">'+o.id+'</div><div class="order-name">'+(o.customer||'Unknown')+'</div><div class="order-meta">'+metaText+'</div></div><div class="order-right"><div class="order-total">$'+total.toFixed(0)+'</div><div class="status-pill pill-'+status+'">'+status+'</div></div></div>';
     html+='<div class="order-expand" id="oe-'+o.id+'">';
-    if(oi.length){
-      oi.forEach(function(it){
-        var ds=(it.status||'pending').toLowerCase();
-        html+='<div class="design-item" onclick="openDesignDetail('+it.row+')">';
-        html+='<div class="design-ball" style="background:'+getBallBg(it.name)+';border:1.5px solid '+getBallBorder(it.name)+'">'+getBallSVG(it.name)+'</div>';
-        html+='<div class="design-info"><div class="design-name '+(it.shiny==='true'?'shiny-name':'')+'">'+(it.shiny==='true'?'<span class="shiny-star">✦</span>':'')+it.name+'</div>';
-        html+='<div class="design-sub">$'+(it.price||0).toFixed(2)+' · cost $'+(it.cost||0).toFixed(2)+'</div></div>';
-        html+='<div class="design-right"><div class="design-status ds-'+ds+'">'+ds+'</div></div>';
-        html+='</div>';
-      });
-    } else {
-      html+='<div style="padding:12px;font-size:13px;color:var(--muted);text-align:center">No designs yet — add one below</div>';
-    }
-    html+='<div style="padding:10px 12px;border-top:0.5px solid var(--border);display:flex;gap:8px">';
-    html+='<button class="btn-outline" style="flex:1;padding:8px;font-size:11px" onclick="openAddDesign(\''+o.id+'\')">+ Add design</button>';
-    html+='<button class="btn-danger" style="flex:1;padding:8px;font-size:11px" onclick="confirmDeleteOrder(\''+o.id+'\')">Delete order</button>';
-    html+='</div>';
-    html+='</div></div>';
+    if(oi.length){oi.forEach(function(it){var ds=(it.status||'pending').toLowerCase();html+='<div class="design-item" onclick="openDesignDetail('+it.row+')"><div class="design-ball" style="background:'+getBallBg(it.name)+';border:1.5px solid '+getBallBorder(it.name)+'">'+getBallSVG(it.name)+'</div><div class="design-info"><div class="design-name '+(it.shiny==='true'?'shiny-name':'')+'">'+( it.shiny==='true'?'<span class="shiny-star">✦</span>':'')+it.name+'</div><div class="design-sub">$'+(it.price||0).toFixed(2)+' · cost $'+(it.cost||0).toFixed(2)+'</div></div><div class="design-right"><div class="design-status ds-'+ds+'">'+ds+'</div></div></div>';});}
+    else{html+='<div style="padding:12px;font-size:13px;color:var(--muted);text-align:center">No designs yet</div>';}
+    html+='<div style="padding:10px 12px;border-top:0.5px solid var(--border);display:flex;gap:8px"><button class="btn-outline" style="flex:1;padding:8px;font-size:11px" onclick="openAddDesign(\''+o.id+'\')">+ Add design</button><button class="btn-danger" style="flex:1;padding:8px;font-size:11px" onclick="confirmDeleteOrder(\''+o.id+'\')">Delete order</button></div></div></div>';
   });
   document.getElementById('page-orders').innerHTML=html;
 }
-
-function filterBtns(){
-  return ['all','printing','pending','completed'].map(function(f){
-    return '<div class="fbtn '+f+' '+(orderFilter===f?'active':'')+'" onclick="setOrderFilter(\''+f+'\')">'+( f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1))+'</div>';
-  }).join('');
-}
-
+function filterBtns(){return['all','printing','pending','completed'].map(function(f){return'<div class="fbtn '+f+' '+(orderFilter===f?'active':'')+'" onclick="setOrderFilter(\''+f+'\')">'+( f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1))+'</div>';}).join('');}
 function setOrderFilter(f){orderFilter=f;renderOrders();}
-
 function searchOrders(q){
-  var lq=q.toLowerCase();
-  var prev=orderFilter;
-  var filtered=orders.filter(function(o){
-    return!lq||(o.customer||'').toLowerCase().indexOf(lq)>=0||(o.id||'').toLowerCase().indexOf(lq)>=0;
-  });
-  if(prev!=='all')filtered=filtered.filter(function(o){return getOrderStatus(o.id)===prev;});
-  filtered=sortOrders(filtered);
-  var html='<div class="search-wrap"><input class="search-input" placeholder="Search orders..." oninput="searchOrders(this.value)" id="order-search" value="'+q+'"></div>';
-  html+='<div class="filter-row">'+filterBtns()+'</div>';
+  var lq=q.toLowerCase();var filtered=orders.filter(function(o){return!lq||(o.customer||'').toLowerCase().indexOf(lq)>=0||(o.id||'').toLowerCase().indexOf(lq)>=0;});
+  if(orderFilter!=='all')filtered=filtered.filter(function(o){return getOrderStatus(o.id)===orderFilter;});filtered=sortOrders(filtered);
+  var html='<div class="search-wrap"><input class="search-input" placeholder="Search orders..." oninput="searchOrders(this.value)" value="'+q+'"></div><div class="filter-row">'+filterBtns()+'</div>';
   if(!filtered.length){html+='<div class="empty"><div class="empty-title">No results</div></div>';}
-  filtered.forEach(function(o){
-    var status=getOrderStatus(o.id);
-    var total=getOrderTotal(o.id);
-    var oi=items.filter(function(it){return it.orderRef===o.id;});
-    html+='<div class="order-card '+status+'" style="cursor:pointer" onclick="toggleOrder(\''+o.id+'\')">';
-    html+='<div class="order-card-header">';
-    html+='<div class="order-status-dot '+status+'"></div>';
-    html+='<div class="order-card-info"><div class="order-ref">'+o.id+'</div><div class="order-name">'+(o.customer||'Unknown')+'</div><div class="order-meta">'+oi.length+' figure'+(oi.length!==1?'s':'')+'</div></div>';
-    html+='<div class="order-right"><div class="order-total">$'+total.toFixed(0)+'</div><div class="status-pill pill-'+status+'">'+status+'</div></div>';
-    html+='</div></div>';
-  });
+  filtered.forEach(function(o){var status=getOrderStatus(o.id),total=getOrderTotal(o.id),oi=items.filter(function(it){return it.orderRef===o.id;});html+='<div class="order-card '+status+'" onclick="toggleOrder(\''+o.id+'\')"><div class="order-card-header"><div class="order-status-dot '+status+'"></div><div class="order-card-info"><div class="order-ref">'+o.id+'</div><div class="order-name">'+(o.customer||'Unknown')+'</div><div class="order-meta">'+oi.length+' figure'+(oi.length!==1?'s':'')+'</div></div><div class="order-right"><div class="order-total">$'+total.toFixed(0)+'</div><div class="status-pill pill-'+status+'">'+status+'</div></div></div></div>';});
   document.getElementById('page-orders').innerHTML=html;
 }
-
-function toggleOrder(id){
-  var el=document.getElementById('oe-'+id);
-  if(el)el.classList.toggle('open');
-}
-
+function toggleOrder(id){var el=document.getElementById('oe-'+id);if(el)el.classList.toggle('open');}
 function openDesignDetail(row){
-  var it=items.find(function(i){return i.row===row;});
-  if(!it)return;
-  selectedItem=it;
-  var status=(it.status||'pending').toLowerCase();
-  var cost=getFilamentCost(it.name)||(it.cost||0);
-  var profit=(it.price||0)-cost;
+  var it=items.find(function(i){return i.row===row;});if(!it)return;selectedItem=it;
+  var status=(it.status||'pending').toLowerCase(),cost=getFilamentCost(it.name)||(it.cost||0),profit=(it.price||0)-cost;
   var html='<div class="design-detail-ball" style="background:'+getBallBg(it.name)+';border:2px solid '+getBallBorder(it.name)+'">'+getBallSVGLarge(it.name)+'</div>';
-  html+='<div class="design-detail-name">'+it.name+'</div>';
-  html+='<div class="design-detail-order">'+it.orderRef+'</div>';
-  html+='<div class="status-toggle">';
-  html+='<div class="stbtn '+(status==='pending'?'active-pending':'')+'" onclick="setDesignStatus(this,\'Pending\')">Pending</div>';
-  html+='<div class="stbtn '+(status==='printing'?'active-printing':'')+'" onclick="setDesignStatus(this,\'Printing\')">Printing</div>';
-  html+='<div class="stbtn '+(status==='completed'?'active-completed':'')+'" onclick="setDesignStatus(this,\'Completed\')">Completed</div>';
-  html+='</div>';
-  html+='<div class="stat-grid">';
-  html+='<div class="stat-box"><div class="stat-label">Sale price</div><div class="stat-value">$'+(it.price||0).toFixed(2)+'</div></div>';
-  html+='<div class="stat-box"><div class="stat-label">Cost to make</div><div class="stat-value">$'+cost.toFixed(2)+'</div></div>';
-  html+='<div class="stat-box"><div class="stat-label">Profit</div><div class="stat-value green">$'+profit.toFixed(2)+'</div></div>';
-  html+='<div class="stat-box"><div class="stat-label">Margin</div><div class="stat-value green">'+((it.price||0)>0?Math.round(profit/(it.price||1)*100):0)+'%</div></div>';
-  html+='</div>';
+  html+='<div class="design-detail-name">'+it.name+'</div><div class="design-detail-order">'+it.orderRef+'</div>';
+  html+='<div class="status-toggle"><div class="stbtn '+(status==='pending'?'active-pending':'')+'" onclick="setDesignStatus(this,\'Pending\')">Pending</div><div class="stbtn '+(status==='printing'?'active-printing':'')+'" onclick="setDesignStatus(this,\'Printing\')">Printing</div><div class="stbtn '+(status==='completed'?'active-completed':'')+'" onclick="setDesignStatus(this,\'Completed\')">Completed</div></div>';
+  html+='<div class="stat-grid"><div class="stat-box"><div class="stat-label">Sale price</div><div class="stat-value">$'+(it.price||0).toFixed(2)+'</div></div><div class="stat-box"><div class="stat-label">Cost to make</div><div class="stat-value">$'+cost.toFixed(2)+'</div></div><div class="stat-box"><div class="stat-label">Profit</div><div class="stat-value green">$'+profit.toFixed(2)+'</div></div><div class="stat-box"><div class="stat-label">Margin</div><div class="stat-value green">'+((it.price||0)>0?Math.round(profit/(it.price||1)*100):0)+'%</div></div></div>';
   var isShiny=it.shiny==='true';
-  html+='<div class="toggle-row"><div class="toggle-text"><div class="tl">Shiny variant</div><div class="ts">Reference only — no price change</div></div>';
-  html+='<div class="toggle-sw '+(isShiny?'on':'')+'" id="shiny-toggle" onclick="toggleShiny()"></div></div>';
-  document.getElementById('sheet-body').innerHTML=html;
-  document.getElementById('sheet-footer').innerHTML='<button class="btn-danger" onclick="confirmDelete('+row+')">Delete</button>';
+  html+='<div class="toggle-row"><div class="toggle-text"><div class="tl">Shiny variant</div><div class="ts">Reference only</div></div><div class="toggle-sw '+(isShiny?'on':'')+'" id="shiny-toggle" onclick="toggleShiny()"></div></div>';
+  document.getElementById('sheet-body').innerHTML=html;document.getElementById('sheet-footer').innerHTML='<button class="btn-danger" onclick="confirmDelete('+row+')">Delete</button>';
   openSheet(it.name,it.orderRef);
 }
-
-function setDesignStatus(btn,status){
-  if(!selectedItem)return;
-  document.querySelectorAll('.stbtn').forEach(function(b){b.className='stbtn';});
-  var s=status.toLowerCase();
-  btn.className='stbtn active-'+s;
-  api('updateItem','POST',{row:selectedItem.row,status:status,shiny:selectedItem.shiny}).then(function(){
-    selectedItem.status=status;
-    var it=items.find(function(i){return i.row===selectedItem.row;});
-    if(it)it.status=status;
-    if(status==='Completed')deductFilamentForDesign(selectedItem.name);
-    renderOrders();
-  });
-}
-
-function toggleShiny(){
-  if(!selectedItem)return;
-  var newShiny=selectedItem.shiny==='true'?'false':'true';
-  selectedItem.shiny=newShiny;
-  var t=document.getElementById('shiny-toggle');
-  if(t)t.classList.toggle('on',newShiny==='true');
-  var it=items.find(function(i){return i.row===selectedItem.row;});
-  if(it)it.shiny=newShiny;
-  api('updateItem','POST',{row:selectedItem.row,status:selectedItem.status,shiny:newShiny});
-}
-
-function confirmDelete(row){
-  if(!confirm('Delete this design from the order?'))return;
-  api('deleteItem','POST',{row:row}).then(function(){
-    items=items.filter(function(it){return it.row!==row;});
-    closeSheet();
-    renderOrders();
-  });
-}
-
+function setDesignStatus(btn,status){if(!selectedItem)return;document.querySelectorAll('.stbtn').forEach(function(b){b.className='stbtn';});btn.className='stbtn active-'+status.toLowerCase();api('updateItem','POST',{row:selectedItem.row,status:status,shiny:selectedItem.shiny}).then(function(){selectedItem.status=status;var it=items.find(function(i){return i.row===selectedItem.row;});if(it)it.status=status;if(status==='Completed')deductFilamentForDesign(selectedItem.name);renderOrders();});}
+function toggleShiny(){if(!selectedItem)return;var newShiny=selectedItem.shiny==='true'?'false':'true';selectedItem.shiny=newShiny;var t=document.getElementById('shiny-toggle');if(t)t.classList.toggle('on',newShiny==='true');var it=items.find(function(i){return i.row===selectedItem.row;});if(it)it.shiny=newShiny;api('updateItem','POST',{row:selectedItem.row,status:selectedItem.status,shiny:newShiny});}
+function confirmDelete(row){if(!confirm('Delete this design from the order?'))return;api('deleteItem','POST',{row:row}).then(function(){items=items.filter(function(it){return it.row!==row;});closeSheet();renderOrders();});}
 function openAddDesign(orderRef){
-  var designOptions=designs.map(function(d){
-    var name=d.pokemon?d.pokemon.name.charAt(0).toUpperCase()+d.pokemon.name.slice(1):d.title;
-    return '<option value="'+d.slug+'" data-name="'+name+'" data-price="'+getPrice(d.total_weight_grams||0)+'">'+name+'</option>';
-  }).join('');
-  var html='<div class="field"><label class="field-label">Pokemon</label>';
-  html+='<select class="field-select" id="add-slug" onchange="updateAddPrice()"><option value="">Select...</option>'+designOptions+'</select></div>';
-  html+='<div class="field"><label class="field-label">Price ($)</label><input class="field-input" type="number" id="add-price" value="8"></div>';
-  document.getElementById('sheet-body').innerHTML=html;
-  document.getElementById('sheet-footer').innerHTML=
-    '<button class="btn-outline" onclick="closeSheet()">Cancel</button>'+
-    '<button class="btn-solid" onclick="submitAddDesign(\''+orderRef+'\')">Add</button>';
+  var designOptions=designs.map(function(d){var name=d.pokemon?d.pokemon.name.charAt(0).toUpperCase()+d.pokemon.name.slice(1):d.title;return'<option value="'+d.slug+'" data-name="'+name+'" data-price="'+getPrice(d.total_weight_grams||0)+'">'+name+'</option>';}).join('');
+  var html='<div class="field"><label class="field-label">Pokemon</label><select class="field-select" id="add-slug" onchange="updateAddPrice()"><option value="">Select...</option>'+designOptions+'</select></div><div class="field"><label class="field-label">Price ($)</label><input class="field-input" type="number" id="add-price" value="8"></div>';
+  document.getElementById('sheet-body').innerHTML=html;document.getElementById('sheet-footer').innerHTML='<button class="btn-outline" onclick="closeSheet()">Cancel</button><button class="btn-solid" onclick="submitAddDesign(\''+orderRef+'\')">Add</button>';
   openSheet('Add Design',orderRef);
 }
-
-function updateAddPrice(){
-  var sel=document.getElementById('add-slug');
-  var opt=sel.options[sel.selectedIndex];
-  if(opt&&opt.dataset.price)document.getElementById('add-price').value=opt.dataset.price;
-}
-
-function submitAddDesign(orderRef){
-  var sel=document.getElementById('add-slug');
-  if(!sel.value){alert('Please select a Pokemon');return;}
-  var opt=sel.options[sel.selectedIndex];
-  var name=opt.dataset.name||sel.value;
-  var price=parseFloat(document.getElementById('add-price').value)||8;
-  var cost=Math.round(price*COST_PER_GRAM*100)/100;
-  api('addItem','POST',{orderRef:orderRef,slug:sel.value,name:name,price:price,cost:cost}).then(function(r){
-    if(r.error){alert('Error: '+r.error);return;}
-    closeSheet();
-    loadData();
-  }).catch(function(e){alert('Failed: '+e.message);});
-}
-
-function topbarAction(){
-  if(currentPage==='orders')openNewOrder();
-  else if(currentPage==='filament')openAddFilament();
-}
-
+function updateAddPrice(){var sel=document.getElementById('add-slug');var opt=sel.options[sel.selectedIndex];if(opt&&opt.dataset.price)document.getElementById('add-price').value=opt.dataset.price;}
+function submitAddDesign(orderRef){var sel=document.getElementById('add-slug');if(!sel.value){alert('Please select a Pokemon');return;}var opt=sel.options[sel.selectedIndex];var name=opt.dataset.name||sel.value;var price=parseFloat(document.getElementById('add-price').value)||8;var cost=Math.round(price*COST_PER_GRAM*100)/100;api('addItem','POST',{orderRef:orderRef,slug:sel.value,name:name,price:price,cost:cost}).then(function(r){if(r.error){alert('Error: '+r.error);return;}closeSheet();loadData();}).catch(function(e){alert('Failed: '+e.message);});}
 function openNewOrder(){
   newOrderDesigns=[];
-  var designOptions=designs.map(function(d){
-    var name=d.pokemon?d.pokemon.name.charAt(0).toUpperCase()+d.pokemon.name.slice(1):d.title;
-    return '<option value="'+d.slug+'" data-name="'+name+'" data-price="'+getPrice(d.total_weight_grams||0)+'">'+name+'</option>';
-  }).join('');
-  var html='<div class="field"><label class="field-label">Customer name</label><input class="field-input" id="no-name" placeholder="Name" type="text"></div>';
-  html+='<div class="field"><label class="field-label">Phone</label><input class="field-input" id="no-phone" placeholder="010-1234-5678" type="tel"></div>';
-  html+='<div class="field"><label class="field-label">Email</label><input class="field-input" id="no-email" placeholder="email@example.com" type="email"></div>';
-  html+='<div class="field"><label class="field-label">Contact method</label><select class="field-select" id="no-contact"><option value="SMS">SMS</option><option value="WhatsApp">WhatsApp</option><option value="Email">Email</option></select></div>';
-  html+='<div class="field"><label class="field-label">Payment</label><select class="field-select" id="no-payment"><option value="Cash">Cash</option><option value="Zelle">Zelle</option></select></div>';
-  html+='<div class="field"><label class="field-label">Notes (optional)</label><input class="field-input" id="no-notes" placeholder="Any notes..." type="text"></div>';
-  html+='<div style="border-top:0.5px solid var(--border);padding-top:14px;margin-top:4px">';
-  html+='<div class="field-label" style="margin-bottom:8px">Designs</div>';
-  html+='<div id="no-designs-list"></div>';
-  html+='<div style="display:flex;gap:8px">';
-  html+='<select class="field-select" id="no-design-sel" style="flex:1" onchange="updateNoPrice()"><option value="">Select Pokemon...</option>'+designOptions+'</select>';
-  html+='<input class="field-input" type="number" id="no-design-price" value="8" style="width:70px">';
-  html+='<button class="btn-solid" style="flex:none;padding:0 14px;font-size:12px" onclick="addDesignToNewOrder()">Add</button>';
-  html+='</div></div>';
-  document.getElementById('sheet-body').innerHTML=html;
-  document.getElementById('sheet-footer').innerHTML=
-    '<button class="btn-outline" onclick="closeSheet()">Cancel</button>'+
-    '<button class="btn-solid" onclick="submitNewOrder()">Create Order</button>';
+  var designOptions=designs.map(function(d){var name=d.pokemon?d.pokemon.name.charAt(0).toUpperCase()+d.pokemon.name.slice(1):d.title;return'<option value="'+d.slug+'" data-name="'+name+'" data-price="'+getPrice(d.total_weight_grams||0)+'">'+name+'</option>';}).join('');
+  var html='<div class="field"><label class="field-label">Customer name</label><input class="field-input" id="no-name" placeholder="Name" type="text"></div><div class="field"><label class="field-label">Phone</label><input class="field-input" id="no-phone" placeholder="010-1234-5678" type="tel"></div><div class="field"><label class="field-label">Email</label><input class="field-input" id="no-email" placeholder="email@example.com" type="email"></div><div class="field"><label class="field-label">Contact method</label><select class="field-select" id="no-contact"><option value="SMS">SMS</option><option value="WhatsApp">WhatsApp</option><option value="Email">Email</option></select></div><div class="field"><label class="field-label">Payment</label><select class="field-select" id="no-payment"><option value="Cash">Cash</option><option value="Zelle">Zelle</option></select></div><div class="field"><label class="field-label">Notes (optional)</label><input class="field-input" id="no-notes" placeholder="Any notes..." type="text"></div>';
+  html+='<div style="border-top:0.5px solid var(--border);padding-top:14px;margin-top:4px"><div class="field-label" style="margin-bottom:8px">Designs</div><div id="no-designs-list"></div><div style="display:flex;gap:8px"><select class="field-select" id="no-design-sel" style="flex:1" onchange="updateNoPrice()"><option value="">Select Pokemon...</option>'+designOptions+'</select><input class="field-input" type="number" id="no-design-price" value="8" style="width:70px"><button class="btn-solid" style="flex:none;padding:0 14px;font-size:12px" onclick="addDesignToNewOrder()">Add</button></div></div>';
+  document.getElementById('sheet-body').innerHTML=html;document.getElementById('sheet-footer').innerHTML='<button class="btn-outline" onclick="closeSheet()">Cancel</button><button class="btn-solid" onclick="submitNewOrder()">Create Order</button>';
   openSheet('New Order','Manual entry');
 }
-
-function updateNoPrice(){
-  var sel=document.getElementById('no-design-sel');
-  var opt=sel.options[sel.selectedIndex];
-  if(opt&&opt.dataset.price)document.getElementById('no-design-price').value=opt.dataset.price;
+function updateNoPrice(){var sel=document.getElementById('no-design-sel');var opt=sel.options[sel.selectedIndex];if(opt&&opt.dataset.price)document.getElementById('no-design-price').value=opt.dataset.price;}
+function addDesignToNewOrder(){var sel=document.getElementById('no-design-sel');if(!sel.value)return;var opt=sel.options[sel.selectedIndex];var name=opt.dataset.name||sel.value;var price=parseFloat(document.getElementById('no-design-price').value)||8;newOrderDesigns.push({slug:sel.value,name:name,price:price});renderNewOrderDesigns();sel.value='';document.getElementById('no-design-price').value='8';}
+function renderNewOrderDesigns(){var list=document.getElementById('no-designs-list');if(!list)return;if(!newOrderDesigns.length){list.innerHTML='';return;}list.innerHTML='<div class="added-designs-list">'+newOrderDesigns.map(function(d,i){return'<div class="added-design-row"><span class="added-design-name">'+d.name+'</span><span class="added-design-price">$'+d.price+'</span><button class="added-design-remove" onclick="removeNewDesign('+i+')">×</button></div>';}).join('')+'</div>';}
+function removeNewDesign(i){newOrderDesigns.splice(i,1);renderNewOrderDesigns();}
+function confirmDeleteOrder(orderId){if(!confirm('Delete order '+orderId+' and all its designs? This cannot be undone.'))return;api('deleteOrder','POST',{orderId:orderId}).then(function(){orders=orders.filter(function(o){return o.id!==orderId;});items=items.filter(function(it){return it.orderRef!==orderId;});renderOrders();}).catch(function(e){alert('Failed: '+e.message);});}
+function submitNewOrder(){var name=document.getElementById('no-name').value.trim();if(!name){alert('Please enter a customer name');return;}var ref='BPP-'+Date.now().toString(36).toUpperCase().slice(-6);var payload={id:ref,customer:name,email:document.getElementById('no-email').value.trim(),phone:document.getElementById('no-phone').value.trim(),contact:document.getElementById('no-contact').value,payment:document.getElementById('no-payment').value,notes:document.getElementById('no-notes').value.trim(),source:'Manual',items:newOrderDesigns.map(function(d){return{slug:d.slug,name:d.name,price:d.price};})};api('createOrder','POST',payload).then(function(r){if(r.error){alert('Error: '+r.error);return;}closeSheet();loadData();}).catch(function(e){alert('Failed: '+e.message);});}
+function nowHour(){return new Date().getHours()+new Date().getMinutes()/60}
+function currentWindow(){var h=nowHour();if(h>=7&&h<15)return'work';if(h>=15&&h<23)return'afternoon';return'sleep';}
+function windowCap(w){return w==='sleep'?6:8}
+function windowLabel(w){if(w==='work')return{icon:'💼',title:'Work',time:'7am–3pm',sub:'Load longest plates before you leave'};if(w==='afternoon')return{icon:'🌅',title:'Afternoon',time:'3pm–11pm',sub:'Short plates — swap as you go'};return{icon:'🌙',title:'Sleep',time:'11pm–5am',sub:'Load plates that finish by 5am'};}
+function assignWindow(t){if(t<3)return'afternoon';if(t<=6)return'sleep';return'work';}
+function fmtH(h){var hr=Math.floor(h),mn=Math.round((h-hr)*60);if(mn===0)return hr+'h';if(hr===0)return mn+'m';return hr+'h '+mn+'m';}
+function isPChecked(id,pi){return!!plannerState[id+'_'+pi]}
+function togglePlate(id,pi){
+  plannerState[id+'_'+pi]=!plannerState[id+'_'+pi];savePlannerState();
+  var des=plannerDesigns.find(function(x){return x.id===id;});
+  if(des&&plannerState[id+'_'+pi]){var allDone=des.plates.every(function(_,i){return isPChecked(id,i);});if(allDone)deductFilamentForPlannerDesign(des.name);}
+  renderPlanner();
 }
-
-function addDesignToNewOrder(){
-  var sel=document.getElementById('no-design-sel');
-  if(!sel.value)return;
-  var opt=sel.options[sel.selectedIndex];
-  var name=opt.dataset.name||sel.value;
-  var price=parseFloat(document.getElementById('no-design-price').value)||8;
-  newOrderDesigns.push({slug:sel.value,name:name,price:price});
-  renderNewOrderDesigns();
-  sel.value='';
-  document.getElementById('no-design-price').value='8';
+function togglePlannerDesign(id){var des=plannerDesigns.find(function(x){return x.id===id;});if(!des)return;var allDone=des.plates.every(function(_,pi){return isPChecked(id,pi);});des.plates.forEach(function(_,pi){plannerState[id+'_'+pi]=!allDone;});if(!allDone)deductFilamentForPlannerDesign(des.name);savePlannerState();renderPlanner();}
+function isPlannerDone(d){return d.plates.every(function(_,pi){return isPChecked(d.id,pi);})}
+function buildPJobs(){var jobs=[];var chars=plannerDesigns.filter(function(d){return d.type==='character';});var slabs=plannerDesigns.filter(function(d){return d.type==='slab';});[...chars,...slabs].forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({des:d,pi:pi,time:t,win:d.type==='slab'?'slab':assignWindow(t),done:isPChecked(d.id,pi)});});});return jobs;}
+function schedWin(win,cap){var jobs=buildPJobs().filter(function(j){return!j.done&&j.win===win;});jobs.sort(function(a,b){return b.time-a.time;});var p1=[],p2=[],h1=0,h2=0;jobs.forEach(function(j){if(h1<=h2&&h1+j.time<=cap){p1.push(j);h1+=j.time;}else if(h2+j.time<=cap){p2.push(j);h2+=j.time;}else if(h1<=h2){p1.push(j);h1+=j.time;}else{p2.push(j);h2+=j.time;}});return{p1,p2,h1,h2};}
+function deductFilamentForPlannerDesign(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.filaments||!d.filaments.length)return;var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});api('deductFilament','POST',{filaments:fil}).then(function(){api('getOrders').then(function(data){filament=data.filament||[];renderFilament();renderRestock();});});}
+function renderPlanner(){
+  if(!plannerDesigns.length){document.getElementById('page-planner').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading planner data...</p></div>';return;}
+  var jobs=buildPJobs(),total=jobs.length,done=jobs.filter(function(j){return j.done;}).length,pct=total>0?Math.round(done/total*100):0;
+  var hoursLeft=jobs.filter(function(j){return!j.done;}).reduce(function(s,j){return s+j.time;},0);
+  var html='<div class="planner-subtab"><div class="pst '+(plannerSubTab==='today'?'active':'')+'" onclick="setPlannerSubTab(\'today\')">Today</div><div class="pst '+(plannerSubTab==='queue'?'active':'')+'" onclick="setPlannerSubTab(\'queue\')">Queue</div><div class="pst '+(plannerSubTab==='event'?'active':'')+'" onclick="setPlannerSubTab(\'event\')">Event</div></div>';
+  html+='<div class="planner-sumrow"><div class="psc"><div class="psc-label">Left</div><div class="psc-val gold">'+(total-done)+'</div><div class="psc-sub">plates</div></div><div class="psc"><div class="psc-label">Done</div><div class="psc-val green">'+done+'</div><div class="psc-sub">complete</div></div><div class="psc"><div class="psc-label">Hours</div><div class="psc-val blue">'+fmtH(hoursLeft)+'</div><div class="psc-sub">remaining</div></div></div>';
+  html+='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Overall Progress</span><span class="pp-pct">'+pct+'%</span></div><div class="pp-bar"><div class="pp-fill" style="width:'+pct+'%"></div></div></div>';
+  if(plannerSubTab==='today')html+=renderPlannerToday();
+  else if(plannerSubTab==='queue')html+=renderPlannerQueue();
+  else html+=renderPlannerEvent();
+  document.getElementById('page-planner').innerHTML=html;
 }
-
-function renderNewOrderDesigns(){
-  var list=document.getElementById('no-designs-list');
-  if(!list)return;
-  if(!newOrderDesigns.length){list.innerHTML='';return;}
-  list.innerHTML='<div class="added-designs-list">'+newOrderDesigns.map(function(d,i){
-    return '<div class="added-design-row"><span class="added-design-name">'+d.name+'</span><span class="added-design-price">$'+d.price+'</span><button class="added-design-remove" onclick="removeNewDesign('+i+')">×</button></div>';
-  }).join('')+'</div>';
+function renderPlannerToday(){
+  var win=currentWindow(),lbl=windowLabel(win);
+  var html='<div class="planner-window-banner '+win+'"><div class="pwb-icon">'+lbl.icon+'</div><div class="pwb-info"><div class="pwb-title">'+lbl.title+' Window — NOW</div><div class="pwb-sub">'+lbl.sub+'</div></div><div class="pwb-time '+win+'">'+lbl.time+'</div></div>';
+  ['work','afternoon','sleep'].forEach(function(w){
+    var cap=windowCap(w),sched=schedWin(w,cap),wlbl=windowLabel(w),isNow=w===win;
+    html+='<div class="sched-window" style="'+(isNow?'border-color:rgba(201,168,76,0.35)':'')+'"><div class="sw-head '+w+'"><div class="sw-icon">'+wlbl.icon+'</div><div class="sw-title '+w+'">'+wlbl.title+(isNow?' ◀':'')+' <span style="color:var(--muted);font-weight:400">'+wlbl.time+'</span></div><div class="sw-hrs">'+fmtH(sched.h1+sched.h2)+'</div></div><div class="sw-printers">';
+    [sched.p1,sched.p2].forEach(function(pjobs,pi){html+='<div class="sw-printer"><div class="sp-label">P'+(pi+1)+'</div>';if(!pjobs.length){html+='<div class="sp-empty">Free</div>';}else pjobs.forEach(function(j){var multi=j.des.plates.length>1;html+='<div class="sp-job '+w+'"><div class="sp-dot '+w+'"></div><div class="sp-name">'+j.des.name+(multi?' P'+(j.pi+1):'')+' </div><div class="sp-time">'+fmtH(j.time)+'</div></div>';});html+='</div>';});
+    html+='</div></div>';
+  });
+  var slabsLeft=buildPJobs().filter(function(j){return j.win==='slab'&&!j.done;}).length;
+  html+='<div class="planner-sh"><div class="planner-sh-label" style="color:var(--muted)">Slabs — Last</div><div class="planner-sh-count">'+slabsLeft+' remaining</div></div>';
+  html+='<div class="planner-info-box'+(slabsLeft===0?' green':'')+'">'+( slabsLeft===0?'All slabs complete ✓':'Print after all characters. Heavy charcoal use.')+'</div>';
+  return html;
 }
-
-function removeNewDesign(i){
-  newOrderDesigns.splice(i,1);
-  renderNewOrderDesigns();
+function renderPlannerQueue(){
+  var jobs=buildPJobs();var filtered=jobs.filter(function(j){if(plannerFilter==='todo')return!j.done;if(plannerFilter==='work')return j.win==='work';if(plannerFilter==='afternoon')return j.win==='afternoon';if(plannerFilter==='sleep')return j.win==='sleep';if(plannerFilter==='slab')return j.win==='slab';return true;});
+  var html='<div class="planner-frow">'+['all','todo','work','afternoon','sleep','slab'].map(function(f){return'<div class="planner-fbtn '+(plannerFilter===f?'active':'')+'" onclick="setPlannerFilter(\''+f+'\')">'+f.charAt(0).toUpperCase()+f.slice(1)+'</div>';}).join('')+'</div>';
+  if(!filtered.length){html+='<div class="empty"><div class="empty-title">Nothing here ✓</div></div>';return html;}
+  filtered.forEach(function(j){var checked=isPChecked(j.des.id,j.pi),multi=j.des.plates.length>1,wc=j.win==='slab'?'slab-j':j.win+'-j',tc=j.win==='slab'?'tag-slab':'tag-'+j.win,tl=j.win==='slab'?'SLAB':j.win.toUpperCase();html+='<div class="planner-item '+wc+' '+(checked?'done':'')+'" onclick="togglePlate('+j.des.id+','+j.pi+')"><div class="pi-check '+(checked?'on':'')+'"></div><div class="pi-body"><div class="pi-name">'+j.des.name+(multi?'<span class="plate-badge">P'+(j.pi+1)+'/'+j.des.plates.length+'</span>':'')+'</div><div class="pi-meta">'+j.des.type+' · '+fmtH(j.time)+'</div></div><div class="pi-right"><div class="pi-time">'+fmtH(j.time)+'</div><div class="pi-tag '+(checked?'tag-done':tc)+'">'+(checked?'DONE':tl)+'</div></div></div>';});
+  return html;
 }
-
-function confirmDeleteOrder(orderId){
-  if(!confirm('Delete order '+orderId+' and all its designs? This cannot be undone.'))return;
-  api('deleteOrder','POST',{orderId:orderId}).then(function(){
-    orders=orders.filter(function(o){return o.id!==orderId;});
-    items=items.filter(function(it){return it.orderRef!==orderId;});
-    renderOrders();
-  }).catch(function(e){alert('Failed: '+e.message);});
+function renderPlannerEvent(){
+  var chars=plannerDesigns.filter(function(d){return d.type==='character';});var slabs=plannerDesigns.filter(function(d){return d.type==='slab';});
+  var cdone=chars.filter(isPlannerDone).length,sdone=slabs.filter(isPlannerDone).length;
+  var cpct=Math.round(cdone/chars.length*100),spct=slabs.length?Math.round(sdone/slabs.length*100):0;
+  var html='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Characters '+cdone+'/'+chars.length+'</span><span class="pp-pct">'+cpct+'%</span></div><div class="pp-bar"><div class="pp-fill" style="width:'+cpct+'%"></div></div></div>';
+  html+='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Slabs '+sdone+'/'+slabs.length+'</span><span class="pp-pct" style="color:var(--blue)">'+spct+'%</span></div><div class="pp-bar"><div class="pp-fill" style="width:'+spct+'%;background:var(--blue)"></div></div></div>';
+  html+='<div class="planner-sh"><div class="planner-sh-label">Characters</div><div class="planner-sh-count">'+cdone+'/'+chars.length+' done</div></div>';
+  function listItems(arr){var s='';arr.forEach(function(d){var done=isPlannerDone(d),t=d.plates.reduce(function(x,h){return x+h;},0);s+='<div class="planner-item '+(d.type==='slab'?'slab-j':'afternoon-j')+' '+(done?'done':'')+'" onclick="togglePlannerDesign('+d.id+')"><div class="pi-check '+(done?'on':'')+'"></div><div class="pi-body"><div class="pi-name">'+d.name+'</div><div class="pi-meta">'+d.plates.length+' plate'+(d.plates.length>1?'s':'')+' · '+fmtH(t)+'</div></div><div class="pi-right"><div class="pi-time">'+fmtH(t)+'</div><div class="pi-tag '+(done?'tag-done':(d.type==='slab'?'tag-slab':'tag-afternoon'))+'">'+(done?'DONE':(d.type==='slab'?'SLAB':'EVENT'))+'</div></div></div>';});return s;}
+  html+=listItems(chars);html+='<div class="planner-sh"><div class="planner-sh-label" style="color:var(--muted)">Slabs — Last</div><div class="planner-sh-count">charcoal heavy</div></div>';html+=listItems(slabs);
+  return html;
 }
-function submitNewOrder(){
-  var name=document.getElementById('no-name').value.trim();
-  if(!name){alert('Please enter a customer name');return;}
-  var ref='BPP-'+Date.now().toString(36).toUpperCase().slice(-6);
-  var payload={
-    id:ref,
-    customer:name,
-    email:document.getElementById('no-email').value.trim(),
-    phone:document.getElementById('no-phone').value.trim(),
-    contact:document.getElementById('no-contact').value,
-    payment:document.getElementById('no-payment').value,
-    notes:document.getElementById('no-notes').value.trim(),
-    source:'Manual',
-    items:newOrderDesigns.map(function(d){return{slug:d.slug,name:d.name,price:d.price};})
-  };
-  api('createOrder','POST',payload).then(function(r){
-    if(r.error){alert('Error: '+r.error);return;}
-    closeSheet();
-    loadData();
-  }).catch(function(e){alert('Failed: '+e.message);});
-}
-
+function setPlannerSubTab(t){plannerSubTab=t;renderPlanner();}
+function setPlannerFilter(f){plannerFilter=f;renderPlanner();}
 function renderFilament(){
-  var low=filament.filter(function(f){return f.grams<=LOW_THRESHOLD;});
-  var html='';
-  if(low.length){
-    html+='<div class="restock-banner"><div class="restock-title">Low stock — reorder soon</div>';
-    low.forEach(function(f){html+='<div class="restock-row"><div class="restock-name">'+f.colorName+'</div><div class="restock-grams">'+Math.round(f.grams)+'g remaining</div></div>';});
-    html+='</div>';
-  }
+  var low=filament.filter(function(f){return f.grams<=LOW_THRESHOLD;});var html='';
+  if(low.length){html+='<div class="restock-banner"><div class="restock-title">Low stock — reorder soon</div>';low.forEach(function(f){html+='<div class="restock-row"><div class="restock-name">'+f.colorName+'</div><div class="restock-grams">'+Math.round(f.grams)+'g remaining</div></div>';});html+='</div>';}
   html+='<button class="sync-btn" onclick="syncFilamentFromN3D()">↻ Sync colours from N3D designs</button>';
-  if(!filament.length){
-    html+='<div class="empty"><div class="empty-icon">🧵</div><div class="empty-title">No filament tracked</div><div class="empty-sub">Tap + Add to add colours, or sync from N3D above.</div></div>';
-  } else {
-    filament.forEach(function(f){
-      var pct=Math.min(100,Math.round(f.grams/10));
-      var isLow=f.grams<=LOW_THRESHOLD;
-      var barColor=isLow?'var(--red)':'var(--gold)';
-      html+='<div class="filament-card" onclick="openEditFilament('+f.row+')">';
-      html+='<div class="fil-swatch" style="background:'+getFilamentColor(f.colorName)+'"></div>';
-      html+='<div class="fil-info"><div class="fil-name">'+f.colorName+'</div>';
-      html+='<div class="fil-bar-bg"><div class="fil-bar" style="width:'+pct+'%;background:'+barColor+'"></div></div></div>';
-      html+='<div class="fil-grams '+(isLow?'fil-low':'fil-ok')+'">'+Math.round(f.grams)+'g'+(isLow?' ⚠':'')+'</div>';
-      html+='</div>';
-    });
-  }
-  document.getElementById('page-filament').innerHTML=html;
-  document.getElementById('page-sub').textContent=filament.length+' colours tracked';
+  if(!filament.length){html+='<div class="empty"><div class="empty-icon">🧵</div><div class="empty-title">No filament tracked</div><div class="empty-sub">Tap + Add to add colours, or sync from N3D above.</div></div>';}
+  else{filament.forEach(function(f){var pct=Math.min(100,Math.round(f.grams/10)),isLow=f.grams<=LOW_THRESHOLD,barColor=isLow?'var(--red)':'var(--gold)';html+='<div class="filament-card" onclick="openEditFilament('+f.row+')"><div class="fil-swatch" style="background:'+getFilamentColor(f.colorName)+'"></div><div class="fil-info"><div class="fil-name">'+f.colorName+'</div><div class="fil-bar-bg"><div class="fil-bar" style="width:'+pct+'%;background:'+barColor+'"></div></div></div><div class="fil-grams '+(isLow?'fil-low':'fil-ok')+'">'+Math.round(f.grams)+'g'+(isLow?' ⚠':'')+'</div></div>';});}
+  document.getElementById('page-filament').innerHTML=html;if(currentPage==='filament')document.getElementById('page-sub').textContent=filament.length+' colours tracked';
 }
-
-function syncFilamentFromN3D(){
-  if(!designs.length){alert('Designs not loaded yet. Please wait a moment and try again.');return;}
-  var allColors={};
-  designs.forEach(function(d){
-    if(d.filaments)d.filaments.forEach(function(f){
-      if(f.color)allColors[f.color.trim()]=true;
-    });
-  });
-  var existing=filament.map(function(f){return f.colorName.toLowerCase().trim();});
-  var toAdd=Object.keys(allColors).filter(function(c){return existing.indexOf(c.toLowerCase().trim())<0;});
-  if(!toAdd.length){alert('All N3D filament colours are already in your tracker!');return;}
-  if(!confirm('Add '+toAdd.length+' new colour'+(toAdd.length!==1?'s':'')+' from N3D?\n\n'+toAdd.slice(0,10).join('\n')+(toAdd.length>10?'\n...and '+(toAdd.length-10)+' more':'')))return;
-  var chain=Promise.resolve();
-  toAdd.forEach(function(color){
-    chain=chain.then(function(){return api('addFilament','POST',{colorName:color,grams:1000});});
-  });
-  chain.then(function(){loadData();alert('Added '+toAdd.length+' colours! Set your gram amounts by tapping each one.');});
-}
-
-function openEditFilament(row){
-  var f=filament.find(function(fl){return fl.row===row;});
-  if(!f)return;
-  var html='<div class="field"><label class="field-label">Grams remaining</label>';
-  html+='<input class="field-input" type="number" id="fil-grams" value="'+Math.round(f.grams)+'" min="0" max="1000"></div>';
-  html+='<p style="font-size:12px;color:var(--muted)">A full roll = 1000g. Enter how much you have left.</p>';
-  document.getElementById('sheet-body').innerHTML=html;
-  document.getElementById('sheet-footer').innerHTML=
-    '<button class="btn-outline" onclick="closeSheet()">Cancel</button>'+
-    '<button class="btn-solid" onclick="submitEditFilament('+row+')">Save</button>';
-  openSheet(f.colorName,Math.round(f.grams)+'g remaining');
-}
-
-function submitEditFilament(row){
-  var grams=parseFloat(document.getElementById('fil-grams').value)||0;
-  api('updateFilament','POST',{row:row,grams:grams}).then(function(){
-    var f=filament.find(function(fl){return fl.row===row;});
-    if(f)f.grams=grams;
-    closeSheet();
-    renderFilament();
-    renderRestock();
-  });
-}
-
-function openAddFilament(){
-  var html='<div class="field"><label class="field-label">Colour name</label><input class="field-input" type="text" id="new-fil-name" placeholder="e.g. Sakura Pink"></div>';
-  html+='<div class="field"><label class="field-label">Starting grams</label><input class="field-input" type="number" id="new-fil-grams" value="1000" min="0" max="1000"></div>';
-  document.getElementById('sheet-body').innerHTML=html;
-  document.getElementById('sheet-footer').innerHTML=
-    '<button class="btn-outline" onclick="closeSheet()">Cancel</button>'+
-    '<button class="btn-solid" onclick="submitAddFilament()">Add</button>';
-  openSheet('Add Filament','New colour');
-}
-
-function submitAddFilament(){
-  var name=document.getElementById('new-fil-name').value.trim();
-  var grams=parseFloat(document.getElementById('new-fil-grams').value)||1000;
-  if(!name){alert('Please enter a colour name');return;}
-  api('addFilament','POST',{colorName:name,grams:grams}).then(function(){closeSheet();loadData();});
-}
-
-function renderRestock(){
-  var low=filament.filter(function(f){return f.grams<=LOW_THRESHOLD;});
-  if(!low.length){
-    document.getElementById('page-restock').innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">All stocked up!</div><div class="empty-sub">No filament colours are running low.</div></div>';
-    return;
-  }
-  var html='';
-  low.sort(function(a,b){return a.grams-b.grams;}).forEach(function(f){
-    html+='<div class="filament-card" onclick="openEditFilament('+f.row+')">';
-    html+='<div class="fil-swatch" style="background:'+getFilamentColor(f.colorName)+'"></div>';
-    html+='<div class="fil-info"><div class="fil-name">'+f.colorName+'</div><div style="font-size:11px;color:var(--red);margin-top:2px">'+Math.round(f.grams)+'g remaining — tap to restock</div></div>';
-    html+='<div class="fil-grams fil-low">'+Math.round(f.grams)+'g ⚠</div>';
-    html+='</div>';
-  });
-  document.getElementById('page-restock').innerHTML=html;
-  document.getElementById('page-sub').textContent=low.length+' need restocking';
-}
-
-function deductFilamentForDesign(name){
-  var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});
-  if(!d||!d.filaments||!d.filaments.length)return;
-  var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});
-  api('deductFilament','POST',{filaments:fil}).then(function(){loadData();});
-}
-
-function getFilamentCost(name){
-  var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});
-  if(!d||!d.total_weight_grams)return 0;
-  return Math.round(d.total_weight_grams*COST_PER_GRAM*100)/100;
-}
-
-function showPage(page){
-  currentPage=page;
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
-  document.getElementById('page-'+page).classList.add('active');
-  var tabs=document.querySelectorAll('.tab');
-  var idx=['orders','filament','restock'].indexOf(page);
-  if(tabs[idx])tabs[idx].classList.add('active');
-  var titles={orders:'Orders',filament:'Filament',restock:'Restock'};
-  var actions={orders:'+ New',filament:'+ Add',restock:''};
-  document.getElementById('page-title').textContent=titles[page];
-  document.getElementById('topbar-action').textContent=actions[page];
-  document.getElementById('topbar-action').style.display=actions[page]?'':'none';
-  if(page==='orders')document.getElementById('page-sub').textContent=orders.filter(function(o){return getOrderStatus(o.id)!=='completed';}).length+' active';
-  else if(page==='filament')document.getElementById('page-sub').textContent=filament.length+' colours tracked';
-  else document.getElementById('page-sub').textContent=filament.filter(function(f){return f.grams<=LOW_THRESHOLD;}).length+' need restocking';
-}
-
-function openSheet(title,sub){
-  document.getElementById('sheet-title').textContent=title;
-  document.getElementById('sheet-sub').textContent=sub||'';
-  document.getElementById('sheet-overlay').classList.add('open');
-  document.getElementById('bottom-sheet').classList.add('open');
-}
-function closeSheet(){
-  document.getElementById('sheet-overlay').classList.remove('open');
-  document.getElementById('bottom-sheet').classList.remove('open');
-  selectedItem=null;
-}
-
+function syncFilamentFromN3D(){if(!designs.length){alert('Designs not loaded yet.');return;}var allColors={};designs.forEach(function(d){if(d.filaments)d.filaments.forEach(function(f){if(f.color)allColors[f.color.trim()]=true;});});var existing=filament.map(function(f){return f.colorName.toLowerCase().trim();});var toAdd=Object.keys(allColors).filter(function(c){return existing.indexOf(c.toLowerCase().trim())<0;});if(!toAdd.length){alert('All N3D filament colours are already tracked!');return;}if(!confirm('Add '+toAdd.length+' new colour'+(toAdd.length!==1?'s':'')+' from N3D?\n\n'+toAdd.slice(0,10).join('\n')+(toAdd.length>10?'\n...and '+(toAdd.length-10)+' more':'')))return;var chain=Promise.resolve();toAdd.forEach(function(color){chain=chain.then(function(){return api('addFilament','POST',{colorName:color,grams:1000});});});chain.then(function(){loadData();alert('Added '+toAdd.length+' colours!');});}
+function openEditFilament(row){var f=filament.find(function(fl){return fl.row===row;});if(!f)return;var html='<div class="field"><label class="field-label">Grams remaining</label><input class="field-input" type="number" id="fil-grams" value="'+Math.round(f.grams)+'" min="0" max="1000"></div><p style="font-size:12px;color:var(--muted)">A full roll = 1000g.</p>';document.getElementById('sheet-body').innerHTML=html;document.getElementById('sheet-footer').innerHTML='<button class="btn-outline" onclick="closeSheet()">Cancel</button><button class="btn-solid" onclick="submitEditFilament('+row+')">Save</button>';openSheet(f.colorName,Math.round(f.grams)+'g remaining');}
+function submitEditFilament(row){var grams=parseFloat(document.getElementById('fil-grams').value)||0;api('updateFilament','POST',{row:row,grams:grams}).then(function(){var f=filament.find(function(fl){return fl.row===row;});if(f)f.grams=grams;closeSheet();renderFilament();renderRestock();});}
+function openAddFilament(){var html='<div class="field"><label class="field-label">Colour name</label><input class="field-input" type="text" id="new-fil-name" placeholder="e.g. Sakura Pink"></div><div class="field"><label class="field-label">Starting grams</label><input class="field-input" type="number" id="new-fil-grams" value="1000" min="0" max="1000"></div>';document.getElementById('sheet-body').innerHTML=html;document.getElementById('sheet-footer').innerHTML='<button class="btn-outline" onclick="closeSheet()">Cancel</button><button class="btn-solid" onclick="submitAddFilament()">Add</button>';openSheet('Add Filament','New colour');}
+function submitAddFilament(){var name=document.getElementById('new-fil-name').value.trim();var grams=parseFloat(document.getElementById('new-fil-grams').value)||1000;if(!name){alert('Please enter a colour name');return;}api('addFilament','POST',{colorName:name,grams:grams}).then(function(){closeSheet();loadData();});}
+function renderRestock(){var low=filament.filter(function(f){return f.grams<=LOW_THRESHOLD;});if(!low.length){document.getElementById('page-restock').innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">All stocked up!</div><div class="empty-sub">No filament colours are running low.</div></div>';return;}var html='';low.sort(function(a,b){return a.grams-b.grams;}).forEach(function(f){html+='<div class="filament-card" onclick="openEditFilament('+f.row+')"><div class="fil-swatch" style="background:'+getFilamentColor(f.colorName)+'"></div><div class="fil-info"><div class="fil-name">'+f.colorName+'</div><div style="font-size:11px;color:var(--red);margin-top:2px">'+Math.round(f.grams)+'g remaining — tap to restock</div></div><div class="fil-grams fil-low">'+Math.round(f.grams)+'g ⚠</div></div>';});document.getElementById('page-restock').innerHTML=html;if(currentPage==='restock')document.getElementById('page-sub').textContent=low.length+' need restocking';}
+function deductFilamentForDesign(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.filaments||!d.filaments.length)return;var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});api('deductFilament','POST',{filaments:fil}).then(function(){loadData();});}
+function getFilamentCost(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.total_weight_grams)return 0;return Math.round(d.total_weight_grams*COST_PER_GRAM*100)/100;}
 function getPrice(g){return g<=149?8:g<=249?10:12;}
 var TC={fire:{bg:'#3d1a0a',b:'#7a3410'},water:{bg:'#0a1a2e',b:'#1a4a7a'},grass:{bg:'#0a2010',b:'#1a5a1a'},electric:{bg:'#2e2400',b:'#6a5a00'},psychic:{bg:'#2e0a1a',b:'#7a1a4a'},ghost:{bg:'#1a0a2e',b:'#4a2a8a'},dragon:{bg:'#0a0a2e',b:'#2a2a8a'},dark:{bg:'#1a1410',b:'#4a3a2a'},fairy:{bg:'#2e0a1e',b:'#8a2a6a'},normal:{bg:'#1e1e18',b:'#4a4a40'},fighting:{bg:'#2e1000',b:'#7a2a00'},flying:{bg:'#0e1a2e',b:'#2a5a8a'},poison:{bg:'#1e0a2e',b:'#5a1a7a'},ground:{bg:'#2a1e08',b:'#6a4a10'},rock:{bg:'#1e1a0a',b:'#4a4820'},bug:{bg:'#0e1e00',b:'#2a5800'},steel:{bg:'#141820',b:'#303848'},ice:{bg:'#081e2a',b:'#1a5878'}};
 function getType(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});return d&&d.pokemon&&d.pokemon.types&&d.pokemon.types[0]?d.pokemon.types[0].toLowerCase():'normal';}
 function getBallBg(n){var t=TC[getType(n)];return t?t.bg:'#1e1e18';}
 function getBallBorder(n){var t=TC[getType(n)];return t?t.b:'#4a4a40';}
-function getBallSVG(n){var b=getBallBorder(n);return '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="'+b+'" stroke-width="1.2"/><path d="M1 9h16" stroke="'+b+'" stroke-width="1.2"/><circle cx="9" cy="9" r="2.5" stroke="'+b+'" stroke-width="1"/></svg>';}
-function getBallSVGLarge(n){var b=getBallBorder(n);return '<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" stroke="'+b+'" stroke-width="1.5"/><path d="M2 18h32" stroke="'+b+'" stroke-width="1.5"/><circle cx="18" cy="18" r="5" stroke="'+b+'" stroke-width="1.2"/></svg>';}
-function getFilamentColor(n){var l=n.toLowerCase();if(l.includes('red'))return '#cc3333';if(l.includes('blue'))return '#3366cc';if(l.includes('green'))return '#33aa33';if(l.includes('yellow'))return '#ddcc00';if(l.includes('orange'))return '#ee7722';if(l.includes('pink')||l.includes('sakura'))return '#ee88aa';if(l.includes('purple')||l.includes('violet'))return '#8844cc';if(l.includes('black')||l.includes('dark'))return '#333333';if(l.includes('white')||l.includes('ivory'))return '#dddddd';if(l.includes('grey')||l.includes('gray'))return '#888888';if(l.includes('brown'))return '#885533';if(l.includes('gold'))return '#c9a84c';if(l.includes('silver'))return '#aaaaaa';if(l.includes('teal')||l.includes('cyan'))return '#33aaaa';return '#888780';}
+function getBallSVG(n){var b=getBallBorder(n);return'<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="'+b+'" stroke-width="1.2"/><path d="M1 9h16" stroke="'+b+'" stroke-width="1.2"/><circle cx="9" cy="9" r="2.5" stroke="'+b+'" stroke-width="1"/></svg>';}
+function getBallSVGLarge(n){var b=getBallBorder(n);return'<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" stroke="'+b+'" stroke-width="1.5"/><path d="M2 18h32" stroke="'+b+'" stroke-width="1.5"/><circle cx="18" cy="18" r="5" stroke="'+b+'" stroke-width="1.2"/></svg>';}
+function getFilamentColor(n){var l=n.toLowerCase();if(l.includes('red'))return'#cc3333';if(l.includes('blue'))return'#3366cc';if(l.includes('green'))return'#33aa33';if(l.includes('yellow'))return'#ddcc00';if(l.includes('orange'))return'#ee7722';if(l.includes('pink')||l.includes('sakura'))return'#ee88aa';if(l.includes('purple')||l.includes('violet'))return'#8844cc';if(l.includes('black')||l.includes('dark'))return'#333333';if(l.includes('white')||l.includes('ivory'))return'#dddddd';if(l.includes('grey')||l.includes('gray'))return'#888888';if(l.includes('brown'))return'#885533';if(l.includes('gold'))return'#c9a84c';if(l.includes('silver'))return'#aaaaaa';if(l.includes('teal')||l.includes('cyan'))return'#33aaaa';return'#888780';}
+function topbarAction(){if(currentPage==='orders')openNewOrder();else if(currentPage==='filament')openAddFilament();}
+function showPage(page){
+  currentPage=page;document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('page-'+page).classList.add('active');
+  var tabs=document.querySelectorAll('.tab');var idx=['orders','planner','filament','restock'].indexOf(page);if(tabs[idx])tabs[idx].classList.add('active');
+  var titles={orders:'Orders',planner:'Print Planner',filament:'Filament',restock:'Restock'};var actions={orders:'+ New',planner:'',filament:'+ Add',restock:''};
+  document.getElementById('page-title').textContent=titles[page];document.getElementById('topbar-action').textContent=actions[page];document.getElementById('topbar-action').style.display=actions[page]?'':'none';
+  if(page==='orders')document.getElementById('page-sub').textContent=orders.filter(function(o){return getOrderStatus(o.id)!=='completed';}).length+' active';
+  else if(page==='planner'){document.getElementById('page-sub').textContent='2 printers';renderPlanner();}
+  else if(page==='filament')document.getElementById('page-sub').textContent=filament.length+' colours tracked';
+  else document.getElementById('page-sub').textContent=filament.filter(function(f){return f.grams<=LOW_THRESHOLD;}).length+' need restocking';
+}
+function openSheet(title,sub){document.getElementById('sheet-title').textContent=title;document.getElementById('sheet-sub').textContent=sub||'';document.getElementById('sheet-overlay').classList.add('open');document.getElementById('bottom-sheet').classList.add('open');}
+function closeSheet(){document.getElementById('sheet-overlay').classList.remove('open');document.getElementById('bottom-sheet').classList.remove('open');selectedItem=null;}
 </script>
-  <script>if("serviceWorker" in navigator){ navigator.serviceWorker.register("/PokeprintAdmin/sw.js"); }</script>
+<script>if("serviceWorker" in navigator){ navigator.serviceWorker.register("/PokeprintAdmin/sw.js"); }</script>
 </body>
 </html>
