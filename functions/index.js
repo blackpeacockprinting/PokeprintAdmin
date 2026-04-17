@@ -282,8 +282,8 @@ exports.deductFilament = onRequest({ cors: true, region: "us-central1" }, (req, 
   });
 });
 
-// POST /setPlannerState - upsert a single plate's done state
-exports.setPlannerState = onRequest({ cors: true, region: "us-central1" }, (req, res) => {
+// POST /setplannerstate - upsert a single plate's done state
+exports.setplannerstate = onRequest({ cors: true, region: "us-central1" }, (req, res) => {
   cors(req, res, async () => {
     if (req.method === "OPTIONS") return res.status(204).send("");
     try {
@@ -296,7 +296,6 @@ exports.setPlannerState = onRequest({ cors: true, region: "us-central1" }, (req,
       try {
         sheetData = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Planner State!A:C" });
       } catch (e) {
-        // Sheet doesn't exist yet — create it
         const meta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
         const exists = meta.data.sheets.find(s => s.properties.title === "Planner State");
         if (!exists) {
@@ -318,17 +317,15 @@ exports.setPlannerState = onRequest({ cors: true, region: "us-central1" }, (req,
       const key = String(designId);
       const pi = String(plateIndex);
 
-      // Find existing row
       let existingRow = -1;
       for (let i = 1; i < rows.length; i++) {
         if (String(rows[i][0]) === key && String(rows[i][1]) === pi) {
-          existingRow = i + 1; // 1-indexed sheet row
+          existingRow = i + 1;
           break;
         }
       }
 
       if (existingRow > -1) {
-        // Update existing
         await sheets.spreadsheets.values.update({
           spreadsheetId: SHEET_ID,
           range: "Planner State!C" + existingRow,
@@ -336,7 +333,6 @@ exports.setPlannerState = onRequest({ cors: true, region: "us-central1" }, (req,
           requestBody: { values: [[String(done)]] },
         });
       } else {
-        // Append new row
         await sheets.spreadsheets.values.append({
           spreadsheetId: SHEET_ID,
           range: "Planner State!A:C",
