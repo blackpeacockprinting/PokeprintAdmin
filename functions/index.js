@@ -13,20 +13,22 @@ async function getSheets() {
   return google.sheets({ version: "v4", auth: authClient });
 }
 
-// GET /getOrders - returns all orders, items and filament
+// GET /getOrders - returns all orders, items, filament and planner state
 exports.getOrders = onRequest({ cors: true, region: "us-central1" }, (req, res) => {
   cors(req, res, async () => {
     try {
       const sheets = await getSheets();
-      const [ordersRes, itemsRes, filamentRes] = await Promise.all([
+      const [ordersRes, itemsRes, filamentRes, plannerRes] = await Promise.all([
         sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Orders!A:K" }),
         sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Order Items!A:H" }),
         sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Filament Inventory!A:B" }),
+        sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Planner State!A:C" }).catch(() => ({ data: { values: [] } })),
       ]);
 
       const ordersRows = ordersRes.data.values || [];
       const itemsRows = itemsRes.data.values || [];
       const filamentRows = filamentRes.data.values || [];
+      const plannerRows = plannerRes.data.values || [];
 
       const orders = ordersRows.slice(1).map((r, i) => ({
         row: i + 2,
@@ -61,7 +63,15 @@ exports.getOrders = onRequest({ cors: true, region: "us-central1" }, (req, res) 
         grams: parseFloat(r[1]) || 0,
       })).filter(f => f.colorName);
 
-      res.status(200).json({ orders, items, filament });
+      // Build planner state object: { "designId_plateIndex": true/false }
+      const plannerState = {};
+      plannerRows.slice(1).forEach(r => {
+        if (r[0] && r[1] !== undefined) {
+          plannerState[r[0] + "_" + r[1]] = r[2] === "true";
+        }
+      });
+
+      res.status(200).json({ orders, items, filament, plannerState });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: err.message });
@@ -99,7 +109,6 @@ exports.deleteItem = onRequest({ cors: true, region: "us-central1" }, (req, res)
       const { row } = req.body;
       if (!row) return res.status(400).json({ error: "Missing row" });
       const sheets = await getSheets();
-      // Get sheet ID for Order Items tab
       const meta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
       const sheet = meta.data.sheets.find(s => s.properties.title === "Order Items");
       if (!sheet) return res.status(400).json({ error: "Sheet not found" });
@@ -159,7 +168,6 @@ exports.createOrder = onRequest({ cors: true, region: "us-central1" }, (req, res
       if (!id || !customer) return res.status(400).json({ error: "Missing fields" });
       const sheets = await getSheets();
       const date = new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
-      // Add to Orders tab
       await sheets.spreadsheets.values.append({
         spreadsheetId: SHEET_ID,
         range: "Orders!A:K",
@@ -167,7 +175,6 @@ exports.createOrder = onRequest({ cors: true, region: "us-central1" }, (req, res
         insertDataOption: "INSERT_ROWS",
         requestBody: { values: [[id, customer, "", "", "Pending", payment || "Cash", notes || "", source || "Manual", date, "false", "false"]] },
       });
-      // Add items to Order Items tab
       if (items && items.length) {
         const rows = items.map(it => {
           const cost = Math.round(it.price * COST_PER_GRAM * 100) / 100;
@@ -268,6 +275,113 @@ exports.deductFilament = onRequest({ cors: true, region: "us-central1" }, (req, 
         });
       }
       res.status(200).json({ success: true, updates });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+});
+
+// POST /setPlannerState - upsert a single plate's done state
+exports.setPlannerState = onRequest({ cors: true, region: "us-central1" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    try {
+      const { designId, plateIndex, done } = req.body;
+      if (designId === undefined || plateIndex === undefined) return res.status(400).json({ error: "Missing fields" });
+      const sheets = await getSheets();
+
+      // Ensure the Planner State sheet exists with a header
+      let sheetData;
+      try {
+        sheetData = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Planner State!A:C" });
+      } catch (e) {
+        // Sheet doesn't exist yet — create it
+        const meta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+        const exists = meta.data.sheets.find(s => s.properties.title === "Planner State");
+        if (!exists) {
+          await sheets.spreadsheets.batchUpdate({
+            spreadsheetId: SHEET_ID,
+            requestBody: { requests: [{ addSheet: { properties: { title: "Planner State" } } }] },
+          });
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: SHEET_ID,
+            range: "Planner State!A1:C1",
+            valueInputOption: "USER_ENTERED",
+            requestBody: { values: [["Design ID", "Plate Index", "Done"]] },
+          });
+        }
+        sheetData = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Planner State!A:C" });
+      }
+
+      const rows = sheetData.data.values || [];
+      const key = String(designId);
+      const pi = String(plateIndex);
+
+      // Find existing row
+      let existingRow = -1;
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][0]) === key && String(rows[i][1]) === pi) {
+          existingRow = i + 1; // 1-indexed sheet row
+          break;
+        }
+      }
+
+      if (existingRow > -1) {
+        // Update existing
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: SHEET_ID,
+          range: "Planner State!C" + existingRow,
+          valueInputOption: "USER_ENTERED",
+          requestBody: { values: [[String(done)]] },
+        });
+      } else {
+        // Append new row
+        await sheets.spreadsheets.values.append({
+          spreadsheetId: SHEET_ID,
+          range: "Planner State!A:C",
+          valueInputOption: "USER_ENTERED",
+          insertDataOption: "INSERT_ROWS",
+          requestBody: { values: [[key, pi, String(done)]] },
+        });
+      }
+
+      res.status(200).json({ success: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+});
+
+// POST /deleteOrder - delete entire order + all its items
+exports.deleteOrder = onRequest({ cors: true, region: "us-central1" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    try {
+      const { orderId } = req.body;
+      if (!orderId) return res.status(400).json({ error: "Missing orderId" });
+      const sheets = await getSheets();
+      const meta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+      const ordersSheet = meta.data.sheets.find(s => s.properties.title === "Orders");
+      const itemsSheet = meta.data.sheets.find(s => s.properties.title === "Order Items");
+      const [ordersRes, itemsRes] = await Promise.all([
+        sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Orders!A:A" }),
+        sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Order Items!A:A" }),
+      ]);
+      const orderRows = (ordersRes.data.values || []).map((r, i) => ({ val: r[0], idx: i })).filter(r => r.val === orderId).map(r => r.idx);
+      const itemRows = (itemsRes.data.values || []).map((r, i) => ({ val: r[0], idx: i })).filter(r => r.val === orderId).map(r => r.idx);
+      const requests = [];
+      [...orderRows].sort((a, b) => b - a).forEach(idx => {
+        requests.push({ deleteDimension: { range: { sheetId: ordersSheet.properties.sheetId, dimension: "ROWS", startIndex: idx, endIndex: idx + 1 } } });
+      });
+      [...itemRows].sort((a, b) => b - a).forEach(idx => {
+        requests.push({ deleteDimension: { range: { sheetId: itemsSheet.properties.sheetId, dimension: "ROWS", startIndex: idx, endIndex: idx + 1 } } });
+      });
+      if (requests.length) {
+        await sheets.spreadsheets.batchUpdate({ spreadsheetId: SHEET_ID, requestBody: { requests } });
+      }
+      res.status(200).json({ success: true });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: err.message });

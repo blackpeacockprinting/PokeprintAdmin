@@ -246,15 +246,25 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 </div>
 <script>
 var PIN='9559';
-var URLS={getOrders:'https://getorders-610025346733.us-central1.run.app',updateItem:'https://updateitem-610025346733.us-central1.run.app',deleteItem:'https://deleteitem-610025346733.us-central1.run.app',addItem:'https://additem-610025346733.us-central1.run.app',createOrder:'https://createorder-610025346733.us-central1.run.app',updateFilament:'https://updatefilament-610025346733.us-central1.run.app',addFilament:'https://addfilament-610025346733.us-central1.run.app',deductFilament:'https://deductfilament-610025346733.us-central1.run.app',deleteOrder:'https://deleteorder-610025346733.us-central1.run.app'};
+var URLS={
+  getOrders:'https://getorders-610025346733.us-central1.run.app',
+  updateItem:'https://updateitem-610025346733.us-central1.run.app',
+  deleteItem:'https://deleteitem-610025346733.us-central1.run.app',
+  addItem:'https://additem-610025346733.us-central1.run.app',
+  createOrder:'https://createorder-610025346733.us-central1.run.app',
+  updateFilament:'https://updatefilament-610025346733.us-central1.run.app',
+  addFilament:'https://addfilament-610025346733.us-central1.run.app',
+  deductFilament:'https://deductfilament-610025346733.us-central1.run.app',
+  deleteOrder:'https://deleteorder-610025346733.us-central1.run.app',
+  setPlannerState:'https://setplannerstate-610025346733.us-central1.run.app'
+};
 var DESIGNS_URL='https://blackpeacockprinting.github.io/Pokeshop/designs.json';
 var PLANNER_URL='https://raw.githubusercontent.com/blackpeacockprinting/PokeprintAdmin/main/print-planner.json';
-var COST_PER_GRAM=0.013,LOW_THRESHOLD=200,PLANNER_KEY='bpp_planner_v2';
+var COST_PER_GRAM=0.013,LOW_THRESHOLD=200;
 var orders=[],items=[],filament=[],designs=[],plannerDesigns=[];
 var currentPage='orders',orderFilter='all',selectedItem=null,pinEntry='',newOrderDesigns=[];
-var plannerState=loadPlannerState(),plannerFilter='all',plannerSubTab='today';
-function loadPlannerState(){try{return JSON.parse(localStorage.getItem(PLANNER_KEY)||'{}')}catch(e){return{}}}
-function savePlannerState(){try{localStorage.setItem(PLANNER_KEY,JSON.stringify(plannerState))}catch(e){}}
+var plannerState={},plannerFilter='all',plannerSubTab='today';
+
 function pinTap(n){
   if(pinEntry.length>=4)return;pinEntry+=n;updatePinDots();
   if(pinEntry.length===4){
@@ -266,9 +276,32 @@ function pinDel(){pinEntry=pinEntry.slice(0,-1);updatePinDots();}
 function updatePinDots(){for(var i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinEntry.length);}
 function api(key,method,body){var opts={method:method||'GET',headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);return fetch(URLS[key],opts).then(function(r){return r.json();});}
 function loadData(){
-  api('getOrders').then(function(data){orders=data.orders||[];items=data.items||[];filament=data.filament||[];renderOrders();renderFilament();renderRestock();if(currentPage==='planner')renderPlanner();}).catch(function(e){document.getElementById('page-orders').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load</div><div class="empty-sub">'+e.message+'</div></div>';});
+  api('getOrders').then(function(data){
+    orders=data.orders||[];items=data.items||[];filament=data.filament||[];
+    // Load planner state from server, fall back to empty
+    plannerState=data.plannerState||{};
+    // Pre-mark preprinted designs as done if not yet in state
+    plannerDesigns.forEach(function(des){
+      if(des.preprinted){des.plates.forEach(function(_,pi){
+        var k=des.id+'_'+pi;
+        if(plannerState[k]===undefined)plannerState[k]=true;
+      });}
+    });
+    renderOrders();renderFilament();renderRestock();
+    if(currentPage==='planner')renderPlanner();
+  }).catch(function(e){document.getElementById('page-orders').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load</div><div class="empty-sub">'+e.message+'</div></div>';});
   fetch(DESIGNS_URL).then(function(r){return r.json();}).then(function(d){designs=d.data||[];}).catch(function(){});
-  fetch(PLANNER_URL).then(function(r){return r.json();}).then(function(d){plannerDesigns=d.designs||[];plannerDesigns.forEach(function(des){if(des.preprinted){des.plates.forEach(function(_,pi){var k=des.id+'_'+pi;if(plannerState[k]===undefined)plannerState[k]=true;});}});savePlannerState();if(currentPage==='planner')renderPlanner();}).catch(function(){});
+  fetch(PLANNER_URL).then(function(r){return r.json();}).then(function(d){
+    plannerDesigns=d.designs||[];
+    // Apply preprinted defaults for any not yet saved
+    plannerDesigns.forEach(function(des){
+      if(des.preprinted){des.plates.forEach(function(_,pi){
+        var k=des.id+'_'+pi;
+        if(plannerState[k]===undefined)plannerState[k]=true;
+      });}
+    });
+    if(currentPage==='planner')renderPlanner();
+  }).catch(function(){});
 }
 function getOrderStatus(id){var oi=items.filter(function(it){return it.orderRef===id;});if(!oi.length)return'pending';var s=oi.map(function(it){return(it.status||'pending').toLowerCase();});if(s.some(function(x){return x==='printing';}))return'printing';if(s.every(function(x){return x==='completed';}))return'completed';return'pending';}
 function getOrderTotal(id){return items.filter(function(it){return it.orderRef===id;}).reduce(function(s,it){return s+(it.price||0);},0);}
@@ -346,18 +379,30 @@ function windowCap(w){return w==='sleep'?6:8}
 function windowLabel(w){if(w==='work')return{icon:'💼',title:'Work',time:'7am–3pm',sub:'Load longest plates before you leave'};if(w==='afternoon')return{icon:'🌅',title:'Afternoon',time:'3pm–11pm',sub:'Short plates — swap as you go'};return{icon:'🌙',title:'Sleep',time:'11pm–5am',sub:'Load plates that finish by 5am'};}
 function assignWindow(t){if(t<3)return'afternoon';if(t<=6)return'sleep';return'work';}
 function fmtH(h){var hr=Math.floor(h),mn=Math.round((h-hr)*60);if(mn===0)return hr+'h';if(hr===0)return mn+'m';return hr+'h '+mn+'m';}
-function isPChecked(id,pi){return!!plannerState[id+'_'+pi]}
+function isPChecked(id,pi){return!!plannerState[id+'_'+pi];}
 function togglePlate(id,pi){
-  plannerState[id+'_'+pi]=!plannerState[id+'_'+pi];savePlannerState();
+  var newVal=!plannerState[id+'_'+pi];
+  plannerState[id+'_'+pi]=newVal;
+  // Fire-and-forget save to sheet
+  fetch(URLS.setPlannerState,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({designId:id,plateIndex:pi,done:newVal})}).catch(function(){});
   var des=plannerDesigns.find(function(x){return x.id===id;});
-  if(des&&plannerState[id+'_'+pi]){var allDone=des.plates.every(function(_,i){return isPChecked(id,i);});if(allDone)deductFilamentForPlannerDesign(des.name);}
+  if(des&&newVal){var allDone=des.plates.every(function(_,i){return isPChecked(id,i);});if(allDone)deductFilamentForPlannerDesign(des.name);}
   renderPlanner();
 }
-function togglePlannerDesign(id){var des=plannerDesigns.find(function(x){return x.id===id;});if(!des)return;var allDone=des.plates.every(function(_,pi){return isPChecked(id,pi);});des.plates.forEach(function(_,pi){plannerState[id+'_'+pi]=!allDone;});if(!allDone)deductFilamentForPlannerDesign(des.name);savePlannerState();renderPlanner();}
-function isPlannerDone(d){return d.plates.every(function(_,pi){return isPChecked(d.id,pi);})}
+function togglePlannerDesign(id){
+  var des=plannerDesigns.find(function(x){return x.id===id;});if(!des)return;
+  var allDone=des.plates.every(function(_,pi){return isPChecked(id,pi);});
+  des.plates.forEach(function(_,pi){
+    plannerState[id+'_'+pi]=!allDone;
+    fetch(URLS.setPlannerState,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({designId:id,plateIndex:pi,done:!allDone})}).catch(function(){});
+  });
+  if(!allDone)deductFilamentForPlannerDesign(des.name);
+  renderPlanner();
+}
+function isPlannerDone(d){return d.plates.every(function(_,pi){return isPChecked(d.id,pi);});}
 function buildPJobs(){var jobs=[];var chars=plannerDesigns.filter(function(d){return d.type==='character';});var slabs=plannerDesigns.filter(function(d){return d.type==='slab';});[...chars,...slabs].forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({des:d,pi:pi,time:t,win:d.type==='slab'?'slab':assignWindow(t),done:isPChecked(d.id,pi)});});});return jobs;}
 function schedWin(win,cap){var jobs=buildPJobs().filter(function(j){return!j.done&&j.win===win;});jobs.sort(function(a,b){return b.time-a.time;});var p1=[],p2=[],h1=0,h2=0;jobs.forEach(function(j){if(h1<=h2&&h1+j.time<=cap){p1.push(j);h1+=j.time;}else if(h2+j.time<=cap){p2.push(j);h2+=j.time;}else if(h1<=h2){p1.push(j);h1+=j.time;}else{p2.push(j);h2+=j.time;}});return{p1,p2,h1,h2};}
-function deductFilamentForPlannerDesign(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.filaments||!d.filaments.length)return;var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});api('deductFilament','POST',{filaments:fil}).then(function(){api('getOrders').then(function(data){filament=data.filament||[];renderFilament();renderRestock();});});}
+function deductFilamentForPlannerDesign(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.filaments||!d.filaments.length)return;var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});api('deductFilament','POST',{filaments:fil}).then(function(){api('getOrders').then(function(data){filament=data.filament||[];plannerState=data.plannerState||{};renderFilament();renderRestock();});});}
 function renderPlanner(){
   if(!plannerDesigns.length){document.getElementById('page-planner').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading planner data...</p></div>';return;}
   var jobs=buildPJobs(),total=jobs.length,done=jobs.filter(function(j){return j.done;}).length,pct=total>0?Math.round(done/total*100):0;
@@ -394,7 +439,7 @@ function renderPlannerQueue(){
 function renderPlannerEvent(){
   var chars=plannerDesigns.filter(function(d){return d.type==='character';});var slabs=plannerDesigns.filter(function(d){return d.type==='slab';});
   var cdone=chars.filter(isPlannerDone).length,sdone=slabs.filter(isPlannerDone).length;
-  var cpct=Math.round(cdone/chars.length*100),spct=slabs.length?Math.round(sdone/slabs.length*100):0;
+  var cpct=chars.length?Math.round(cdone/chars.length*100):0,spct=slabs.length?Math.round(sdone/slabs.length*100):0;
   var html='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Characters '+cdone+'/'+chars.length+'</span><span class="pp-pct">'+cpct+'%</span></div><div class="pp-bar"><div class="pp-fill" style="width:'+cpct+'%"></div></div></div>';
   html+='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Slabs '+sdone+'/'+slabs.length+'</span><span class="pp-pct" style="color:var(--blue)">'+spct+'%</span></div><div class="pp-bar"><div class="pp-fill" style="width:'+spct+'%;background:var(--blue)"></div></div></div>';
   html+='<div class="planner-sh"><div class="planner-sh-label">Characters</div><div class="planner-sh-count">'+cdone+'/'+chars.length+' done</div></div>';
