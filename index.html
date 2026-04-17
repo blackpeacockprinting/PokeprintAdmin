@@ -188,6 +188,7 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 .planner-subtab{display:flex;gap:6px;margin-bottom:12px}
 .pst{flex:1;padding:8px 4px;text-align:center;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;border-radius:6px;border:0.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer}
 .pst.active{background:rgba(201,168,76,0.12);color:var(--gold);border-color:var(--gold-dim)}
+.refresh-btn{width:100%;background:rgba(155,111,212,0.1);color:var(--purple);border:0.5px solid rgba(155,111,212,0.3);border-radius:4px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:10px;text-align:center}
 .empty{text-align:center;padding:4rem 2rem;color:var(--muted)}
 .empty-icon{font-size:40px;margin-bottom:1rem;opacity:0.4}
 .empty-title{font-size:15px;font-weight:500;color:#fff;margin-bottom:6px}
@@ -278,9 +279,7 @@ function api(key,method,body){var opts={method:method||'GET',headers:{'Content-T
 function loadData(){
   api('getOrders').then(function(data){
     orders=data.orders||[];items=data.items||[];filament=data.filament||[];
-    // Load planner state from server, fall back to empty
     plannerState=data.plannerState||{};
-    // Pre-mark preprinted designs as done if not yet in state
     plannerDesigns.forEach(function(des){
       if(des.preprinted){des.plates.forEach(function(_,pi){
         var k=des.id+'_'+pi;
@@ -293,7 +292,6 @@ function loadData(){
   fetch(DESIGNS_URL).then(function(r){return r.json();}).then(function(d){designs=d.data||[];}).catch(function(){});
   fetch(PLANNER_URL).then(function(r){return r.json();}).then(function(d){
     plannerDesigns=d.designs||[];
-    // Apply preprinted defaults for any not yet saved
     plannerDesigns.forEach(function(des){
       if(des.preprinted){des.plates.forEach(function(_,pi){
         var k=des.id+'_'+pi;
@@ -301,6 +299,13 @@ function loadData(){
       });}
     });
     if(currentPage==='planner')renderPlanner();
+  }).catch(function(){});
+}
+function refreshPlannerState(){
+  api('getOrders').then(function(data){
+    plannerState=data.plannerState||{};
+    filament=data.filament||[];
+    renderPlanner();renderFilament();renderRestock();
   }).catch(function(){});
 }
 function getOrderStatus(id){var oi=items.filter(function(it){return it.orderRef===id;});if(!oi.length)return'pending';var s=oi.map(function(it){return(it.status||'pending').toLowerCase();});if(s.some(function(x){return x==='printing';}))return'printing';if(s.every(function(x){return x==='completed';}))return'completed';return'pending';}
@@ -380,15 +385,34 @@ function windowLabel(w){if(w==='work')return{icon:'💼',title:'Work',time:'7am�
 function assignWindow(t){if(t<3)return'afternoon';if(t<=6)return'sleep';return'work';}
 function fmtH(h){var hr=Math.floor(h),mn=Math.round((h-hr)*60);if(mn===0)return hr+'h';if(hr===0)return mn+'m';return hr+'h '+mn+'m';}
 function isPChecked(id,pi){return!!plannerState[id+'_'+pi];}
+
+// Toggle a plate: update state + DOM in-place, no full re-render
 function togglePlate(id,pi){
   var newVal=!plannerState[id+'_'+pi];
   plannerState[id+'_'+pi]=newVal;
-  // Fire-and-forget save to sheet
+  // Update DOM in-place
+  var el=document.getElementById('pi-'+id+'-'+pi);
+  if(el){
+    var chk=el.querySelector('.pi-check');
+    var tag=el.querySelector('.pi-tag');
+    var des=plannerDesigns.find(function(x){return x.id===id;});
+    var win=des?(des.type==='slab'?'slab':assignWindow(des.plates[pi])):'work';
+    var tc=win==='slab'?'tag-slab':'tag-'+win;
+    var tl=win==='slab'?'SLAB':win.toUpperCase();
+    if(chk){chk.className='pi-check'+(newVal?' on':'');}
+    if(tag){tag.className='pi-tag '+(newVal?'tag-done':tc);tag.textContent=newVal?'DONE':tl;}
+    el.classList.toggle('done',newVal);
+  }
+  // Save to sheet
   fetch(URLS.setPlannerState,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({designId:id,plateIndex:pi,done:newVal})}).catch(function(){});
+  // Deduct filament if all plates now done
   var des=plannerDesigns.find(function(x){return x.id===id;});
   if(des&&newVal){var allDone=des.plates.every(function(_,i){return isPChecked(id,i);});if(allDone)deductFilamentForPlannerDesign(des.name);}
-  renderPlanner();
+  // Update summary counters only
+  updatePlannerSummary();
 }
+
+// Toggle entire design in event tab: update state + re-render just that item
 function togglePlannerDesign(id){
   var des=plannerDesigns.find(function(x){return x.id===id;});if(!des)return;
   var allDone=des.plates.every(function(_,pi){return isPChecked(id,pi);});
@@ -397,8 +421,32 @@ function togglePlannerDesign(id){
     fetch(URLS.setPlannerState,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({designId:id,plateIndex:pi,done:!allDone})}).catch(function(){});
   });
   if(!allDone)deductFilamentForPlannerDesign(des.name);
-  renderPlanner();
+  // Update just this item's DOM
+  var el=document.getElementById('pev-'+id);
+  if(el){
+    var done=!allDone;
+    var chk=el.querySelector('.pi-check');
+    var tag=el.querySelector('.pi-tag');
+    if(chk){chk.className='pi-check'+(done?' on':'');}
+    if(tag){tag.className='pi-tag '+(done?'tag-done':(des.type==='slab'?'tag-slab':'tag-afternoon'));tag.textContent=done?'DONE':(des.type==='slab'?'SLAB':'EVENT');}
+    el.classList.toggle('done',done);
+  }
+  updatePlannerSummary();
 }
+
+// Update just the summary numbers without rebuilding the list
+function updatePlannerSummary(){
+  var jobs=buildPJobs(),total=jobs.length,done=jobs.filter(function(j){return j.done;}).length,pct=total>0?Math.round(done/total*100):0;
+  var hoursLeft=jobs.filter(function(j){return!j.done;}).reduce(function(s,j){return s+j.time;},0);
+  var elLeft=document.getElementById('ps-left');var elDone=document.getElementById('ps-done');var elHrs=document.getElementById('ps-hrs');
+  var elPct=document.getElementById('ps-pct');var elFill=document.getElementById('ps-fill');
+  if(elLeft)elLeft.textContent=total-done;
+  if(elDone)elDone.textContent=done;
+  if(elHrs)elHrs.textContent=fmtH(hoursLeft);
+  if(elPct)elPct.textContent=pct+'%';
+  if(elFill)elFill.style.width=pct+'%';
+}
+
 function isPlannerDone(d){return d.plates.every(function(_,pi){return isPChecked(d.id,pi);});}
 function buildPJobs(){var jobs=[];var chars=plannerDesigns.filter(function(d){return d.type==='character';});var slabs=plannerDesigns.filter(function(d){return d.type==='slab';});[...chars,...slabs].forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({des:d,pi:pi,time:t,win:d.type==='slab'?'slab':assignWindow(t),done:isPChecked(d.id,pi)});});});return jobs;}
 function schedWin(win,cap){var jobs=buildPJobs().filter(function(j){return!j.done&&j.win===win;});jobs.sort(function(a,b){return b.time-a.time;});var p1=[],p2=[],h1=0,h2=0;jobs.forEach(function(j){if(h1<=h2&&h1+j.time<=cap){p1.push(j);h1+=j.time;}else if(h2+j.time<=cap){p2.push(j);h2+=j.time;}else if(h1<=h2){p1.push(j);h1+=j.time;}else{p2.push(j);h2+=j.time;}});return{p1,p2,h1,h2};}
@@ -407,9 +455,10 @@ function renderPlanner(){
   if(!plannerDesigns.length){document.getElementById('page-planner').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading planner data...</p></div>';return;}
   var jobs=buildPJobs(),total=jobs.length,done=jobs.filter(function(j){return j.done;}).length,pct=total>0?Math.round(done/total*100):0;
   var hoursLeft=jobs.filter(function(j){return!j.done;}).reduce(function(s,j){return s+j.time;},0);
-  var html='<div class="planner-subtab"><div class="pst '+(plannerSubTab==='today'?'active':'')+'" onclick="setPlannerSubTab(\'today\')">Today</div><div class="pst '+(plannerSubTab==='queue'?'active':'')+'" onclick="setPlannerSubTab(\'queue\')">Queue</div><div class="pst '+(plannerSubTab==='event'?'active':'')+'" onclick="setPlannerSubTab(\'event\')">Event</div></div>';
-  html+='<div class="planner-sumrow"><div class="psc"><div class="psc-label">Left</div><div class="psc-val gold">'+(total-done)+'</div><div class="psc-sub">plates</div></div><div class="psc"><div class="psc-label">Done</div><div class="psc-val green">'+done+'</div><div class="psc-sub">complete</div></div><div class="psc"><div class="psc-label">Hours</div><div class="psc-val blue">'+fmtH(hoursLeft)+'</div><div class="psc-sub">remaining</div></div></div>';
-  html+='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Overall Progress</span><span class="pp-pct">'+pct+'%</span></div><div class="pp-bar"><div class="pp-fill" style="width:'+pct+'%"></div></div></div>';
+  var html='<button class="refresh-btn" onclick="refreshPlannerState()">↻ Sync from server</button>';
+  html+='<div class="planner-subtab"><div class="pst '+(plannerSubTab==='today'?'active':'')+'" onclick="setPlannerSubTab(\'today\')">Today</div><div class="pst '+(plannerSubTab==='queue'?'active':'')+'" onclick="setPlannerSubTab(\'queue\')">Queue</div><div class="pst '+(plannerSubTab==='event'?'active':'')+'" onclick="setPlannerSubTab(\'event\')">Event</div></div>';
+  html+='<div class="planner-sumrow"><div class="psc"><div class="psc-label">Left</div><div class="psc-val gold" id="ps-left">'+(total-done)+'</div><div class="psc-sub">plates</div></div><div class="psc"><div class="psc-label">Done</div><div class="psc-val green" id="ps-done">'+done+'</div><div class="psc-sub">complete</div></div><div class="psc"><div class="psc-label">Hours</div><div class="psc-val blue" id="ps-hrs">'+fmtH(hoursLeft)+'</div><div class="psc-sub">remaining</div></div></div>';
+  html+='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Overall Progress</span><span class="pp-pct" id="ps-pct">'+pct+'%</span></div><div class="pp-bar"><div class="pp-fill" id="ps-fill" style="width:'+pct+'%"></div></div></div>';
   if(plannerSubTab==='today')html+=renderPlannerToday();
   else if(plannerSubTab==='queue')html+=renderPlannerQueue();
   else html+=renderPlannerEvent();
@@ -433,7 +482,10 @@ function renderPlannerQueue(){
   var jobs=buildPJobs();var filtered=jobs.filter(function(j){if(plannerFilter==='todo')return!j.done;if(plannerFilter==='work')return j.win==='work';if(plannerFilter==='afternoon')return j.win==='afternoon';if(plannerFilter==='sleep')return j.win==='sleep';if(plannerFilter==='slab')return j.win==='slab';return true;});
   var html='<div class="planner-frow">'+['all','todo','work','afternoon','sleep','slab'].map(function(f){return'<div class="planner-fbtn '+(plannerFilter===f?'active':'')+'" onclick="setPlannerFilter(\''+f+'\')">'+f.charAt(0).toUpperCase()+f.slice(1)+'</div>';}).join('')+'</div>';
   if(!filtered.length){html+='<div class="empty"><div class="empty-title">Nothing here ✓</div></div>';return html;}
-  filtered.forEach(function(j){var checked=isPChecked(j.des.id,j.pi),multi=j.des.plates.length>1,wc=j.win==='slab'?'slab-j':j.win+'-j',tc=j.win==='slab'?'tag-slab':'tag-'+j.win,tl=j.win==='slab'?'SLAB':j.win.toUpperCase();html+='<div class="planner-item '+wc+' '+(checked?'done':'')+'" onclick="togglePlate('+j.des.id+','+j.pi+')"><div class="pi-check '+(checked?'on':'')+'"></div><div class="pi-body"><div class="pi-name">'+j.des.name+(multi?'<span class="plate-badge">P'+(j.pi+1)+'/'+j.des.plates.length+'</span>':'')+'</div><div class="pi-meta">'+j.des.type+' · '+fmtH(j.time)+'</div></div><div class="pi-right"><div class="pi-time">'+fmtH(j.time)+'</div><div class="pi-tag '+(checked?'tag-done':tc)+'">'+(checked?'DONE':tl)+'</div></div></div>';});
+  filtered.forEach(function(j){
+    var checked=isPChecked(j.des.id,j.pi),multi=j.des.plates.length>1,wc=j.win==='slab'?'slab-j':j.win+'-j',tc=j.win==='slab'?'tag-slab':'tag-'+j.win,tl=j.win==='slab'?'SLAB':j.win.toUpperCase();
+    html+='<div class="planner-item '+wc+' '+(checked?'done':'')+'" id="pi-'+j.des.id+'-'+j.pi+'" onclick="togglePlate('+j.des.id+','+j.pi+')"><div class="pi-check '+(checked?'on':'')+'"></div><div class="pi-body"><div class="pi-name">'+j.des.name+(multi?'<span class="plate-badge">P'+(j.pi+1)+'/'+j.des.plates.length+'</span>':'')+'</div><div class="pi-meta">'+j.des.type+' · '+fmtH(j.time)+'</div></div><div class="pi-right"><div class="pi-time">'+fmtH(j.time)+'</div><div class="pi-tag '+(checked?'tag-done':tc)+'">'+(checked?'DONE':tl)+'</div></div></div>';
+  });
   return html;
 }
 function renderPlannerEvent(){
@@ -443,7 +495,7 @@ function renderPlannerEvent(){
   var html='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Characters '+cdone+'/'+chars.length+'</span><span class="pp-pct">'+cpct+'%</span></div><div class="pp-bar"><div class="pp-fill" style="width:'+cpct+'%"></div></div></div>';
   html+='<div class="planner-prog"><div class="pp-row"><span class="pp-name">Slabs '+sdone+'/'+slabs.length+'</span><span class="pp-pct" style="color:var(--blue)">'+spct+'%</span></div><div class="pp-bar"><div class="pp-fill" style="width:'+spct+'%;background:var(--blue)"></div></div></div>';
   html+='<div class="planner-sh"><div class="planner-sh-label">Characters</div><div class="planner-sh-count">'+cdone+'/'+chars.length+' done</div></div>';
-  function listItems(arr){var s='';arr.forEach(function(d){var done=isPlannerDone(d),t=d.plates.reduce(function(x,h){return x+h;},0);s+='<div class="planner-item '+(d.type==='slab'?'slab-j':'afternoon-j')+' '+(done?'done':'')+'" onclick="togglePlannerDesign('+d.id+')"><div class="pi-check '+(done?'on':'')+'"></div><div class="pi-body"><div class="pi-name">'+d.name+'</div><div class="pi-meta">'+d.plates.length+' plate'+(d.plates.length>1?'s':'')+' · '+fmtH(t)+'</div></div><div class="pi-right"><div class="pi-time">'+fmtH(t)+'</div><div class="pi-tag '+(done?'tag-done':(d.type==='slab'?'tag-slab':'tag-afternoon'))+'">'+(done?'DONE':(d.type==='slab'?'SLAB':'EVENT'))+'</div></div></div>';});return s;}
+  function listItems(arr){var s='';arr.forEach(function(d){var done=isPlannerDone(d),t=d.plates.reduce(function(x,h){return x+h;},0);s+='<div class="planner-item '+(d.type==='slab'?'slab-j':'afternoon-j')+' '+(done?'done':'')+'" id="pev-'+d.id+'" onclick="togglePlannerDesign('+d.id+')"><div class="pi-check '+(done?'on':'')+'"></div><div class="pi-body"><div class="pi-name">'+d.name+'</div><div class="pi-meta">'+d.plates.length+' plate'+(d.plates.length>1?'s':'')+' · '+fmtH(t)+'</div></div><div class="pi-right"><div class="pi-time">'+fmtH(t)+'</div><div class="pi-tag '+(done?'tag-done':(d.type==='slab'?'tag-slab':'tag-afternoon'))+'">'+(done?'DONE':(d.type==='slab'?'SLAB':'EVENT'))+'</div></div></div>';});return s;}
   html+=listItems(chars);html+='<div class="planner-sh"><div class="planner-sh-label" style="color:var(--muted)">Slabs — Last</div><div class="planner-sh-count">charcoal heavy</div></div>';html+=listItems(slabs);
   return html;
 }
