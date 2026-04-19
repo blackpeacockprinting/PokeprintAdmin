@@ -276,28 +276,26 @@ function pinTap(n){
 function pinDel(){pinEntry=pinEntry.slice(0,-1);updatePinDots();}
 function updatePinDots(){for(var i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinEntry.length);}
 function api(key,method,body){var opts={method:method||'GET',headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);return fetch(URLS[key],opts).then(function(r){return r.json();});}
+function applyPreprintedDefaults(){
+  plannerDesigns.forEach(function(des){
+    if(des.preprinted){des.plates.forEach(function(_,pi){
+      var k=des.id+'_'+pi;
+      if(plannerState[k]===undefined)plannerState[k]=true;
+    });}
+  });
+}
 function loadData(){
   api('getOrders').then(function(data){
     orders=data.orders||[];items=data.items||[];filament=data.filament||[];
     plannerState=data.plannerState||{};
-    plannerDesigns.forEach(function(des){
-      if(des.preprinted){des.plates.forEach(function(_,pi){
-        var k=des.id+'_'+pi;
-        if(plannerState[k]===undefined)plannerState[k]=true;
-      });}
-    });
+    applyPreprintedDefaults();
     renderOrders();renderFilament();renderRestock();
     if(currentPage==='planner')renderPlanner();
   }).catch(function(e){document.getElementById('page-orders').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load</div><div class="empty-sub">'+e.message+'</div></div>';});
   fetch(DESIGNS_URL).then(function(r){return r.json();}).then(function(d){designs=d.data||[];}).catch(function(){});
   fetch(PLANNER_URL).then(function(r){return r.json();}).then(function(d){
     plannerDesigns=d.designs||[];
-    plannerDesigns.forEach(function(des){
-      if(des.preprinted){des.plates.forEach(function(_,pi){
-        var k=des.id+'_'+pi;
-        if(plannerState[k]===undefined)plannerState[k]=true;
-      });}
-    });
+    applyPreprintedDefaults();
     if(currentPage==='planner')renderPlanner();
   }).catch(function(){});
 }
@@ -305,6 +303,7 @@ function refreshPlannerState(){
   api('getOrders').then(function(data){
     plannerState=data.plannerState||{};
     filament=data.filament||[];
+    applyPreprintedDefaults();
     renderPlanner();renderFilament();renderRestock();
   }).catch(function(){});
 }
@@ -330,7 +329,7 @@ function renderOrders(){
   });
   document.getElementById('page-orders').innerHTML=html;
 }
-function filterBtns(){return['all','printing','pending','completed'].map(function(f){return'<div class="fbtn '+f+' '+(orderFilter===f?'active':'')+'" onclick="setOrderFilter(\''+f+'\')">'+( f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1))+'</div>';}).join('');}
+function filterBtns(){return['all','printing','pending','completed'].map(function(f){return'<div class="fbtn '+f+' '+(orderFilter===f?'active':'')+'" onclick="setOrderFilter(\''+f+'\')">'+(f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1))+'</div>';}).join('');}
 function setOrderFilter(f){orderFilter=f;renderOrders();}
 function searchOrders(q){
   var lq=q.toLowerCase();var filtered=orders.filter(function(o){return!lq||(o.customer||'').toLowerCase().indexOf(lq)>=0||(o.id||'').toLowerCase().indexOf(lq)>=0;});
@@ -450,7 +449,7 @@ function updatePlannerSummary(){
 function isPlannerDone(d){return d.plates.every(function(_,pi){return isPChecked(d.id,pi);});}
 function buildPJobs(){var jobs=[];var chars=plannerDesigns.filter(function(d){return d.type==='character';});var slabs=plannerDesigns.filter(function(d){return d.type==='slab';});[...chars,...slabs].forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({des:d,pi:pi,time:t,win:d.type==='slab'?'slab':assignWindow(t),done:isPChecked(d.id,pi)});});});return jobs;}
 function schedWin(win,cap){var jobs=buildPJobs().filter(function(j){return!j.done&&j.win===win;});jobs.sort(function(a,b){return b.time-a.time;});var p1=[],p2=[],h1=0,h2=0;jobs.forEach(function(j){if(h1<=h2&&h1+j.time<=cap){p1.push(j);h1+=j.time;}else if(h2+j.time<=cap){p2.push(j);h2+=j.time;}else if(h1<=h2){p1.push(j);h1+=j.time;}else{p2.push(j);h2+=j.time;}});return{p1,p2,h1,h2};}
-function deductFilamentForPlannerDesign(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.filaments||!d.filaments.length)return;var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});api('deductFilament','POST',{filaments:fil}).then(function(){api('getOrders').then(function(data){filament=data.filament||[];plannerState=data.plannerState||{};renderFilament();renderRestock();});});}
+function deductFilamentForPlannerDesign(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.filaments||!d.filaments.length)return;var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});api('deductFilament','POST',{filaments:fil}).then(function(){api('getOrders').then(function(data){filament=data.filament||[];plannerState=data.plannerState||{};applyPreprintedDefaults();renderFilament();renderRestock();});});}
 function renderPlanner(){
   if(!plannerDesigns.length){document.getElementById('page-planner').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading planner data...</p></div>';return;}
   var jobs=buildPJobs(),total=jobs.length,done=jobs.filter(function(j){return j.done;}).length,pct=total>0?Math.round(done/total*100):0;
