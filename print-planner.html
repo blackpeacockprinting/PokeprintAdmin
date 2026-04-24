@@ -128,17 +128,25 @@ main{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:14px 14px
 </main>
 <script>
 var DATA_URL='https://raw.githubusercontent.com/blackpeacockprinting/PokeprintAdmin/main/print-planner.json';
-var STATE_KEY='bpp_planner_v2';
-var designs=[];var state=loadState();var currentFilter='all';
-function loadState(){try{return JSON.parse(localStorage.getItem(STATE_KEY)||'{}')}catch(e){return{}}}
-function saveState(){try{localStorage.setItem(STATE_KEY,JSON.stringify(state))}catch(e){}}
-fetch(DATA_URL).then(function(r){return r.json();}).then(function(d){
-  designs=d.designs||[];
-  designs.forEach(function(des){
-    if(des.preprinted){des.plates.forEach(function(_,pi){var k=des.id+'_'+pi;if(state[k]===undefined)state[k]=true;});}
-  });
-  saveState();render();
-}).catch(function(){document.getElementById('today-schedule').innerHTML='<div class="empty"><p>Could not load planner data</p></div>';});
+var GET_ORDERS_URL='https://getorders-610025346733.us-central1.run.app';
+var SET_PLANNER_URL='https://setplannerstate-610025346733.us-central1.run.app';
+var designs=[];var state={};var currentFilter='all';
+
+function saveState(designId,plateIndex,done){
+  fetch(SET_PLANNER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({designId:designId,plateIndex:plateIndex,done:done})}).catch(function(e){console.error('Save failed',e);});
+}
+
+fetch(GET_ORDERS_URL).then(function(r){return r.json();}).then(function(d){
+  state=d.plannerState||{};
+  fetch(DATA_URL).then(function(r){return r.json();}).then(function(dd){
+    designs=dd.designs||[];render();
+  }).catch(function(){document.getElementById('today-schedule').innerHTML='<div class="empty"><p>Could not load planner data</p></div>';});
+}).catch(function(){
+  fetch(DATA_URL).then(function(r){return r.json();}).then(function(dd){
+    designs=dd.designs||[];render();
+  }).catch(function(){document.getElementById('today-schedule').innerHTML='<div class="empty"><p>Could not load planner data</p></div>';});
+});
+
 function nowHour(){return new Date().getHours()+new Date().getMinutes()/60}
 function currentWindow(){var h=nowHour();if(h>=7&&h<15)return'work';if(h>=15&&h<23)return'afternoon';return'sleep';}
 function windowCap(w){return w==='sleep'?6:8}
@@ -150,11 +158,11 @@ function windowLabel(w){
 function assignWindow(t){if(t<3)return'afternoon';if(t<=6)return'sleep';return'work';}
 function fmt(h){var hr=Math.floor(h),mn=Math.round((h-hr)*60);if(mn===0)return hr+'h';if(hr===0)return mn+'m';return hr+'h '+mn+'m';}
 function isChecked(id,pi){return!!state[id+'_'+pi]}
-function toggle(id,pi){state[id+'_'+pi]=!state[id+'_'+pi];saveState();render();}
+function toggle(id,pi){var val=!state[id+'_'+pi];state[id+'_'+pi]=val;saveState(id,pi,val);render();}
 function toggleDesign(id){
   var d=designs.find(function(x){return x.id===id;});if(!d)return;
   var allDone=d.plates.every(function(_,pi){return isChecked(id,pi);});
-  d.plates.forEach(function(_,pi){state[id+'_'+pi]=!allDone;});saveState();render();
+  d.plates.forEach(function(_,pi){state[id+'_'+pi]=!allDone;saveState(id,pi,!allDone);});render();
 }
 function isDone(d){return d.plates.every(function(_,pi){return isChecked(d.id,pi);})}
 function totalPlates(arr){return arr.reduce(function(s,d){return s+d.plates.length;},0)}
