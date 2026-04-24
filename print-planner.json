@@ -656,153 +656,136 @@
     },
     {
       "id": 61,
-      "name": "Pokeball Slab 1",
-      "slug": "slab-pokeball-1",
+      "name": "Ultra Ball Top (x2)",
+      "slug": "slab-ultraball-tops",
       "plates": [
-        1.93,
-        4.07,
-        1.9
+        4.58
       ],
       "preprinted": false,
       "type": "slab",
-      "ball": "pokeball"
+      "ball": "ultraball"
     },
     {
       "id": 62,
-      "name": "Pokeball Slab 2",
-      "slug": "slab-pokeball-2",
+      "name": "Ultra Ball Inserts (x2)",
+      "slug": "slab-ultraball-inserts",
       "plates": [
-        1.93,
-        4.07,
-        1.9
+        2.88
       ],
       "preprinted": false,
       "type": "slab",
-      "ball": "pokeball"
+      "ball": "ultraball"
     },
     {
       "id": 63,
-      "name": "Ultra Ball Slab 1",
-      "slug": "slab-ultraball-1",
+      "name": "Master Ball Tops (x2)",
+      "slug": "slab-masterball-tops",
       "plates": [
-        6.37,
-        1.48,
-        1.65
+        4.78
       ],
       "preprinted": false,
       "type": "slab",
-      "ball": "ultraball"
+      "ball": "masterball"
     },
     {
       "id": 64,
-      "name": "Ultra Ball Slab 2",
-      "slug": "slab-ultraball-2",
+      "name": "Master Ball Sides+Inserts",
+      "slug": "slab-masterball-sides",
       "plates": [
-        6.37,
-        1.48,
-        1.65
+        1.33
       ],
       "preprinted": false,
       "type": "slab",
-      "ball": "ultraball"
+      "ball": "masterball"
     },
     {
       "id": 65,
-      "name": "Master Ball Slab 1",
-      "slug": "slab-masterball-1",
+      "name": "Great Ball Tops (x2)",
+      "slug": "slab-greatball-tops",
       "plates": [
-        3.27,
-        1.87,
-        4.3
+        3
       ],
       "preprinted": false,
       "type": "slab",
-      "ball": "masterball"
+      "ball": "greatball"
     },
     {
       "id": 66,
-      "name": "Master Ball Slab 2",
-      "slug": "slab-masterball-2",
+      "name": "Great Ball Inserts (x4)",
+      "slug": "slab-greatball-inserts",
       "plates": [
-        3.27,
-        1.87,
-        4.3
+        0.85
       ],
       "preprinted": false,
       "type": "slab",
-      "ball": "masterball"
+      "ball": "greatball"
     },
     {
       "id": 67,
-      "name": "Great Ball Slab 1",
-      "slug": "slab-greatball-1",
+      "name": "Slab Middles Batch 1 (x4)",
+      "slug": "slab-middles-1",
       "plates": [
-        1.88,
-        1.13,
-        0.48,
-        0.35,
-        1.53
+        14.43
       ],
       "preprinted": false,
-      "type": "slab",
-      "ball": "greatball"
+      "type": "slab"
     },
     {
       "id": 68,
-      "name": "Great Ball Slab 2",
-      "slug": "slab-greatball-2",
+      "name": "Slab Middles Batch 2 (x4)",
+      "slug": "slab-middles-2",
       "plates": [
-        1.88,
-        1.13,
-        0.48,
-        0.35,
-        1.53
+        14.43
       ],
       "preprinted": false,
-      "type": "slab",
-      "ball": "greatball"
+      "type": "slab"
     },
     {
       "id": 69,
-      "name": "Slab Middles (batch)",
-      "slug": "slab-middles",
+      "name": "Slab Bottoms Batch 1 (x4)",
+      "slug": "slab-bottoms-1",
       "plates": [
-        7.28,
-        7.28
+        7.37
       ],
       "preprinted": false,
       "type": "slab"
     },
     {
       "id": 70,
-      "name": "Slab Bottoms (batch)",
-      "slug": "slab-bottoms",
+      "name": "Slab Bottoms Batch 2 (x4)",
+      "slug": "slab-bottoms-2",
       "plates": [
-        4.08,
-        4.08
+        7.37
       ],
       "preprinted": false,
       "type": "slab"
     },
     {
       "id": 71,
-      "name": "Slab Rings (batch)",
-      "slug": "slab-rings",
+      "name": "Slab Rings Batch 1 (x4)",
+      "slug": "slab-rings-1",
       "plates": [
-        0.96,
-        0.96,
-        0.96,
-        0.96
+        1.53
       ],
       "preprinted": false,
       "type": "slab"
     },
     {
       "id": 72,
-      "name": "Slab Buttons (batch)",
+      "name": "Slab Rings Batch 2 (x4)",
+      "slug": "slab-rings-2",
+      "plates": [
+        1.53
+      ],
+      "preprinted": false,
+      "type": "slab"
+    },
+    {
+      "id": 73,
+      "name": "Slab Buttons (x8)",
       "slug": "slab-buttons",
       "plates": [
-        1.6
+        0.5
       ],
       "preprinted": false,
       "type": "slab"
