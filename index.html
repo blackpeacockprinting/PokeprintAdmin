@@ -472,9 +472,6 @@ function renderPlannerToday(){
     [sched.p1,sched.p2].forEach(function(pjobs,pi){html+='<div class="sw-printer"><div class="sp-label">P'+(pi+1)+'</div>';if(!pjobs.length){html+='<div class="sp-empty">Free</div>';}else pjobs.forEach(function(j){var multi=j.des.plates.length>1;html+='<div class="sp-job '+w+'"><div class="sp-dot '+w+'"></div><div class="sp-name">'+j.des.name+(multi?' P'+(j.pi+1):'')+' </div><div class="sp-time">'+fmtH(j.time)+'</div></div>';});html+='</div>';});
     html+='</div></div>';
   });
-  var slabsLeft=buildPJobs().filter(function(j){return j.win==='slab'&&!j.done;}).length;
-  html+='<div class="planner-sh"><div class="planner-sh-label" style="color:var(--muted)">Slabs — Last</div><div class="planner-sh-count">'+slabsLeft+' remaining</div></div>';
-  html+='<div class="planner-info-box'+(slabsLeft===0?' green':'')+'">'+( slabsLeft===0?'All slabs complete ✓':'Print after all characters. Heavy charcoal use.')+'</div>';
   return html;
 }
 function renderPlannerQueue(){
