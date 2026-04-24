@@ -9,85 +9,803 @@
     "printers": 2
   },
   "designs": [
-    {"id": 1,  "name": "Bulbasaur",       "slug": "0001-bulbasaur-love",   "plates": [3.5],           "preprinted": false, "type": "character"},
-    {"id": 2,  "name": "Ivysaur",         "slug": "0002-ivysaur",          "plates": [5.0, 1.5],      "preprinted": false, "type": "character"},
-    {"id": 3,  "name": "Venusaur",        "slug": "0003-venusaur",         "plates": [4.0, 2.5],      "preprinted": false, "type": "character"},
-    {"id": 4,  "name": "Charmander",      "slug": "0004-charmander",       "plates": [3.0, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 5,  "name": "Charmeleon",      "slug": "0005-charmeleon",       "plates": [4.0, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 6,  "name": "Charizard",       "slug": "0006-charizard",        "plates": [4.25, 2.0],     "preprinted": false, "type": "character"},
-    {"id": 7,  "name": "Squirtle",        "slug": "0007-squirtle",         "plates": [4.0],           "preprinted": false, "type": "character"},
-    {"id": 8,  "name": "Wartortle",       "slug": "0008-wartortle",        "plates": [3.0, 2.0],      "preprinted": false, "type": "character"},
-    {"id": 9,  "name": "Blastoise",       "slug": "0009-blastoise",        "plates": [3.5, 2.0],      "preprinted": false, "type": "character"},
-    {"id": 10, "name": "Butterfree",      "slug": "0012-butterfree",       "plates": [2.5, 0.75, 1.25], "preprinted": false, "type": "character"},
-    {"id": 11, "name": "Pikachu",         "slug": "0025-pikachu",          "plates": [3.5],           "preprinted": false, "type": "character"},
-    {"id": 12, "name": "Lapras",          "slug": "0131-lapras",           "plates": [3.25, 2.0],     "preprinted": false, "type": "character"},
-    {"id": 13, "name": "Seedrill",        "slug": "0015-beedrill",         "plates": [4.0, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 14, "name": "Ceruledge",       "slug": "0991-ceruledge",        "plates": [3.0, 3.0, 1.0], "preprinted": false, "type": "character"},
-    {"id": 15, "name": "Vulpix",          "slug": "0037-vulpix",           "plates": [6.5],           "preprinted": true,  "type": "character"},
-    {"id": 16, "name": "Houndoom",        "slug": "0229-houndoom",         "plates": [3.0, 1.5],      "preprinted": false, "type": "character"},
-    {"id": 17, "name": "Houndour",        "slug": "0228-houndour",         "plates": [4.0],           "preprinted": false, "type": "character"},
-    {"id": 18, "name": "Scizor",          "slug": "0212-scizor",           "plates": [4.0, 0.5],      "preprinted": true,  "type": "character"},
-    {"id": 19, "name": "Luxray",          "slug": "0405-luxray",           "plates": [5.0],           "preprinted": false, "type": "character"},
-    {"id": 20, "name": "Porygon",         "slug": "0137-porygon",          "plates": [4.25],          "preprinted": false, "type": "character"},
-    {"id": 21, "name": "Aerodactyl",      "slug": "0142-aerodactyl",       "plates": [6.0, 1.0],      "preprinted": true,  "type": "character"},
-    {"id": 22, "name": "Deoxys",          "slug": "0386-deoxys",           "plates": [4.0],           "preprinted": false, "type": "character"},
-    {"id": 23, "name": "Rayquaza",        "slug": "0384-rayquaza",         "plates": [4.5, 0.75],     "preprinted": false, "type": "character"},
-    {"id": 24, "name": "Mega Rayquaza",   "slug": "0384-mega-rayquaza",    "plates": [4.0, 2.0],      "preprinted": false, "type": "character"},
-    {"id": 25, "name": "Shiny Rayquaza",  "slug": "0384-shiny-rayquaza",   "plates": [4.25, 0.75],    "preprinted": false, "type": "character"},
-    {"id": 26, "name": "Seadra",          "slug": "0117-seadra",           "plates": [4.5, 2.0],      "preprinted": false, "type": "character"},
-    {"id": 27, "name": "Galarian Ponyta", "slug": "0077-galarian-ponyta",  "plates": [5.5, 3.5],      "preprinted": false, "type": "character"},
-    {"id": 28, "name": "Muk",             "slug": "0089-muk",              "plates": [6.0, 1.5],      "preprinted": false, "type": "character"},
-    {"id": 29, "name": "Bidoof",          "slug": "0399-bidoof",           "plates": [4.5, 0.5],      "preprinted": false, "type": "character"},
-    {"id": 30, "name": "Gyarados",        "slug": "0130-gyarados",         "plates": [4.0, 2.0],      "preprinted": false, "type": "character"},
-    {"id": 31, "name": "Grimer",          "slug": "0088-grimer",           "plates": [6.25, 2.5],     "preprinted": false, "type": "character"},
-    {"id": 32, "name": "Zoroark",         "slug": "0571-zoroark",          "plates": [6.0, 3.5],      "preprinted": false, "type": "character"},
-    {"id": 33, "name": "Kangaskhan",      "slug": "0115-kangaskhan",       "plates": [3.5, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 34, "name": "Trubbish",        "slug": "0568-trubbish",         "plates": [2.5, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 35, "name": "Starmie",         "slug": "0121-starmie",          "plates": [3.5],           "preprinted": false, "type": "character"},
-    {"id": 36, "name": "Meowth",          "slug": "0052-meowth",           "plates": [4.0],           "preprinted": false, "type": "character"},
-    {"id": 37, "name": "Pichu",           "slug": "0172-pichu",            "plates": [2.5, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 38, "name": "Ninetales",       "slug": "0038-ninetales",        "plates": [7.0],           "preprinted": false, "type": "character"},
-    {"id": 39, "name": "Gardevoir",       "slug": "0282-gardevoir",        "plates": [5.0],           "preprinted": false, "type": "character"},
-    {"id": 40, "name": "Totodile",        "slug": "0158-totodile",         "plates": [4.0],           "preprinted": false, "type": "character"},
-    {"id": 41, "name": "Magnemite",       "slug": "0081-magnemite",        "plates": [3.0, 1.5],      "preprinted": false, "type": "character"},
-    {"id": 42, "name": "Togepi",          "slug": "0175-togepi",           "plates": [6.0],           "preprinted": false, "type": "character"},
-    {"id": 43, "name": "Onix",            "slug": "0095-onix",             "plates": [5.0],           "preprinted": false, "type": "character"},
-    {"id": 44, "name": "Cloyster",        "slug": "0091-cloyster",         "plates": [3.5, 2.5],      "preprinted": false, "type": "character"},
-    {"id": 45, "name": "Psyduck",         "slug": "0054-psyduck",          "plates": [4.0],           "preprinted": false, "type": "character"},
-    {"id": 46, "name": "Arcanine",        "slug": "0059-arcanine",         "plates": [3.5, 4.0],      "preprinted": false, "type": "character"},
-    {"id": 47, "name": "Mimikyu",         "slug": "0778-mimikyu-disguised","plates": [4.5, 1.5],      "preprinted": false, "type": "character"},
-    {"id": 48, "name": "Oddish",          "slug": "0043-oddish",           "plates": [3.5],           "preprinted": false, "type": "character"},
-    {"id": 49, "name": "Eevee",           "slug": "0133-eevee",            "plates": [3.5, 1.5],      "preprinted": false, "type": "character"},
-    {"id": 50, "name": "Victreebel",      "slug": "0071-victreebel",       "plates": [4.0, 1.5, 1.0], "preprinted": false, "type": "character"},
-    {"id": 51, "name": "Weepinbell",      "slug": "0070-weepinbell",       "plates": [3.5],           "preprinted": false, "type": "character"},
-    {"id": 52, "name": "Dialga / Palkia", "slug": "0483-dialga",           "plates": [3.5, 2.5],      "preprinted": false, "type": "character"},
-    {"id": 53, "name": "Darkrai",         "slug": "0491-darkrai",          "plates": [3.5, 2.5],      "preprinted": false, "type": "character"},
-    {"id": 54, "name": "Dugtrio",         "slug": "0051-dugtrio",          "plates": [3.5, 1.5],      "preprinted": false, "type": "character"},
-    {"id": 55, "name": "Metagross",       "slug": "0376-metagross",        "plates": [5.5, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 56, "name": "Garchomp",        "slug": "0445-garchomp",         "plates": [4.5, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 57, "name": "Tyranitar",       "slug": "0248-tyranitar",        "plates": [3.5, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 58, "name": "Arceus",          "slug": "0493-arceus",           "plates": [4.5, 1.0],      "preprinted": false, "type": "character"},
-    {"id": 59, "name": "Suicune",         "slug": "0245-suicune",          "plates": [4.0, 0.5],      "preprinted": false, "type": "character"},
-    {"id": 60, "name": "Entei",           "slug": "0244-entei",            "plates": [3.5, 2.5],      "preprinted": false, "type": "character"},
-    {"id": 61, "name": "Poke Ball Slab 1",   "slug": "slab-pokeball-1",   "plates": [1.5], "preprinted": false, "type": "slab", "ball": "pokeball"},
-    {"id": 62, "name": "Poke Ball Slab 2",   "slug": "slab-pokeball-2",   "plates": [1.5], "preprinted": false, "type": "slab", "ball": "pokeball"},
-    {"id": 63, "name": "Poke Ball Slab 3",   "slug": "slab-pokeball-3",   "plates": [1.5], "preprinted": false, "type": "slab", "ball": "pokeball"},
-    {"id": 64, "name": "Poke Ball Slab 4",   "slug": "slab-pokeball-4",   "plates": [1.5], "preprinted": false, "type": "slab", "ball": "pokeball"},
-    {"id": 65, "name": "Poke Ball Slab 5",   "slug": "slab-pokeball-5",   "plates": [1.5], "preprinted": false, "type": "slab", "ball": "pokeball"},
-    {"id": 66, "name": "Master Ball Slab 1", "slug": "slab-masterball-1", "plates": [1.5], "preprinted": false, "type": "slab", "ball": "masterball"},
-    {"id": 67, "name": "Master Ball Slab 2", "slug": "slab-masterball-2", "plates": [1.5], "preprinted": false, "type": "slab", "ball": "masterball"},
-    {"id": 68, "name": "Master Ball Slab 3", "slug": "slab-masterball-3", "plates": [1.5], "preprinted": false, "type": "slab", "ball": "masterball"},
-    {"id": 69, "name": "Master Ball Slab 4", "slug": "slab-masterball-4", "plates": [1.5], "preprinted": false, "type": "slab", "ball": "masterball"},
-    {"id": 70, "name": "Master Ball Slab 5", "slug": "slab-masterball-5", "plates": [1.5], "preprinted": false, "type": "slab", "ball": "masterball"},
-    {"id": 71, "name": "Ultra Ball Slab 1",  "slug": "slab-ultraball-1",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "ultraball"},
-    {"id": 72, "name": "Ultra Ball Slab 2",  "slug": "slab-ultraball-2",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "ultraball"},
-    {"id": 73, "name": "Ultra Ball Slab 3",  "slug": "slab-ultraball-3",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "ultraball"},
-    {"id": 74, "name": "Ultra Ball Slab 4",  "slug": "slab-ultraball-4",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "ultraball"},
-    {"id": 75, "name": "Ultra Ball Slab 5",  "slug": "slab-ultraball-5",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "ultraball"},
-    {"id": 76, "name": "Great Ball Slab 1",  "slug": "slab-greatball-1",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "greatball"},
-    {"id": 77, "name": "Great Ball Slab 2",  "slug": "slab-greatball-2",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "greatball"},
-    {"id": 78, "name": "Great Ball Slab 3",  "slug": "slab-greatball-3",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "greatball"},
-    {"id": 79, "name": "Great Ball Slab 4",  "slug": "slab-greatball-4",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "greatball"},
-    {"id": 80, "name": "Great Ball Slab 5",  "slug": "slab-greatball-5",  "plates": [1.5], "preprinted": false, "type": "slab", "ball": "greatball"}
+    {
+      "id": 1,
+      "name": "Bulbasaur",
+      "slug": "0001-bulbasaur-love",
+      "plates": [
+        3.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 2,
+      "name": "Ivysaur",
+      "slug": "0002-ivysaur",
+      "plates": [
+        5,
+        1.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 3,
+      "name": "Venusaur",
+      "slug": "0003-venusaur",
+      "plates": [
+        4,
+        2.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 4,
+      "name": "Charmander",
+      "slug": "0004-charmander",
+      "plates": [
+        3,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 5,
+      "name": "Charmeleon",
+      "slug": "0005-charmeleon",
+      "plates": [
+        4,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 6,
+      "name": "Charizard",
+      "slug": "0006-charizard",
+      "plates": [
+        4.25,
+        2
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 7,
+      "name": "Squirtle",
+      "slug": "0007-squirtle",
+      "plates": [
+        4
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 8,
+      "name": "Wartortle",
+      "slug": "0008-wartortle",
+      "plates": [
+        3,
+        2
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 9,
+      "name": "Blastoise",
+      "slug": "0009-blastoise",
+      "plates": [
+        3.5,
+        2
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 10,
+      "name": "Butterfree",
+      "slug": "0012-butterfree",
+      "plates": [
+        2.5,
+        0.75,
+        1.25
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 11,
+      "name": "Pikachu",
+      "slug": "0025-pikachu",
+      "plates": [
+        3.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 12,
+      "name": "Lapras",
+      "slug": "0131-lapras",
+      "plates": [
+        3.25,
+        2
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 13,
+      "name": "Seedrill",
+      "slug": "0015-beedrill",
+      "plates": [
+        4,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 14,
+      "name": "Ceruledge",
+      "slug": "0991-ceruledge",
+      "plates": [
+        3,
+        3,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 15,
+      "name": "Vulpix",
+      "slug": "0037-vulpix",
+      "plates": [
+        6.5
+      ],
+      "preprinted": true,
+      "type": "character"
+    },
+    {
+      "id": 16,
+      "name": "Houndoom",
+      "slug": "0229-houndoom",
+      "plates": [
+        3,
+        1.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 17,
+      "name": "Houndour",
+      "slug": "0228-houndour",
+      "plates": [
+        4
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 18,
+      "name": "Scizor",
+      "slug": "0212-scizor",
+      "plates": [
+        4,
+        0.5
+      ],
+      "preprinted": true,
+      "type": "character"
+    },
+    {
+      "id": 19,
+      "name": "Luxray",
+      "slug": "0405-luxray",
+      "plates": [
+        5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 20,
+      "name": "Porygon",
+      "slug": "0137-porygon",
+      "plates": [
+        4.25
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 21,
+      "name": "Aerodactyl",
+      "slug": "0142-aerodactyl",
+      "plates": [
+        6,
+        1
+      ],
+      "preprinted": true,
+      "type": "character"
+    },
+    {
+      "id": 22,
+      "name": "Deoxys",
+      "slug": "0386-deoxys",
+      "plates": [
+        4
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 23,
+      "name": "Rayquaza",
+      "slug": "0384-rayquaza",
+      "plates": [
+        4.5,
+        0.75
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 24,
+      "name": "Mega Rayquaza",
+      "slug": "0384-mega-rayquaza",
+      "plates": [
+        4,
+        2
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 25,
+      "name": "Shiny Rayquaza",
+      "slug": "0384-shiny-rayquaza",
+      "plates": [
+        4.25,
+        0.75
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 26,
+      "name": "Seadra",
+      "slug": "0117-seadra",
+      "plates": [
+        4.5,
+        2
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 27,
+      "name": "Galarian Ponyta",
+      "slug": "0077-galarian-ponyta",
+      "plates": [
+        5.5,
+        3.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 28,
+      "name": "Muk",
+      "slug": "0089-muk",
+      "plates": [
+        6,
+        1.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 29,
+      "name": "Bidoof",
+      "slug": "0399-bidoof",
+      "plates": [
+        4.5,
+        0.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 30,
+      "name": "Gyarados",
+      "slug": "0130-gyarados",
+      "plates": [
+        4,
+        2
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 31,
+      "name": "Grimer",
+      "slug": "0088-grimer",
+      "plates": [
+        6.25,
+        2.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 32,
+      "name": "Zoroark",
+      "slug": "0571-zoroark",
+      "plates": [
+        6,
+        3.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 33,
+      "name": "Kangaskhan",
+      "slug": "0115-kangaskhan",
+      "plates": [
+        3.5,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 34,
+      "name": "Trubbish",
+      "slug": "0568-trubbish",
+      "plates": [
+        2.5,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 35,
+      "name": "Starmie",
+      "slug": "0121-starmie",
+      "plates": [
+        3.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 36,
+      "name": "Meowth",
+      "slug": "0052-meowth",
+      "plates": [
+        4
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 37,
+      "name": "Pichu",
+      "slug": "0172-pichu",
+      "plates": [
+        2.5,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 38,
+      "name": "Ninetales",
+      "slug": "0038-ninetales",
+      "plates": [
+        7
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 39,
+      "name": "Gardevoir",
+      "slug": "0282-gardevoir",
+      "plates": [
+        5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 40,
+      "name": "Totodile",
+      "slug": "0158-totodile",
+      "plates": [
+        4
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 41,
+      "name": "Magnemite",
+      "slug": "0081-magnemite",
+      "plates": [
+        3,
+        1.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 42,
+      "name": "Togepi",
+      "slug": "0175-togepi",
+      "plates": [
+        6
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 43,
+      "name": "Onix",
+      "slug": "0095-onix",
+      "plates": [
+        5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 44,
+      "name": "Cloyster",
+      "slug": "0091-cloyster",
+      "plates": [
+        3.5,
+        2.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 45,
+      "name": "Psyduck",
+      "slug": "0054-psyduck",
+      "plates": [
+        4
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 46,
+      "name": "Arcanine",
+      "slug": "0059-arcanine",
+      "plates": [
+        3.5,
+        4
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 47,
+      "name": "Mimikyu",
+      "slug": "0778-mimikyu-disguised",
+      "plates": [
+        4.5,
+        1.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 48,
+      "name": "Oddish",
+      "slug": "0043-oddish",
+      "plates": [
+        3.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 49,
+      "name": "Eevee",
+      "slug": "0133-eevee",
+      "plates": [
+        3.5,
+        1.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 50,
+      "name": "Victreebel",
+      "slug": "0071-victreebel",
+      "plates": [
+        4,
+        1.5,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 51,
+      "name": "Weepinbell",
+      "slug": "0070-weepinbell",
+      "plates": [
+        3.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 52,
+      "name": "Dialga / Palkia",
+      "slug": "0483-dialga",
+      "plates": [
+        3.5,
+        2.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 53,
+      "name": "Darkrai",
+      "slug": "0491-darkrai",
+      "plates": [
+        3.5,
+        2.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 54,
+      "name": "Dugtrio",
+      "slug": "0051-dugtrio",
+      "plates": [
+        3.5,
+        1.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 55,
+      "name": "Metagross",
+      "slug": "0376-metagross",
+      "plates": [
+        5.5,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 56,
+      "name": "Garchomp",
+      "slug": "0445-garchomp",
+      "plates": [
+        4.5,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 57,
+      "name": "Tyranitar",
+      "slug": "0248-tyranitar",
+      "plates": [
+        3.5,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 58,
+      "name": "Arceus",
+      "slug": "0493-arceus",
+      "plates": [
+        4.5,
+        1
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 59,
+      "name": "Suicune",
+      "slug": "0245-suicune",
+      "plates": [
+        4,
+        0.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 60,
+      "name": "Entei",
+      "slug": "0244-entei",
+      "plates": [
+        3.5,
+        2.5
+      ],
+      "preprinted": false,
+      "type": "character"
+    },
+    {
+      "id": 61,
+      "name": "Pokeball Slab 1",
+      "slug": "slab-pokeball-1",
+      "plates": [
+        1.93,
+        4.07,
+        1.9
+      ],
+      "preprinted": false,
+      "type": "slab",
+      "ball": "pokeball"
+    },
+    {
+      "id": 62,
+      "name": "Pokeball Slab 2",
+      "slug": "slab-pokeball-2",
+      "plates": [
+        1.93,
+        4.07,
+        1.9
+      ],
+      "preprinted": false,
+      "type": "slab",
+      "ball": "pokeball"
+    },
+    {
+      "id": 63,
+      "name": "Ultra Ball Slab 1",
+      "slug": "slab-ultraball-1",
+      "plates": [
+        6.37,
+        1.48,
+        1.65
+      ],
+      "preprinted": false,
+      "type": "slab",
+      "ball": "ultraball"
+    },
+    {
+      "id": 64,
+      "name": "Ultra Ball Slab 2",
+      "slug": "slab-ultraball-2",
+      "plates": [
+        6.37,
+        1.48,
+        1.65
+      ],
+      "preprinted": false,
+      "type": "slab",
+      "ball": "ultraball"
+    },
+    {
+      "id": 65,
+      "name": "Master Ball Slab 1",
+      "slug": "slab-masterball-1",
+      "plates": [
+        3.27,
+        1.87,
+        4.3
+      ],
+      "preprinted": false,
+      "type": "slab",
+      "ball": "masterball"
+    },
+    {
+      "id": 66,
+      "name": "Master Ball Slab 2",
+      "slug": "slab-masterball-2",
+      "plates": [
+        3.27,
+        1.87,
+        4.3
+      ],
+      "preprinted": false,
+      "type": "slab",
+      "ball": "masterball"
+    },
+    {
+      "id": 67,
+      "name": "Great Ball Slab 1",
+      "slug": "slab-greatball-1",
+      "plates": [
+        1.88,
+        1.13,
+        0.48,
+        0.35,
+        1.53
+      ],
+      "preprinted": false,
+      "type": "slab",
+      "ball": "greatball"
+    },
+    {
+      "id": 68,
+      "name": "Great Ball Slab 2",
+      "slug": "slab-greatball-2",
+      "plates": [
+        1.88,
+        1.13,
+        0.48,
+        0.35,
+        1.53
+      ],
+      "preprinted": false,
+      "type": "slab",
+      "ball": "greatball"
+    },
+    {
+      "id": 69,
+      "name": "Slab Middles (batch)",
+      "slug": "slab-middles",
+      "plates": [
+        7.28,
+        7.28
+      ],
+      "preprinted": false,
+      "type": "slab"
+    },
+    {
+      "id": 70,
+      "name": "Slab Bottoms (batch)",
+      "slug": "slab-bottoms",
+      "plates": [
+        4.08,
+        4.08
+      ],
+      "preprinted": false,
+      "type": "slab"
+    },
+    {
+      "id": 71,
+      "name": "Slab Rings (batch)",
+      "slug": "slab-rings",
+      "plates": [
+        0.96,
+        0.96,
+        0.96,
+        0.96
+      ],
+      "preprinted": false,
+      "type": "slab"
+    },
+    {
+      "id": 72,
+      "name": "Slab Buttons (batch)",
+      "slug": "slab-buttons",
+      "plates": [
+        1.6
+      ],
+      "preprinted": false,
+      "type": "slab"
+    }
   ]
 }
