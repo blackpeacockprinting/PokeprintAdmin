@@ -447,7 +447,7 @@ function updatePlannerSummary(){
 }
 
 function isPlannerDone(d){return d.plates.every(function(_,pi){return isPChecked(d.id,pi);});}
-function buildPJobs(){var jobs=[];var chars=plannerDesigns.filter(function(d){return d.type==='character';});var slabs=plannerDesigns.filter(function(d){return d.type==='slab';});[...chars,...slabs].forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({des:d,pi:pi,time:t,win:d.type==='slab'?'slab':assignWindow(t),done:isPChecked(d.id,pi)});});});return jobs;}
+function buildPJobs(){var jobs=[];plannerDesigns.forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({des:d,pi:pi,time:t,win:assignWindow(t),done:isPChecked(d.id,pi)});});});return jobs;}
 function schedWin(win,cap){var jobs=buildPJobs().filter(function(j){return!j.done&&j.win===win;});jobs.sort(function(a,b){return b.time-a.time;});var p1=[],p2=[],h1=0,h2=0;jobs.forEach(function(j){if(h1<=h2&&h1+j.time<=cap){p1.push(j);h1+=j.time;}else if(h2+j.time<=cap){p2.push(j);h2+=j.time;}else if(h1<=h2){p1.push(j);h1+=j.time;}else{p2.push(j);h2+=j.time;}});return{p1,p2,h1,h2};}
 function deductFilamentForPlannerDesign(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.filaments||!d.filaments.length)return;var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});api('deductFilament','POST',{filaments:fil}).then(function(){api('getOrders').then(function(data){filament=data.filament||[];plannerState=data.plannerState||{};applyPreprintedDefaults();renderFilament();renderRestock();});});}
 function renderPlanner(){
