@@ -171,6 +171,7 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 .planner-item{background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer}
 .planner-item:active{background:var(--surface2)}
 .planner-item.work-j{border-left:3px solid var(--blue)}.planner-item.afternoon-j{border-left:3px solid var(--gold)}.planner-item.sleep-j{border-left:3px solid var(--purple)}.planner-item.slab-j{border-left:3px solid var(--muted)}
+.planner-item.order-j{border-left:3px solid var(--green)}
 .planner-item.done{opacity:.4}.planner-item.done .pi-name{text-decoration:line-through}
 .planner-item.has-order{border-right:3px solid var(--green)}
 .pi-check{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
@@ -180,7 +181,7 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 .pi-order-badge{font-size:9px;color:var(--green);background:rgba(74,184,74,0.12);border:0.5px solid rgba(74,184,74,0.25);border-radius:3px;padding:1px 5px;margin-top:3px;display:inline-block}
 .pi-right{text-align:right;flex-shrink:0}.pi-time{font-size:12px;color:var(--gold);font-weight:600}
 .pi-tag{font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;padding:2px 6px;border-radius:3px;margin-top:3px;display:inline-block}
-.tag-work{background:rgba(74,159,212,0.15);color:var(--blue)}.tag-afternoon{background:rgba(201,168,76,0.15);color:var(--gold)}.tag-sleep{background:rgba(155,111,212,0.15);color:var(--purple)}.tag-slab{background:rgba(74,74,96,0.3);color:var(--muted)}.tag-done{background:rgba(74,184,74,0.15);color:var(--green)}
+.tag-work{background:rgba(74,159,212,0.15);color:var(--blue)}.tag-afternoon{background:rgba(201,168,76,0.15);color:var(--gold)}.tag-sleep{background:rgba(155,111,212,0.15);color:var(--purple)}.tag-slab{background:rgba(74,74,96,0.3);color:var(--muted)}.tag-done{background:rgba(74,184,74,0.15);color:var(--green)}.tag-order{background:rgba(74,184,74,0.15);color:var(--green)}
 .plate-badge{font-size:9px;color:var(--muted);background:var(--surface2);border:0.5px solid var(--border);padding:1px 5px;border-radius:3px;margin-left:4px}
 .planner-frow{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px}
 .planner-frow::-webkit-scrollbar{display:none}
@@ -322,7 +323,7 @@ function loadData(){
     renderOrders();renderFilament();renderRestock();
     if(currentPage==='planner')renderPlanner();
   }).catch(function(e){document.getElementById('page-orders').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load</div><div class="empty-sub">'+e.message+'</div></div>';});
-  fetch(DESIGNS_URL).then(function(r){return r.json();}).then(function(d){designs=d.data||[];}).catch(function(){});
+  fetch(DESIGNS_URL).then(function(r){return r.json();}).then(function(d){designs=d.data||[];if(currentPage==='planner')renderPlanner();}).catch(function(){});
   fetch(PLANNER_URL).then(function(r){return r.json();}).then(function(d){
     plannerDesigns=d.designs||[];applyPreprintedDefaults();
     if(currentPage==='planner')renderPlanner();
@@ -455,6 +456,29 @@ function togglePlate(id,pi){
   updatePlannerSummary();
 }
 
+// Toggle a virtual order job (not in print-planner.json)
+function toggleOrderJob(virtualId){
+  var newVal=!plannerState[virtualId+'_0'];
+  plannerState[virtualId+'_0']=newVal;
+  var el=document.getElementById('pi-'+virtualId+'-0');
+  if(el){
+    var chk=el.querySelector('.pi-check'),tag=el.querySelector('.pi-tag');
+    if(chk)chk.className='pi-check'+(newVal?' on':'');
+    if(tag){tag.className='pi-tag '+(newVal?'tag-done':'tag-order');tag.textContent=newVal?'DONE':'ORDER';}
+    el.classList.toggle('done',newVal);
+  }
+  // If marked done, complete all linked order items
+  if(newVal){
+    var slug=virtualId.replace('order-','');
+    var linked=items.filter(function(it){return it.slug===slug&&(it.status||'pending').toLowerCase()!=='completed';});
+    linked.forEach(function(it){
+      api('updateItem','POST',{row:it.row,status:'Completed',shiny:it.shiny}).then(function(){it.status='Completed';}).catch(function(){});
+    });
+    if(linked.length)setTimeout(renderOrders,500);
+  }
+  updatePlannerSummary();
+}
+
 function togglePlannerDesign(id){
   var des=plannerDesigns.find(function(x){return x.id===id;});if(!des)return;
   var allDone=des.plates.every(function(_,pi){return isPChecked(id,pi);});
@@ -478,12 +502,43 @@ function updatePlannerSummary(){
 }
 
 function isPlannerDone(d){return d.plates.every(function(_,pi){return isPChecked(d.id,pi);});}
-function buildPJobs(){var jobs=[];plannerDesigns.forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({des:d,pi:pi,time:t,win:d.type==='slab'?'slab':assignWindow(t),done:isPChecked(d.id,pi)});});});return jobs;}
+
+// Build virtual planner entries from pending order items not already in planner
+function buildOrderJobs(){
+  var plannerSlugs={};
+  plannerDesigns.forEach(function(d){if(d.slug)plannerSlugs[d.slug]=true;});
+  var bySlug={};
+  items.forEach(function(it){
+    if((it.status||'pending').toLowerCase()==='completed')return;
+    if(!it.slug||plannerSlugs[it.slug])return;
+    if(!bySlug[it.slug])bySlug[it.slug]={slug:it.slug,name:it.name,orderRefs:[]};
+    if(bySlug[it.slug].orderRefs.indexOf(it.orderRef)<0)bySlug[it.slug].orderRefs.push(it.orderRef);
+  });
+  var jobs=[];
+  Object.keys(bySlug).forEach(function(slug){
+    var g=bySlug[slug];
+    var d=designs.find(function(x){return x.slug===slug;});
+    var t=d&&d.total_weight_grams?Math.round(d.total_weight_grams/50*10)/10:4;
+    var virtualId='order-'+slug;
+    var done=!!plannerState[virtualId+'_0'];
+    var virtualDes={id:virtualId,slug:slug,name:g.name,type:'order',plates:[t],orderRefs:g.orderRefs};
+    jobs.push({des:virtualDes,pi:0,time:t,win:'afternoon',done:done,virtual:true});
+  });
+  return jobs;
+}
+
+function buildPJobs(){
+  var jobs=[];
+  plannerDesigns.forEach(function(d){d.plates.forEach(function(t,pi){jobs.push({des:d,pi:pi,time:t,win:d.type==='slab'?'slab':assignWindow(t),done:isPChecked(d.id,pi)});});});
+  buildOrderJobs().forEach(function(j){jobs.push(j);});
+  return jobs;
+}
+
 function schedWin(win,cap){var jobs=buildPJobs().filter(function(j){return!j.done&&j.win===win;});jobs.sort(function(a,b){return b.time-a.time;});var p1=[],p2=[],h1=0,h2=0;jobs.forEach(function(j){if(h1<=h2&&h1+j.time<=cap){p1.push(j);h1+=j.time;}else if(h2+j.time<=cap){p2.push(j);h2+=j.time;}else if(h1<=h2){p1.push(j);h1+=j.time;}else{p2.push(j);h2+=j.time;}});return{p1:p1,p2:p2,h1:h1,h2:h2};}
 function deductFilamentForPlannerDesign(name){var d=designs.find(function(d){return d.pokemon&&d.pokemon.name.toLowerCase()===name.toLowerCase();});if(!d||!d.filaments||!d.filaments.length)return;var fil=d.filaments.map(function(f){return{colorName:f.color,grams:f.weight_grams};});api('deductFilament','POST',{filaments:fil}).then(function(){api('getOrders').then(function(data){filament=data.filament||[];renderFilament();renderRestock();});});}
 
 function renderPlanner(){
-  if(!plannerDesigns.length){document.getElementById('page-planner').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading planner data...</p></div>';return;}
+  if(!plannerDesigns.length&&!items.length){document.getElementById('page-planner').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading planner data...</p></div>';return;}
   var jobs=buildPJobs(),total=jobs.length,done=jobs.filter(function(j){return j.done;}).length,pct=total>0?Math.round(done/total*100):0;
   var hoursLeft=jobs.filter(function(j){return!j.done;}).reduce(function(s,j){return s+j.time;},0);
   var html='<button class="refresh-btn" onclick="refreshPlannerState()">↻ Sync from server</button>';
@@ -506,8 +561,8 @@ function renderPlannerToday(){
       html+='<div class="sw-printer"><div class="sp-label">P'+(pi+1)+'</div>';
       if(!pjobs.length){html+='<div class="sp-empty">Free</div>';}
       else pjobs.forEach(function(j){
-        var multi=j.des.plates.length>1,hasOrder=getOrderItemsForDesign(j.des).length>0;
-        html+='<div class="sp-job '+w+'"><div class="sp-dot '+w+'"></div><div class="sp-name">'+j.des.name+(multi?' P'+(j.pi+1):'')+(hasOrder?' ●':'')+' </div><div class="sp-time">'+fmtH(j.time)+'</div></div>';
+        var multi=!j.virtual&&j.des.plates.length>1;
+        html+='<div class="sp-job '+w+'"><div class="sp-dot '+w+'"></div><div class="sp-name">'+j.des.name+(multi?' P'+(j.pi+1):'')+(j.virtual?' 📦':'')+' </div><div class="sp-time">'+fmtH(j.time)+'</div></div>';
       });
       html+='</div>';
     });
@@ -519,11 +574,11 @@ function renderPlannerToday(){
 function renderPlannerQueue(){
   var jobs=buildPJobs();
   var filtered=jobs.filter(function(j){
-    if(plannerFilter==='orders')return getOrderItemsForDesign(j.des).length>0&&!j.done;
-    if(plannerFilter==='todo')return!j.done;
-    if(plannerFilter==='work')return j.win==='work';
-    if(plannerFilter==='afternoon')return j.win==='afternoon';
-    if(plannerFilter==='sleep')return j.win==='sleep';
+    if(plannerFilter==='orders')return j.virtual&&!j.done;
+    if(plannerFilter==='todo')return!j.done&&!j.virtual;
+    if(plannerFilter==='work')return j.win==='work'&&!j.virtual;
+    if(plannerFilter==='afternoon')return j.win==='afternoon'&&!j.virtual;
+    if(plannerFilter==='sleep')return j.win==='sleep'&&!j.virtual;
     if(plannerFilter==='slab')return j.win==='slab';
     return true;
   });
@@ -533,15 +588,27 @@ function renderPlannerQueue(){
   }).join('')+'</div>';
   if(!filtered.length){html+='<div class="empty"><div class="empty-title">Nothing here ✓</div></div>';return html;}
   filtered.forEach(function(j){
-    var checked=isPChecked(j.des.id,j.pi),multi=j.des.plates.length>1;
-    var wc=j.win==='slab'?'slab-j':j.win+'-j',tc=j.win==='slab'?'tag-slab':'tag-'+j.win,tl=j.win==='slab'?'SLAB':j.win.toUpperCase();
-    var linked=getOrderItemsForDesign(j.des),hasOrder=linked.length>0;
-    html+='<div class="planner-item '+wc+' '+(checked?'done':'')+' '+(hasOrder&&!checked?'has-order':'')+'" id="pi-'+j.des.id+'-'+j.pi+'" onclick="togglePlate('+j.des.id+','+j.pi+')">';
-    html+='<div class="pi-check '+(checked?'on':'')+'"></div>';
-    html+='<div class="pi-body"><div class="pi-name">'+j.des.name+(multi?'<span class="plate-badge">P'+(j.pi+1)+'/'+j.des.plates.length+'</span>':'')+'</div>';
-    if(hasOrder&&!checked){var refs=[...new Set(linked.map(function(it){return it.orderRef;}))];html+='<div class="pi-order-badge">📦 '+refs.join(', ')+'</div>';}
-    html+='<div class="pi-meta">'+j.des.type+' · '+fmtH(j.time)+'</div></div>';
-    html+='<div class="pi-right"><div class="pi-time">'+fmtH(j.time)+'</div><div class="pi-tag '+(checked?'tag-done':tc)+'">'+(checked?'DONE':tl)+'</div></div></div>';
+    if(j.virtual){
+      // Virtual order job
+      var vid=j.des.id;
+      var refs=j.des.orderRefs||[];
+      html+='<div class="planner-item order-j '+(j.done?'done':'')+'" id="pi-'+vid+'-0" onclick="toggleOrderJob(\''+vid+\'\')">';
+      html+='<div class="pi-check '+(j.done?'on':'')+'"></div>';
+      html+='<div class="pi-body"><div class="pi-name">'+j.des.name+'</div>';
+      if(!j.done&&refs.length){html+='<div class="pi-order-badge">📦 '+refs.join(', ')+'</div>';}
+      html+='<div class="pi-meta">order · est. '+fmtH(j.time)+'</div></div>';
+      html+='<div class="pi-right"><div class="pi-time">'+fmtH(j.time)+'</div><div class="pi-tag '+(j.done?'tag-done':'tag-order')+'">'+(j.done?'DONE':'ORDER')+'</div></div></div>';
+    } else {
+      var checked=isPChecked(j.des.id,j.pi),multi=j.des.plates.length>1;
+      var wc=j.win==='slab'?'slab-j':j.win+'-j',tc=j.win==='slab'?'tag-slab':'tag-'+j.win,tl=j.win==='slab'?'SLAB':j.win.toUpperCase();
+      var linked=getOrderItemsForDesign(j.des),hasOrder=linked.length>0;
+      html+='<div class="planner-item '+wc+' '+(checked?'done':'')+' '+(hasOrder&&!checked?'has-order':'')+'" id="pi-'+j.des.id+'-'+j.pi+'" onclick="togglePlate('+j.des.id+','+j.pi+')">';
+      html+='<div class="pi-check '+(checked?'on':'')+'"></div>';
+      html+='<div class="pi-body"><div class="pi-name">'+j.des.name+(multi?'<span class="plate-badge">P'+(j.pi+1)+'/'+j.des.plates.length+'</span>':'')+'</div>';
+      if(hasOrder&&!checked){var refs2=[...new Set(linked.map(function(it){return it.orderRef;}))];html+='<div class="pi-order-badge">📦 '+refs2.join(', ')+'</div>';}
+      html+='<div class="pi-meta">'+j.des.type+' · '+fmtH(j.time)+'</div></div>';
+      html+='<div class="pi-right"><div class="pi-time">'+fmtH(j.time)+'</div><div class="pi-tag '+(checked?'tag-done':tc)+'">'+(checked?'DONE':tl)+'</div></div></div>';
+    }
   });
   return html;
 }
@@ -566,6 +633,20 @@ function renderPlannerEvent(){
   html+=listItems(chars);
   html+='<div class="planner-sh"><div class="planner-sh-label" style="color:var(--muted)">Slabs — Last</div><div class="planner-sh-count">charcoal heavy</div></div>';
   html+=listItems(slabs);
+  // Also show pending order jobs at bottom of event tab
+  var orderJobs=buildOrderJobs().filter(function(j){return!j.done;});
+  if(orderJobs.length){
+    html+='<div class="planner-sh"><div class="planner-sh-label" style="color:var(--green)">Pending Orders</div><div class="planner-sh-count">'+orderJobs.length+' to print</div></div>';
+    orderJobs.forEach(function(j){
+      var vid=j.des.id,refs=j.des.orderRefs||[];
+      html+='<div class="planner-item order-j" id="pev-'+vid+'" onclick="toggleOrderJob(\''+vid+\'\')">';
+      html+='<div class="pi-check"></div>';
+      html+='<div class="pi-body"><div class="pi-name">'+j.des.name+'</div>';
+      if(refs.length)html+='<div class="pi-order-badge">📦 '+refs.join(', ')+'</div>';
+      html+='<div class="pi-meta">order · est. '+fmtH(j.time)+'</div></div>';
+      html+='<div class="pi-right"><div class="pi-time">'+fmtH(j.time)+'</div><div class="pi-tag tag-order">ORDER</div></div></div>';
+    });
+  }
   return html;
 }
 function setPlannerSubTab(t){plannerSubTab=t;renderPlanner();}
@@ -593,8 +674,7 @@ function getPrice(g){return g<=149?8:g<=249?10:12;}
 
 // SHOP
 function renderShop(){
-  var hasToken=!!githubToken;
-  var html='';
+  var hasToken=!!githubToken;var html='';
   if(!hasToken){
     html+='<div class="shop-token-banner"><div class="shop-token-label">GitHub Token Required</div>';
     html+='<input class="shop-token-input" id="shop-token-input" type="password" placeholder="github_pat_..." />';
@@ -614,10 +694,8 @@ function renderShop(){
   document.getElementById('page-shop').innerHTML=html;
   if(currentPage==='shop')document.getElementById('page-sub').textContent=shopProducts.length+' products';
 }
-
 function connectShopToken(){var t=document.getElementById('shop-token-input');if(!t)return;var val=t.value.trim();if(!val){alert('Please paste your GitHub token');return;}githubToken=val;loadShopProducts();}
 function ghHeaders(){return{'Authorization':'Bearer '+githubToken,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};}
-
 function loadShopProducts(){
   document.getElementById('page-shop').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading products...</p></div>';
   fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+GITHUB_FILE+'?ref='+GITHUB_BRANCH,{headers:ghHeaders()})
@@ -630,7 +708,6 @@ function loadShopProducts(){
   })
   .catch(function(e){githubToken='';shopFileSHA='';document.getElementById('page-shop').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load</div><div class="empty-sub">'+e.message+'</div></div>';setTimeout(function(){renderShop();},2000);});
 }
-
 function openShopForm(slug){
   editingSlug=slug;uploadedPhotoUrl='';
   var p=slug?shopProducts.find(function(x){return x.slug===slug;}):null;
@@ -640,21 +717,14 @@ function openShopForm(slug){
   html+='<div class="field"><label class="field-label">Price (USD)</label><input class="field-input" id="sf-price" type="number" step="0.01" placeholder="15" value="'+(p?p.price:'')+'"></div>';
   html+='<div class="field"><label class="field-label">Description</label><input class="field-input" id="sf-desc" type="text" placeholder="Short description" value="'+(p?p.description||'':'')+'"></div>';
   html+='<div class="field"><label class="field-label">Photo</label>';
-  if(p&&p.photo){
-    uploadedPhotoUrl=p.photo;
-    html+='<img class="photo-preview-img" src="'+p.photo+'"><div class="photo-status done" id="sf-photo-status">Current photo loaded</div>';
-    html+='<div style="margin-top:6px"><label style="font-size:11px;color:var(--gold);cursor:pointer">Replace photo <input type="file" accept="image/*" style="display:none" onchange="handleShopPhotoSelect(this)"></label></div>';
-  } else {
-    html+='<div class="photo-upload-area"><input type="file" accept="image/*" onchange="handleShopPhotoSelect(this)"><div class="photo-upload-icon">📷</div><div class="photo-upload-text">Tap to select photo</div></div>';
-    html+='<div class="photo-status" id="sf-photo-status"></div>';
-  }
+  if(p&&p.photo){uploadedPhotoUrl=p.photo;html+='<img class="photo-preview-img" src="'+p.photo+'"><div class="photo-status done" id="sf-photo-status">Current photo loaded</div><div style="margin-top:6px"><label style="font-size:11px;color:var(--gold);cursor:pointer">Replace photo <input type="file" accept="image/*" style="display:none" onchange="handleShopPhotoSelect(this)"></label></div>';}
+  else{html+='<div class="photo-upload-area"><input type="file" accept="image/*" onchange="handleShopPhotoSelect(this)"><div class="photo-upload-icon">📷</div><div class="photo-upload-text">Tap to select photo</div></div><div class="photo-status" id="sf-photo-status"></div>';}
   html+='</div>';
   document.getElementById('sheet-body').innerHTML=html;
   document.getElementById('sheet-footer').innerHTML='<button class="btn-outline" onclick="closeSheet()">Cancel</button><button class="btn-solid" id="sf-save-btn" onclick="saveShopProduct()">'+(slug?'Update':'Add Product')+'</button>';
   if(!slug){document.getElementById('sf-name').addEventListener('input',function(){document.getElementById('sf-slug').value=this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');});}
   openSheet(slug?'Edit Product':'Add Product',slug||'New product');
 }
-
 function handleShopPhotoSelect(input){
   var file=input.files[0];if(!file)return;
   var slug=document.getElementById('sf-slug').value.trim()||('product-'+Date.now());
@@ -666,7 +736,6 @@ function handleShopPhotoSelect(input){
   xhr.onload=function(){if(xhr.status===200){uploadedPhotoUrl='https://storage.googleapis.com/'+FIREBASE_STORAGE_BUCKET+'/'+path;if(statusEl){statusEl.textContent='Photo uploaded ✓';statusEl.className='photo-status done';}}else{if(statusEl){statusEl.textContent='Upload failed: '+xhr.status;statusEl.className='photo-status err';}}};
   xhr.onerror=function(){if(statusEl){statusEl.textContent='Upload failed';statusEl.className='photo-status err';}};xhr.send(file);
 }
-
 function saveShopProduct(){
   var name=document.getElementById('sf-name').value.trim(),slug=document.getElementById('sf-slug').value.trim(),category=document.getElementById('sf-cat').value,price=parseFloat(document.getElementById('sf-price').value),desc=document.getElementById('sf-desc').value.trim();
   if(!name||!slug||!price){alert('Name, slug and price are required.');return;}
@@ -675,9 +744,7 @@ function saveShopProduct(){
   else{if(shopProducts.find(function(p){return p.slug===slug;})){alert('Slug already exists.');return;}shopProducts.push(product);}
   commitShopToGitHub(false);
 }
-
 function deleteShopProduct(slug){if(!confirm('Delete "'+slug+'"?'))return;shopProducts=shopProducts.filter(function(p){return p.slug!==slug;});commitShopToGitHub(true);}
-
 function commitShopToGitHub(isDelete){
   var btn=document.getElementById('sf-save-btn');if(btn){btn.disabled=true;btn.textContent='Saving...';}
   var content=btoa(unescape(encodeURIComponent(JSON.stringify(shopProducts,null,2))));
@@ -704,7 +771,6 @@ function getFilamentColor(n){var l=n.toLowerCase();if(l.includes('red'))return'#
 
 // NAV
 function topbarAction(){if(currentPage==='orders')openNewOrder();else if(currentPage==='filament')openAddFilament();else if(currentPage==='shop'&&githubToken)openShopForm(null);}
-
 function showPage(page){
   currentPage=page;
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
@@ -722,7 +788,6 @@ function showPage(page){
   else if(page==='restock')document.getElementById('page-sub').textContent=filament.filter(function(f){return f.grams<=LOW_THRESHOLD;}).length+' need restocking';
   else if(page==='shop'){document.getElementById('page-sub').textContent=shopProducts.length+' products';renderShop();}
 }
-
 function openSheet(title,sub){document.getElementById('sheet-title').textContent=title;document.getElementById('sheet-sub').textContent=sub||'';document.getElementById('sheet-overlay').classList.add('open');document.getElementById('bottom-sheet').classList.add('open');}
 function closeSheet(){document.getElementById('sheet-overlay').classList.remove('open');document.getElementById('bottom-sheet').classList.remove('open');selectedItem=null;}
 </script>
