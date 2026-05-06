@@ -19,7 +19,7 @@ exports.getOrders = onRequest({ cors: true, region: "us-central1" }, (req, res) 
     try {
       const sheets = await getSheets();
       const [ordersRes, itemsRes, filamentRes, plannerRes] = await Promise.all([
-        sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Orders!A:K" }),
+        sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Orders!A:L" }),
         sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Order Items!A:H" }),
         sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Filament Inventory!A:B" }),
         sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Planner State!A:C" }).catch(() => ({ data: { values: [] } })),
@@ -43,6 +43,7 @@ exports.getOrders = onRequest({ cors: true, region: "us-central1" }, (req, res) 
         date: r[8] || "",
         isShiny: r[9] || "false",
         isMystery: r[10] || "false",
+        rush: r[11] || "false",
       })).filter(o => o.id);
 
       const items = itemsRows.slice(1).map((r, i) => ({
@@ -67,7 +68,7 @@ exports.getOrders = onRequest({ cors: true, region: "us-central1" }, (req, res) 
       const plannerState = {};
       plannerRows.slice(1).forEach(r => {
         if (r[0] && r[1] !== undefined) {
-          plannerState[r[0] + "_" + r[1]] = r[2] === "true";
+          plannerState[r[0] + "_" + r[1]] = (r[2] || "").toLowerCase() === "true";
         }
       });
 
@@ -170,10 +171,10 @@ exports.createOrder = onRequest({ cors: true, region: "us-central1" }, (req, res
       const date = new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
       await sheets.spreadsheets.values.append({
         spreadsheetId: SHEET_ID,
-        range: "Orders!A:K",
+        range: "Orders!A:L",
         valueInputOption: "USER_ENTERED",
         insertDataOption: "INSERT_ROWS",
-        requestBody: { values: [[id, customer, "", "", "Pending", payment || "Cash", notes || "", source || "Manual", date, "false", "false"]] },
+        requestBody: { values: [[id, customer, "", "", "Pending", payment || "Cash", notes || "", source || "Manual", date, "false", "false", "false"]] },
       });
       if (items && items.length) {
         const rows = items.map(it => {
@@ -342,6 +343,35 @@ exports.setplannerstate = onRequest({ cors: true, region: "us-central1" }, (req,
         });
       }
 
+      res.status(200).json({ success: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+});
+
+// POST /updateOrder - update order-level fields (e.g. rush)
+exports.updateOrder = onRequest({ cors: true, region: "us-central1" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    try {
+      const { orderId, rush } = req.body;
+      if (!orderId) return res.status(400).json({ error: "Missing orderId" });
+      const sheets = await getSheets();
+      const ordersRes = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: "Orders!A:A" });
+      const rows = ordersRes.data.values || [];
+      let rowIndex = -1;
+      for (let i = 1; i < rows.length; i++) {
+        if (rows[i][0] === orderId) { rowIndex = i + 1; break; }
+      }
+      if (rowIndex < 0) return res.status(404).json({ error: "Order not found" });
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SHEET_ID,
+        range: "Orders!L" + rowIndex,
+        valueInputOption: "USER_ENTERED",
+        requestBody: { values: [[rush]] },
+      });
       res.status(200).json({ success: true });
     } catch (err) {
       console.error(err);

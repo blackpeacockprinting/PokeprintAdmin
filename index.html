@@ -120,6 +120,7 @@ body{background:#0a0a0f;color:#e8e4dc;font-family:system-ui,-apple-system,sans-s
 .summary-label{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .summary-value{font-size:20px;font-weight:600;color:var(--gold)}
 .shiny-name{color:var(--gold)}
+.rush-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;background:rgba(226,75,74,0.18);color:var(--red);border:0.5px solid rgba(226,75,74,0.4);margin-left:6px;vertical-align:middle}
 .search-wrap{margin-bottom:10px}
 .search-input{width:100%;background:var(--surface);border:0.5px solid rgba(201,168,76,0.22);border-radius:6px;padding:10px 14px;color:#e8e4dc;font-size:14px;font-family:inherit;outline:none}
 .search-input:focus{border-color:var(--gold)}.search-input::placeholder{color:var(--muted)}
@@ -286,7 +287,8 @@ var URLS={
   addFilament:'https://addfilament-610025346733.us-central1.run.app',
   deductFilament:'https://deductfilament-610025346733.us-central1.run.app',
   deleteOrder:'https://deleteorder-610025346733.us-central1.run.app',
-  setPlannerState:'https://setplannerstate-610025346733.us-central1.run.app'
+  setPlannerState:'https://setplannerstate-610025346733.us-central1.run.app',
+  updateOrder:'https://updateorder-610025346733.us-central1.run.app'
 };
 var DESIGNS_URL='https://blackpeacockprinting.github.io/Pokeshop/designs.json';
 var PLANNER_URL='https://raw.githubusercontent.com/blackpeacockprinting/PokeprintAdmin/main/print-planner.json';
@@ -340,7 +342,7 @@ function refreshPlannerState(){
 // ORDERS
 function getOrderStatus(id){var oi=items.filter(function(it){return it.orderRef===id;});if(!oi.length)return'pending';var s=oi.map(function(it){return(it.status||'pending').toLowerCase();});if(s.some(function(x){return x==='printing';}))return'printing';if(s.every(function(x){return x==='completed';}))return'completed';return'pending';}
 function getOrderTotal(id){return items.filter(function(it){return it.orderRef===id;}).reduce(function(s,it){return s+(it.price||0);},0);}
-function sortOrders(list){var pr=[],pe=[],co=[];list.forEach(function(o){var s=getOrderStatus(o.id);if(s==='printing')pr.push(o);else if(s==='completed')co.push(o);else pe.push(o);});return pr.concat(pe).concat(co);}
+function sortOrders(list){var pr=[],pe=[],co=[];list.forEach(function(o){var s=getOrderStatus(o.id);if(s==='printing')pr.push(o);else if(s==='completed')co.push(o);else pe.push(o);});function rushFirst(a,b){return(b.rush==='true'?1:0)-(a.rush==='true'?1:0);}pr.sort(rushFirst);pe.sort(rushFirst);return pr.concat(pe).concat(co);}
 
 function renderOrders(){
   var filtered=sortOrders(orderFilter==='all'?orders:orders.filter(function(o){return getOrderStatus(o.id)===orderFilter;}));
@@ -358,7 +360,7 @@ function renderOrders(){
     html+='<div class="order-expand" id="oe-'+o.id+'">';
     if(oi.length){oi.forEach(function(it){var ds=(it.status||'pending').toLowerCase();html+='<div class="design-item" onclick="openDesignDetail('+it.row+')"><div class="design-ball" style="background:'+getBallBg(it.name)+';border:1.5px solid '+getBallBorder(it.name)+'">'+getBallSVG(it.name)+'</div><div class="design-info"><div class="design-name'+(it.shiny==='true'?' shiny-name':'')+'">'+( it.shiny==='true'?'<span class="shiny-star">&#10022;</span>':'')+it.name+'</div><div class="design-sub">$'+(it.price||0).toFixed(2)+' / cost $'+(it.cost||0).toFixed(2)+'</div></div><div class="design-right"><div class="design-status ds-'+ds+'">'+ds+'</div></div></div>';});}
     else{html+='<div style="padding:12px;font-size:13px;color:var(--muted);text-align:center">No designs yet</div>';}
-    html+='<div style="padding:10px 12px;border-top:0.5px solid var(--border);display:flex;gap:8px"><button class="btn-outline" style="flex:1;padding:8px;font-size:11px" onclick="openAddDesign(\''+o.id+'\')">+ Add design</button><button class="btn-danger" style="flex:1;padding:8px;font-size:11px" onclick="confirmDeleteOrder(\''+o.id+'\')">Delete order</button></div></div></div>';
+    html+='<div style="padding:10px 12px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="rush-lbl-'+o.id+'" style="font-size:12px;font-weight:600;color:'+(o.rush==='true'?'var(--red)':'var(--muted)')+'">Rush order</span><div class="toggle-sw '+(o.rush==='true'?'on':'')+' " style="'+(o.rush==='true'?'background:var(--red);border-color:rgba(226,75,74,0.6)':'')+';" data-oid="'+o.id+'" onclick="toggleRush(this)"></div></div><div style="display:flex;gap:8px"><button class="btn-outline" style="flex:1;padding:8px;font-size:11px" data-oid="'+o.id+'" onclick="openAddDesign(this.dataset.oid)">+ Add design</button><button class="btn-danger" style="flex:1;padding:8px;font-size:11px" data-oid="'+o.id+'" onclick="confirmDeleteOrder(this.dataset.oid)">Delete order</button></div></div></div></div>';
   });
   document.getElementById('page-orders').innerHTML=html;
 }
@@ -388,7 +390,7 @@ function openDesignDetail(row){
 }
 function setDesignStatus(btn,status){if(!selectedItem)return;document.querySelectorAll('.stbtn').forEach(function(b){b.className='stbtn';});btn.className='stbtn active-'+status.toLowerCase();api('updateItem','POST',{row:selectedItem.row,status:status,shiny:selectedItem.shiny}).then(function(){selectedItem.status=status;var it=items.find(function(i){return i.row===selectedItem.row;});if(it)it.status=status;if(status==='Completed')deductFilamentForDesign(selectedItem.name);renderOrders();});}
 function toggleShiny(){if(!selectedItem)return;var newShiny=selectedItem.shiny==='true'?'false':'true';selectedItem.shiny=newShiny;var t=document.getElementById('shiny-toggle');if(t)t.classList.toggle('on',newShiny==='true');var it=items.find(function(i){return i.row===selectedItem.row;});if(it)it.shiny=newShiny;api('updateItem','POST',{row:selectedItem.row,status:selectedItem.status,shiny:newShiny}).then(renderOrders);}
-function confirmDelete(row){if(!confirm('Delete this design from the order?'))return;api('deleteItem','POST',{row:row}).then(function(){items=items.filter(function(it){return it.row!==row;});closeSheet();renderOrders();});}
+function toggleRush(el){var oid=el.dataset.oid;var o=orders.find(function(x){return x.id===oid;});if(!o)return;var newRush=o.rush==='true'?'false':'true';o.rush=newRush;el.classList.toggle('on',newRush==='true');el.style.background=newRush==='true'?'var(--red)':'';el.style.borderColor=newRush==='true'?'rgba(226,75,74,0.6)':'';var lbl=document.querySelector('.rush-lbl-'+oid);if(lbl)lbl.style.color=newRush==='true'?'var(--red)':'var(--muted)';api('updateOrder','POST',{orderId:oid,rush:newRush});}function confirmDelete(row){if(!confirm('Delete this design from the order?'))return;api('deleteItem','POST',{row:row}).then(function(){items=items.filter(function(it){return it.row!==row;});closeSheet();renderOrders();});}
 function openAddDesign(orderRef){
   var designOptions=designs.map(function(d){var name=d.pokemon?d.pokemon.name.charAt(0).toUpperCase()+d.pokemon.name.slice(1):d.title;return'<option value="'+d.slug+'" data-name="'+name+'" data-price="'+getPrice(d.total_weight_grams||0)+'">'+name+'</option>';}).join('');
   var html='<div class="field"><label class="field-label">Pokemon</label><select class="field-select" id="add-slug" onchange="updateAddPrice()"><option value="">Select...</option>'+designOptions+'</select></div><div class="field"><label class="field-label">Price ($)</label><input class="field-input" type="number" id="add-price" value="8"></div>';
