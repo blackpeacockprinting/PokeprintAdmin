@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Black Peacock — Admin</title>
+<meta name="theme-color" content="#2E3742">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Black Peacock">
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --page:#2E3742; --panel:#39434F; --raise:#45505E; --rule:#525E6C;
+    --ink:#F2F5F8; --dim:#B4BEC9; --gold:#D9B85C;
+    --pad:16px;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--page); color:var(--ink);
+    font-family:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    font-size:16px; line-height:1.45; overscroll-behavior-y:none;
+  }
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{background:none;border:0;cursor:pointer}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .money{color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums}
+  .hide{display:none !important}
+
+  /* ---------- shell ---------- */
+  header.bar{
+    position:sticky;top:0;z-index:20;background:var(--page);
+    border-bottom:1px solid var(--rule);
+    padding:calc(env(safe-area-inset-top,0px) + 12px) var(--pad) 12px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .bar h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+  .bar .sub{font-size:12px;color:var(--dim);letter-spacing:.06em}
+  .bar .spacer{flex:1}
+  .iconbtn{padding:8px;color:var(--dim);font-size:13px;font-weight:600;letter-spacing:.04em}
+  main{padding:var(--pad);padding-bottom:calc(84px + var(--safe-b));max-width:720px;margin:0 auto}
+
+  nav.tabs{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:var(--panel);border-top:1px solid var(--rule);
+    display:grid;grid-template-columns:repeat(4,1fr);
+    padding-bottom:var(--safe-b);
+  }
+  nav.tabs button{
+    padding:12px 4px 14px;font-size:12px;font-weight:600;letter-spacing:.06em;
+    color:var(--dim);text-transform:uppercase;
+  }
+  nav.tabs button[aria-current="page"]{color:var(--ink);box-shadow:inset 0 2px 0 var(--gold)}
+
+  /* ---------- pieces ---------- */
+  .panel{background:var(--panel);border:1px solid var(--rule);padding:14px;margin-bottom:12px}
+  .two-up{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .hero{background:var(--panel);border:1px solid var(--rule);padding:14px}
+  .hero .label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .hero .big{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1.05;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+  .hero .foot{font-size:12px;color:var(--dim)}
+  .strip{
+    display:flex;justify-content:space-between;align-items:baseline;
+    background:var(--panel);border:1px solid var(--rule);padding:12px 14px;margin-bottom:20px;
+  }
+  .strip .label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .strip .val{font-size:22px}
+  h2.section{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:22px 0 8px;font-weight:600}
+
+  .row{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:var(--panel);border:1px solid var(--rule);border-bottom:0;padding:12px 14px;
+  }
+  .row:last-child{border-bottom:1px solid var(--rule)}
+  .row:active{background:var(--raise)}
+  .row .grow{flex:1;min-width:0}
+  .row .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .meta{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{
+    display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    border:1px solid var(--rule);padding:1px 5px;color:var(--dim);margin-left:6px;vertical-align:1px;
+  }
+
+  /* four-square pipeline */
+  .pipe{display:flex;gap:3px;flex:0 0 auto}
+  .pipe i{width:9px;height:9px;border:1px solid var(--rule);display:block}
+  .pipe i.on{background:var(--ink);border-color:var(--ink)}
+  .pipe.unclaimed i{
+    border-color:var(--dim);
+    background:repeating-linear-gradient(45deg,var(--dim) 0 1px,transparent 1px 3px);
+  }
+  .tapzone{padding:8px;margin:-8px;flex:0 0 auto}
+  .thumb{
+    width:40px;height:40px;flex:0 0 auto;object-fit:cover;display:block;
+    background:var(--raise);border:1px solid var(--rule);
+  }
+  .thumb.ph{background:var(--raise)}
+
+  .progress{height:3px;background:var(--rule);margin:14px 0 4px}
+  .progress span{display:block;height:100%;background:var(--ink)}
+
+  .chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .chip{
+    border:1px solid var(--rule);padding:6px 12px;font-size:12px;font-weight:600;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--dim);
+  }
+  .chip[aria-pressed="true"]{background:var(--raise);color:var(--ink);border-color:var(--dim)}
+
+  label.field{display:block;margin-bottom:12px}
+  label.field span{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+  input[type=text],input[type=email],input[type=tel],input[type=password],input[type=number],textarea,select{
+    width:100%;background:var(--page);border:1px solid var(--rule);padding:11px 12px;border-radius:0;
+    -webkit-appearance:none;appearance:none;
+  }
+  textarea{min-height:70px;resize:vertical}
+  input::placeholder,textarea::placeholder{color:#7C8896}
+
+  .btn{
+    display:block;width:100%;text-align:center;border:1px solid var(--dim);
+    padding:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px;
+  }
+  .btn:active{background:var(--raise)}
+  .btn.primary{background:var(--ink);color:var(--page);border-color:var(--ink)}
+  .btn.quiet{border-color:var(--rule);color:var(--dim)}
+  .btn[disabled]{opacity:.4;pointer-events:none}
+  .btn + .btn{margin-top:10px}
+
+  .stepper{display:flex;align-items:center;border:1px solid var(--rule);flex:0 0 auto}
+  .cartrow{
+    display:block;
+    background:var(--panel);border:1px solid var(--rule);border-bottom:0;padding:12px 14px;
+  }
+  .cartrow:last-of-type{border-bottom:1px solid var(--rule)}
+  .cartline{display:flex;align-items:center;gap:10px}
+  .cartname{flex:1 1 auto;min-width:0;display:block;overflow:hidden}
+  .cartname .name{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cartname .meta{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cartctl{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+  .stepper button{width:38px;height:38px;font-size:18px;font-weight:600;color:var(--dim)}
+  .stepper .n{width:34px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+  .priceinput{width:82px;text-align:right}
+
+  .empty{border:1px dashed var(--rule);padding:24px 16px;text-align:center;color:var(--dim);font-size:14px}
+
+  /* toast + sheet */
+  #toast{
+    position:fixed;left:12px;right:12px;bottom:calc(94px + var(--safe-b));z-index:60;
+    background:var(--raise);border:1px solid var(--dim);padding:12px 14px;font-size:14px;
+    box-shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+  #toast.err{border-color:#E08B7A}
+  #scrim{position:fixed;inset:0;background:rgba(14,18,22,.72);z-index:40}
+  #sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--panel);
+    border-top:1px solid var(--dim);padding:18px var(--pad) calc(18px + var(--safe-b));
+    max-width:720px;margin:0 auto;
+  }
+  #sheet h3{margin:0 0 4px;font-size:16px}
+  #sheet p.hint{margin:0 0 14px;font-size:13px;color:var(--dim)}
+  #sheet .btn{margin-top:8px}
+
+  .center{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .login{width:100%;max-width:340px}
+  .login .mark{font-size:15px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;text-align:center;margin-bottom:6px}
+  .login .tag{font-size:12px;color:var(--dim);text-align:center;margin-bottom:26px;letter-spacing:.06em}
+  .warn{border:1px solid var(--gold);padding:12px 14px;font-size:13px;margin-bottom:14px;color:var(--ink)}
+
+  @media (prefers-reduced-motion:no-preference){
+    .row,.chip,.btn{transition:background .12s ease}
+  }
+</style>
+</head>
+<body>
+
+<div id="app"><div class="center"><p style="color:var(--dim)">Loading…</p></div></div>
+<div id="modal"></div>
+<div id="toastwrap"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const BUILD = 'Build 4 · 9 Aug';
+
+const SUPABASE_URL = 'https://bcbbwomddlrurazmhivc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_oYFZJgovrJlTHhZIliUhiw_yGtUo7eg';
+
+/* localStorage isn't available in every preview sandbox; fall back to memory
+   so the app still runs, it just forgets the login on reload. */
+const mem = {};
+const store = (() => {
+  try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return localStorage; }
+  catch { return { getItem:k=>k in mem?mem[k]:null, setItem:(k,v)=>{mem[k]=String(v)}, removeItem:k=>{delete mem[k]} }; }
+})();
+
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth:{ storage:store, persistSession:true, autoRefreshToken:true, detectSessionInUrl:false }
+});
+
+/* ---------------- state ---------------- */
+const S = {
+  view:'today', orderId:null, filter:'open',
+  orders:[], items:[], openItems:[], designs:[], customs:[], settings:null, imgBySlug:{},
+  cart:[], query:'', busy:false, loaded:false, user:null,
+  form:{ first:'', last:'', email:'', phone:'', lang:'en', notes:'', sendEmail:false }
+};
+
+const ITEM_WORD = { new:'To print', printing:'Printing', ready:'Done', collected:'Collected', unclaimed:'Unclaimed' };
+const ORDER_WORD = { new:'New', printing:'Printing', ready:'Ready', collected:'Collected', unclaimed:'Unclaimed' };
+const STEP = { new:1, printing:2, ready:3, collected:4 };
+const PAYMENTS = [['cash','Cash'],['paypal','PayPal'],['bank_transfer','Bank transfer']];
+
+const SYM = { USD:'$', EUR:'€' };
+const symOf = c => SYM[String(c || 'EUR').trim().toUpperCase()] || '';
+const money = (n, c) => symOf(c) + (Number(n)||0).toFixed(2);
+const defCur = () => String((S.settings && S.settings.default_currency) || 'EUR').trim();
+/* Orders can sit in different currencies during a move. Never add them together. */
+function sumByCurrency(rows, pick){
+  const t = {};
+  rows.forEach(r => {
+    const c = String(r.currency || 'EUR').trim();
+    t[c] = (t[c] || 0) + (Number(pick(r)) || 0);
+  });
+  return t;
+}
+const moneyList = t => {
+  const ks = Object.keys(t).sort();
+  return ks.length ? ks.map(k => money(t[k], k)).join('  ·  ') : money(0, defCur());
+};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = n => Number(n) || 0;
+const el = id => document.getElementById(id);
+
+/* N3D artwork is licensed for internal use only. Never render these on the
+   storefront or in anything public-facing. */
+function thumb(src){
+  return src
+    ? `<img class="thumb" src="${esc(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+    : `<span class="thumb ph" aria-hidden="true"></span>`;
+}
+
+function toast(msg, isErr){
+  el('toastwrap').innerHTML = `<div id="toast" class="${isErr?'err':''}" role="status">${esc(msg)}</div>`;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el('toastwrap').innerHTML = ''; }, isErr ? 6500 : 3000);
+}
+const oops = e => toast(e?.message || String(e), true);
+
+/* ---------------- data ---------------- */
+async function loadCore(){
+  const [o, oi, st] = await Promise.all([
+    sb.from('orders_view').select('*').order('placed_at',{ascending:false}).limit(400),
+    sb.from('order_items').select('qty,status').in('status',['new','printing']),
+    sb.from('settings').select('*').limit(1).maybeSingle()
+  ]);
+  if (o.error) throw o.error;
+  S.orders = o.data || [];
+  S.openItems = oi.data || [];
+  S.settings = st.data || null;
+}
+
+async function loadCatalogue(){
+  if (S.designs.length) return;
+  const [d, c] = await Promise.all([
+    sb.from('designs')
+      .select('slug,display_name,pokemon_name,pokedex_number,total_weight_grams,suggested_price_eur,entitled,name_de,image_url')
+      .eq('active', true).order('display_name'),
+    sb.from('custom_products')
+      .select('slug,name_en,name_de,kind,price_eur,weight_grams,photo')
+      .eq('active', true).order('sort_order')
+  ]);
+  if (d.error) throw d.error;
+  S.designs = d.data || [];
+  S.customs = c.data || [];
+  S.imgBySlug = {};
+  S.designs.forEach(x => { if (x.image_url) S.imgBySlug[x.slug] = x.image_url; });
+  S.customs.forEach(x => { if (x.photo) S.imgBySlug[x.slug] = x.photo; });
+}
+
+async function loadItems(orderId){
+  const { data, error } = await sb.from('order_items')
+    .select('*').eq('order_id', orderId).order('name_en');
+  if (error) throw error;
+  S.items = data || [];
+}
+
+async function refresh(){
+  try { await loadCore(); if (S.orderId) await loadItems(S.orderId); render(); }
+  catch(e){ oops(e); }
+}
+
+/* ---------------- views ---------------- */
+function pipe(status){
+  const un = status === 'unclaimed';
+  const step = STEP[status] || 0;
+  const cells = [1,2,3,4].map(i => `<i class="${!un && i<=step?'on':''}"></i>`).join('');
+  return `<span class="pipe ${un?'unclaimed':''}" aria-hidden="true">${cells}</span>`;
+}
+
+function viewToday(){
+  const ready    = S.orders.filter(o => o.status === 'ready');
+  const printing = S.orders.filter(o => o.status === 'new' || o.status === 'printing');
+  const toPrint  = S.openItems.reduce((a,i) => a + num(i.qty), 0);
+  const onPlate  = S.openItems.filter(i => i.status === 'printing').reduce((a,i) => a + num(i.qty), 0);
+  const waiting  = sumByCurrency(ready, o => o.total_eur);
+  const owed     = sumByCurrency(S.orders.filter(o => o.status !== 'collected'), o => o.total_eur);
+
+  const needsNote = S.settings && S.settings.receipts_enabled && !String(S.settings.tax_note || '').trim();
+
+  return `
+    ${needsNote ? `<div class="warn"><strong>Receipts are switched on but the tax note is empty.</strong>
+      Collecting an order will be refused until you add it on the Setup tab.</div>` : ''}
+    <div class="two-up">
+      <div class="hero">
+        <div class="label">To print</div>
+        <div class="big">${toPrint}</div>
+        <div class="foot">${onPlate ? onPlate + ' on a plate now' : 'nothing printing'}</div>
+      </div>
+      <div class="hero">
+        <div class="label">Pending pickup</div>
+        <div class="big">${ready.length}</div>
+        <div class="foot"><span class="money">${moneyList(waiting)}</span> waiting</div>
+      </div>
+    </div>
+    <div class="strip">
+      <span class="label">Uncollected</span>
+      <span class="val money">${moneyList(owed)}</span>
+    </div>
+
+    <h2 class="section">Ready for pickup</h2>
+    ${ready.length ? ready.map(orderRow).join('') : `<div class="empty">Nothing on the shelf.</div>`}
+
+    <h2 class="section">Still printing</h2>
+    ${printing.length ? printing.map(orderRow).join('') : `<div class="empty">Queue is clear. Suspicious.</div>`}
+  `;
+}
+
+function orderRow(o){
+  const name = [o.first_name, o.last_name].filter(Boolean).join(' ');
+  const src  = o.source === 'manual' ? '<span class="badge">by hand</span>' : '<span class="badge">web</span>';
+  return `
+    <button class="row" data-open="${o.id}">
+      ${pipe(o.status)}
+      <span class="grow">
+        <span class="name">${esc(name)}${src}</span>
+        <span class="meta">${o.items_done} of ${o.item_count} · ${ORDER_WORD[o.status]||o.status} · ${esc(o.ref)}</span>
+      </span>
+      <span class="money">${money(o.total_eur, o.currency)}</span>
+    </button>`;
+}
+
+function viewOrders(){
+  const f = S.filter;
+  const list = S.orders.filter(o =>
+    f === 'all'  ? true :
+    f === 'ready'? o.status === 'ready' :
+    f === 'done' ? o.status === 'collected' :
+                   ['new','printing','ready'].includes(o.status));
+  const chip = (k,l) => `<button class="chip" data-filter="${k}" aria-pressed="${f===k}">${l}</button>`;
+  return `
+    <div class="chips">${chip('open','Open')}${chip('ready','Ready')}${chip('done','Collected')}${chip('all','All')}</div>
+    ${list.length ? list.map(orderRow).join('') : `<div class="empty">No orders here.</div>`}
+  `;
+}
+
+function viewOrder(){
+  const o = S.orders.find(x => x.id === S.orderId);
+  if (!o) return `<div class="empty">That order has gone.</div>`;
+  const name = [o.first_name, o.last_name].filter(Boolean).join(' ');
+  const total = S.items.reduce((a,i) => a + num(i.line_total_eur), 0);
+  const qtyAll  = S.items.reduce((a,i) => a + num(i.qty), 0);
+  const qtyDone = S.items.filter(i => ['ready','collected'].includes(i.status))
+                         .reduce((a,i) => a + num(i.qty), 0);
+  const pct = qtyAll ? Math.round(qtyDone / qtyAll * 100) : 0;
+  const collected = !!o.collected_at;
+
+  const contact = [o.email, o.phone].filter(Boolean).map(esc).join(' · ') || 'no contact details';
+
+  return `
+    <button class="iconbtn" data-back style="padding-left:0">‹ Back</button>
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+        <div>
+          <div style="font-size:20px;font-weight:700">${esc(name)}</div>
+          <div class="meta" style="font-size:12px;color:var(--dim)">${esc(o.ref)} · ${o.lang.toUpperCase()} · ${o.source === 'manual' ? 'by hand' : 'web'}</div>
+        </div>
+        <div class="money" style="font-size:22px">${money(total, o.currency)}</div>
+      </div>
+      <div class="progress"><span style="width:${pct}%"></span></div>
+      <div style="font-size:12px;color:var(--dim)">${qtyDone} of ${qtyAll} done · ${contact}</div>
+      ${o.shiny_request ? `<div style="font-size:13px;margin-top:8px">Shiny request: ${esc(o.shiny_request)}</div>` : ''}
+      ${o.admin_notes ? `<div style="font-size:13px;margin-top:8px;color:var(--dim)">${esc(o.admin_notes)}</div>` : ''}
+      ${collected ? `<div style="font-size:13px;margin-top:10px">Collected ${new Date(o.collected_at).toLocaleDateString()} · paid by ${esc(o.paid_with||'')}</div>` : ''}
+    </div>
+
+    <h2 class="section">Items — tap the squares to advance</h2>
+    ${S.items.map(i => `
+      <div class="row">
+        <button class="tapzone" data-advance="${i.id}" aria-label="Advance ${esc(i.name_en)}">${pipe(i.status)}</button>
+        ${thumb(S.imgBySlug[i.slug])}
+        <button class="grow" data-item="${i.id}" style="text-align:left;background:none">
+          <span class="name">${i.qty > 1 ? i.qty + '× ' : ''}${esc(o.lang === 'de' && i.name_de ? i.name_de : i.name_en)}</span>
+          <span class="meta">${ITEM_WORD[i.status]||i.status}${i.kind !== 'figure' ? ' · ' + i.kind : ''}</span>
+        </button>
+        <span class="money">${money(i.line_total_eur, o.currency)}</span>
+      </div>`).join('')}
+
+    <div style="margin-top:20px">
+      ${collected ? `<p style="color:var(--dim);font-size:13px">This order is closed. Corrections need a reversing receipt — shout and I'll walk you through it.</p>`
+      : `
+        <button class="btn primary" data-collect>Mark collected</button>
+        <button class="btn quiet" data-readymail ${o.email ? '' : 'disabled'}>
+          ${o.email ? 'Send pickup email' : 'No email on file'}
+        </button>`}
+    </div>
+  `;
+}
+
+function viewNew(){
+  const f = S.form;
+  const q = S.query.trim().toLowerCase();
+  let results = [];
+  if (q.length >= 2){
+    const dex = q.replace(/^0+/,'');
+    results = S.designs.filter(d =>
+      (d.display_name||'').toLowerCase().includes(q) ||
+      (d.pokemon_name||'').toLowerCase().includes(q) ||
+      (d.name_de||'').toLowerCase().includes(q) ||
+      String(d.pokedex_number||'') === dex
+    ).slice(0,25).map(d => ({
+      catalogue:'n3d', slug:d.slug, name_en:d.display_name, name_de:d.name_de,
+      kind:'figure', unit_price_eur:num(d.suggested_price_eur) || 8,
+      weight_grams:d.total_weight_grams, image:d.image_url,
+      note:(d.entitled?'':'not in your rounds')
+    }));
+    const cust = S.customs.filter(c => (c.name_en||'').toLowerCase().includes(q))
+      .map(c => ({ catalogue:'custom', slug:c.slug, name_en:c.name_en, name_de:c.name_de,
+                   kind:c.kind, unit_price_eur:num(c.price_eur), weight_grams:c.weight_grams,
+                   image:c.photo, note:'own product' }));
+    results = [...cust, ...results].slice(0,25);
+  }
+
+  const total = S.cart.reduce((a,i) => a + i.unit_price_eur * i.qty, 0);
+
+  return `
+    <label class="field"><span>First name</span>
+      <input type="text" data-f="first" value="${esc(f.first)}" placeholder="Priya" autocomplete="off"></label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <label class="field"><span>Last name</span>
+        <input type="text" data-f="last" value="${esc(f.last)}" autocomplete="off"></label>
+      <label class="field"><span>Language</span>
+        <select data-f="lang">
+          <option value="en" ${f.lang==='en'?'selected':''}>English</option>
+          <option value="de" ${f.lang==='de'?'selected':''}>Deutsch</option>
+        </select></label>
+    </div>
+    <label class="field"><span>Email (optional)</span>
+      <input type="email" data-f="email" value="${esc(f.email)}" autocomplete="off" inputmode="email"></label>
+    <label class="field"><span>Phone (optional)</span>
+      <input type="tel" data-f="phone" value="${esc(f.phone)}" autocomplete="off"></label>
+    <label class="field"><span>Notes to yourself (optional)</span>
+      <textarea data-f="notes">${esc(f.notes)}</textarea></label>
+
+    <h2 class="section">Items</h2>
+    <label class="field"><span>Search the catalogue</span>
+      <input type="text" id="q" value="${esc(S.query)}" placeholder="charizard, 006, sylveon…" autocomplete="off"></label>
+
+    ${results.map((r,ix) => `
+      <button class="row" data-add="${ix}">
+        ${thumb(r.image)}
+        <span class="grow">
+          <span class="name">${esc(r.name_en)}</span>
+          <span class="meta">${r.weight_grams ? Math.round(r.weight_grams)+'g' : '—'}${r.note ? ' · '+esc(r.note) : ''}</span>
+        </span>
+        <span class="money">${money(r.unit_price_eur, defCur())}</span>
+      </button>`).join('')}
+    ${q.length >= 2 && !results.length ? `<div class="empty">Nothing matches “${esc(S.query)}”.</div>` : ''}
+
+    ${S.cart.length ? `
+      <h2 class="section">This order</h2>
+      ${S.cart.map((c,ix) => `
+        <div class="cartrow">
+          <span class="cartline">
+            ${thumb(S.imgBySlug[c.slug])}
+            <span class="cartname">
+              <span class="name">${esc(c.name_en)}</span>
+              <span class="meta">${esc(c.slug)}</span>
+            </span>
+          </span>
+          <span class="cartctl">
+            <span class="stepper">
+              <button data-qty="${ix}" data-d="-1" aria-label="One fewer">−</button>
+              <span class="n">${c.qty}</span>
+              <button data-qty="${ix}" data-d="1" aria-label="One more">+</button>
+            </span>
+            <input class="priceinput" type="number" step="0.50" min="0" data-price="${ix}" value="${c.unit_price_eur.toFixed(2)}" aria-label="Price each">
+          </span>
+        </div>`).join('')}
+      <div class="strip" style="margin-top:12px">
+        <span class="label">Order total · ${esc(defCur())}</span><span class="val money">${money(total, defCur())}</span>
+      </div>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin:4px 0 14px;font-size:14px;color:var(--dim)">
+        <input type="checkbox" data-f="sendEmail" ${f.sendEmail?'checked':''} ${f.email?'':'disabled'} style="width:auto;margin-top:3px">
+        <span>Email them a confirmation with the tracking link${f.email?'':' — needs an email address'}</span>
+      </label>
+      <button class="btn primary" data-save>Save order</button>
+      <button class="btn quiet" data-clear>Clear</button>
+    ` : `<div class="empty" style="margin-top:16px">Search above, then tap to add.</div>`}
+  `;
+}
+
+function viewSetup(){
+  const s = S.settings || {};
+  const on = !!s.receipts_enabled;
+  const missing = on && !String(s.tax_note||'').trim();
+  return `
+    <div class="panel">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <input type="checkbox" data-sbool="receipts_enabled" ${on?'checked':''} style="width:auto;margin-top:4px">
+        <div>
+          <div style="font-weight:600">Issue German receipts</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:3px">
+            ${on ? 'On. Every collected order gets a numbered receipt.'
+                 : 'Off. Orders still collect and still count as revenue, they just stay out of the German numbering. Turn this on after the move, once the wording below is confirmed.'}
+          </div>
+        </div>
+      </div>
+    </div>
+    ${missing ? `<div class="warn"><strong>The tax note is empty.</strong> With receipts switched on, the
+      database will refuse to close an order. A receipt with a blank exemption line is worse than none.</div>` : ''}
+    <label class="field"><span>Currency for new orders</span>
+      <select data-s="default_currency">
+        <option value="USD" ${defCur()==='USD'?'selected':''}>US dollars ($) — Osan</option>
+        <option value="EUR" ${defCur()==='EUR'?'selected':''}>Euros (€) — after the move</option>
+      </select></label>
+    <p style="color:var(--dim);font-size:12px;margin:-4px 0 18px">
+      Only affects orders you take from now on. Anything already saved keeps the currency it was taken in.
+      Suggested prices stay 8 / 10 / 12 either way — that is your price list, not a conversion.
+    </p>
+
+    <label class="field"><span>Business name on receipts</span>
+      <input type="text" data-s="seller_name" value="${esc(s.seller_name)}" placeholder="Trevor Goss – Black Peacock Printing"></label>
+    <label class="field"><span>Address on receipts</span>
+      <textarea data-s="seller_address">${esc(s.seller_address)}</textarea></label>
+    <label class="field"><span>Tax note (from your tax adviser)</span>
+      <textarea data-s="tax_note" placeholder="The small-business exemption sentence, word for word">${esc(s.tax_note)}</textarea></label>
+    <label class="field"><span>Where new web orders notify you</span>
+      <input type="email" data-s="notify_email" value="${esc(s.notify_email)}"></label>
+    <button class="btn primary" data-savesettings>Save setup</button>
+
+    <h2 class="section">Your login</h2>
+    <p style="color:var(--dim);font-size:13px;margin:0 0 12px">
+      Signed in as ${esc((S.user && S.user.email) || '')}
+    </p>
+    <label class="field"><span>New password</span>
+      <input type="password" id="np" autocomplete="new-password" placeholder="at least 8 characters"></label>
+    <button class="btn" data-newpass>Change password</button>
+
+    <button class="btn quiet" data-signout style="margin-top:24px">Sign out</button>
+    <p style="color:var(--dim);font-size:12px;margin-top:20px">
+      ${BUILD} · catalogue refreshes nightly at 03:40 UTC. ${S.designs.length ? S.designs.length + ' designs loaded.' : ''}
+    </p>
+  `;
+}
+
+function render(){
+  const body =
+    S.view === 'today'  ? viewToday()  :
+    S.view === 'orders' ? viewOrders() :
+    S.view === 'order'  ? viewOrder()  :
+    S.view === 'new'    ? viewNew()    :
+                          viewSetup();
+
+  const title =
+    S.view === 'new'   ? 'New order' :
+    S.view === 'setup' ? 'Setup'     :
+    S.view === 'order' ? 'Order'     :
+    S.view === 'orders'? 'Orders'    : 'Today';
+
+  const tab = (k,l) => `<button data-tab="${k}" ${['today','orders','new','setup'].includes(S.view) && S.view===k ? 'aria-current="page"' : ''}>${l}</button>`;
+
+  el('app').innerHTML = `
+    <header class="bar">
+      <div>
+        <h1>Black Peacock</h1>
+        <div class="sub">${title}</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="iconbtn" data-refresh>Refresh</button>
+    </header>
+    <main>${body}</main>
+    <nav class="tabs">${tab('today','Today')}${tab('orders','Orders')}${tab('new','New')}${tab('setup','Setup')}</nav>
+  `;
+  if (S.view === 'new'){
+    const q = el('q');
+    if (q && S.query) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+  }
+}
+
+/* ---------------- sheet ---------------- */
+function sheet(html){
+  el('modal').innerHTML = `<div id="scrim" data-close></div><div id="sheet" role="dialog" aria-modal="true">${html}</div>`;
+}
+const closeSheet = () => { el('modal').innerHTML = ''; };
+
+/* ---------------- events ---------------- */
+document.addEventListener('click', async ev => {
+  const t = ev.target.closest('[data-newpass],[data-tab],[data-open],[data-back],[data-filter],[data-advance],[data-item],[data-add],[data-qty],[data-collect],[data-readymail],[data-save],[data-clear],[data-refresh],[data-close],[data-setstatus],[data-pay],[data-savesettings],[data-signout]');
+  if (!t) return;
+  const d = t.dataset;
+
+  if (d.close !== undefined) return closeSheet();
+
+  if (d.tab){
+    S.view = d.tab; S.orderId = null;
+    if (d.tab === 'new'){ try { await loadCatalogue(); } catch(e){ oops(e); } }
+    return render();
+  }
+  if (d.refresh !== undefined){ toast('Refreshing…'); return refresh(); }
+  if (d.back !== undefined){ S.view = 'orders'; S.orderId = null; return render(); }
+  if (d.filter){ S.filter = d.filter; return render(); }
+
+  if (d.open){
+    S.orderId = d.open; S.view = 'order';
+    try { await loadItems(d.open); render(); } catch(e){ oops(e); }
+    return;
+  }
+
+  if (d.advance){
+    const it = S.items.find(i => i.id === d.advance);
+    if (!it) return;
+    const next = { new:'printing', printing:'ready', ready:'ready', collected:'collected', unclaimed:'unclaimed' }[it.status];
+    if (next === it.status) return toast('Already done. Tap the name to change it.');
+    return setItemStatus(it.id, next);
+  }
+
+  if (d.item){
+    const it = S.items.find(i => i.id === d.item);
+    if (!it) return;
+    sheet(`
+      <h3>${esc(it.name_en)}</h3>
+      <p class="hint">Currently ${ITEM_WORD[it.status]}.</p>
+      ${['new','printing','ready','unclaimed'].map(s =>
+        `<button class="btn ${s===it.status?'primary':''}" data-setstatus="${s}" data-id="${it.id}">${ITEM_WORD[s]}</button>`).join('')}
+      <button class="btn quiet" data-close>Cancel</button>
+    `);
+    return;
+  }
+
+  if (d.setstatus){ closeSheet(); return setItemStatus(d.id, d.setstatus); }
+
+  if (d.collect !== undefined){
+    const unfinished = S.items.filter(i => ['new','printing'].includes(i.status)).length;
+    sheet(`
+      <h3>How did they pay?</h3>
+      <p class="hint">${unfinished ? unfinished + ' item(s) not marked done yet. They will be counted as handed over.' : 'This writes the receipt and closes the order.'}</p>
+      ${PAYMENTS.map(([k,l]) => `<button class="btn" data-pay="${k}">${l}</button>`).join('')}
+      <button class="btn quiet" data-close>Cancel</button>
+    `);
+    return;
+  }
+
+  if (d.pay){
+    closeSheet();
+    if (S.busy) return;
+    S.busy = true;
+    try {
+      const { data, error } = await sb.rpc('collect_order', { p_order_id:S.orderId, p_paid_with:d.pay });
+      if (error) throw error;
+      toast(data ? 'Collected. Receipt ' + data : 'Collected.');
+      await loadCore(); await loadItems(S.orderId); render();
+    } catch(e){ oops(e); } finally { S.busy = false; }
+    return;
+  }
+
+  if (d.readymail !== undefined){
+    try {
+      const { error } = await sb.rpc('queue_ready_email', { p_order_id:S.orderId });
+      if (error) throw error;
+      toast('Pickup email queued — it sends within a minute.');
+    } catch(e){ oops(e); }
+    return;
+  }
+
+  if (d.add !== undefined){
+    const q = S.query.trim().toLowerCase();
+    const dex = q.replace(/^0+/,'');
+    const cust = S.customs.filter(c => (c.name_en||'').toLowerCase().includes(q))
+      .map(c => ({ catalogue:'custom', slug:c.slug, name_en:c.name_en, name_de:c.name_de,
+                   kind:c.kind, unit_price_eur:num(c.price_eur), weight_grams:c.weight_grams }));
+    const des = S.designs.filter(x =>
+      (x.display_name||'').toLowerCase().includes(q) ||
+      (x.pokemon_name||'').toLowerCase().includes(q) ||
+      (x.name_de||'').toLowerCase().includes(q) ||
+      String(x.pokedex_number||'') === dex
+    ).slice(0,25).map(x => ({
+      catalogue:'n3d', slug:x.slug, name_en:x.display_name, name_de:x.name_de,
+      kind:'figure', unit_price_eur:num(x.suggested_price_eur) || 8, weight_grams:x.total_weight_grams
+    }));
+    const pick = [...cust, ...des].slice(0,25)[Number(d.add)];
+    if (!pick) return;
+    const found = S.cart.find(c => c.slug === pick.slug);
+    if (found) found.qty = Math.min(20, found.qty + 1);
+    else S.cart.push({ ...pick, qty:1 });
+    S.query = '';
+    return render();
+  }
+
+  if (d.qty){
+    const c = S.cart[Number(d.qty)];
+    if (!c) return;
+    c.qty += Number(d.d);
+    if (c.qty < 1) S.cart.splice(Number(d.qty), 1);
+    if (c.qty > 20) c.qty = 20;
+    return render();
+  }
+
+  if (d.clear !== undefined){ S.cart = []; return render(); }
+
+  if (d.save !== undefined){
+    if (S.busy) return;
+    if (!S.form.first.trim()) return toast('Needs a first name.', true);
+    if (!S.cart.length) return toast('Add at least one item.', true);
+    S.busy = true;
+    try {
+      const { data, error } = await sb.rpc('create_manual_order', {
+        p_first_name:S.form.first, p_last_name:S.form.last, p_email:S.form.email,
+        p_phone:S.form.phone, p_contact_method:'in person', p_lang:S.form.lang,
+        p_shiny_request:null, p_admin_notes:S.form.notes,
+        p_items:S.cart.map(c => ({
+          catalogue:c.catalogue, slug:c.slug, name_en:c.name_en, name_de:c.name_de,
+          kind:c.kind, unit_price_eur:c.unit_price_eur, qty:c.qty, weight_grams:c.weight_grams
+        })),
+        p_send_email:!!S.form.sendEmail
+      });
+      if (error) throw error;
+      toast('Saved as ' + data);
+      S.cart = []; S.query = '';
+      S.form = { first:'', last:'', email:'', phone:'', lang:'en', notes:'', sendEmail:false };
+      await loadCore();
+      S.view = 'today'; render();
+    } catch(e){ oops(e); } finally { S.busy = false; }
+    return;
+  }
+
+  if (d.savesettings !== undefined){
+    const patch = {};
+    document.querySelectorAll('[data-s]').forEach(i => {
+      const v = i.value.trim();
+      if (i.dataset.s === 'tax_note' && !v) return;
+      patch[i.dataset.s] = v || null;
+    });
+    document.querySelectorAll('[data-sbool]').forEach(i => { patch[i.dataset.sbool] = i.checked; });
+    if (patch.receipts_enabled && !String(patch.tax_note||'').trim()){
+      return toast('Add the tax note before switching receipts on.', true);
+    }
+    try {
+      const { error } = await sb.from('settings').update(patch).eq('id', true);
+      if (error) throw error;
+      const { data } = await sb.from('settings').select('*').limit(1).maybeSingle();
+      S.settings = data; toast('Saved.'); render();
+    } catch(e){ oops(e); }
+    return;
+  }
+
+  if (d.newpass !== undefined){
+    const pw = (el('np') && el('np').value) || '';
+    if (pw.length < 8) return toast('Use at least 8 characters.', true);
+    try {
+      const { error } = await sb.auth.updateUser({ password: pw });
+      if (error) throw error;
+      el('np').value = '';
+      toast('Password changed. Save it somewhere sensible.');
+    } catch(e){ oops(e); }
+    return;
+  }
+
+  if (d.signout !== undefined){ await sb.auth.signOut(); location.reload(); }
+});
+
+async function setItemStatus(id, status){
+  try {
+    const { error } = await sb.from('order_items').update({ status }).eq('id', id);
+    if (error) throw error;
+    await loadItems(S.orderId);
+    await loadCore();
+    render();
+  } catch(e){ oops(e); }
+}
+
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.id === 'q'){ S.query = t.value; return render(); }
+  if (t.dataset.f){
+    S.form[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.value;
+    if (t.dataset.f === 'email' && !t.value) S.form.sendEmail = false;
+    return;
+  }
+  if (t.dataset.price !== undefined){
+    const c = S.cart[Number(t.dataset.price)];
+    if (c) c.unit_price_eur = Math.max(0, Number(t.value) || 0);
+  }
+});
+
+/* ---------------- login ---------------- */
+function renderLogin(msg){
+  el('app').innerHTML = `
+    <div class="center"><div class="login">
+      <div class="mark">Black Peacock</div>
+      <div class="tag">Admin · ${BUILD}</div>
+      ${msg ? `<div class="warn">${esc(msg)}</div>` : ''}
+      <label class="field"><span>Email</span>
+        <input type="email" id="le" autocomplete="username" inputmode="email"></label>
+      <label class="field"><span>Password</span>
+        <input type="password" id="lp" autocomplete="current-password"></label>
+      <button class="btn primary" id="lgo">Sign in</button>
+    </div></div>`;
+  el('lgo').onclick = async () => {
+    const email = el('le').value.trim(), password = el('lp').value;
+    el('lgo').textContent = 'Signing in…';
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error){ el('lgo').textContent = 'Sign in'; return renderLogin(error.message); }
+    boot();
+  };
+  el('lp').addEventListener('keydown', e => { if (e.key === 'Enter') el('lgo').click(); });
+}
+
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) return renderLogin();
+  S.user = session.user;
+  try {
+    await loadCore();
+    render();
+    loadCatalogue().then(render).catch(() => {});
+  }
+  catch(e){ oops(e); renderLogin('Could not load. ' + (e.message||'')); }
+}
+
+boot();
+</script>
+</body>
+</html>
